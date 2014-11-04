@@ -112,7 +112,9 @@
             document.getElementsByClassName("fa-angle-double-left")[0].parentNode.click();
     }
 
-    if (!localStorage.getItem("keyP") || !localStorage.getItem("budP") || !localStorage.getItem("lastupdt") || (new Date() - localStorage.getItem("lastupdt") >= 86400 * updateFreq))
+    if (!localStorage.getItem("keyP") || !localStorage.getItem("budP"))
+        update();
+    else if (!localStorage.getItem("lastupdt") || (new Date() - localStorage.getItem("lastupdt") >= 86400 * updateFreq))
         update();
 
     if (classifieds || listPage) {
