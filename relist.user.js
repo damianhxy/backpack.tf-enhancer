@@ -118,8 +118,8 @@
         update();
 
     if (classifieds || listPage) {
-        var keyP = localStorage.getItem("keyP"),
-            budP = localStorage.getItem("budP");
+        var keyP = +localStorage.getItem("keyP"),
+            budP = +localStorage.getItem("budP");
         sessionStorage.curPage = sessionStorage.curPage || 1;
         addButton("paused", "Paused", false);
         addButton("persistent", "Persistent", false);
