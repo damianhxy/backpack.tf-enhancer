@@ -12,4 +12,5 @@ Features:
 + Smart pricing using market prices
 + Automatic updating of currency prices
 + Persistent mode
-+ (minor) Shows number of new items
++ Counts number of new items
++ Customizable
