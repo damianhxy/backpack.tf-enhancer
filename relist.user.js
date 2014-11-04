@@ -2,12 +2,12 @@
 // @copyright           2014, Damian Ho
 // @description         Relists trades on Backpack.tf Classifieds
 // @grant               GM_xmlhttpRequest
-// @include             http*://backpack.tf/*
+// @include             /^https?:\/\/backpack\.tf.*/
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.user.js
-// @version             1.3.8.5
+// @version             1.3.9
 // ==/UserScript==
 
 (function () {
