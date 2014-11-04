@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.3.9
+// @version             1.4.0
 // ==/UserScript==
 
 (function () {
@@ -48,7 +48,7 @@
         button.setAttribute("style", "color: white; float: right; padding: 5px; margin-right: 5px; border-radius: 5px; border-color: black;" + "background-color: " + (JSON.parse(sessionStorage.getItem(prop)) ? "#628C2A;" : "#F15853;"));
         button.setAttribute("value", val);
         button.setAttribute("type", "button");
-        button.setAttribute("onclick", "sessionStorage.setItem('" + prop + "', !JSON.parse(sessionStorage.getItem('" + prop + "')));");
+        button.setAttribute("onclick", "window.stop(); sessionStorage.setItem('" + prop + "', !JSON.parse(sessionStorage.getItem('" + prop + "'))); location.reload();");
         document.getElementById("#navbar").appendChild(button);
     }
 
