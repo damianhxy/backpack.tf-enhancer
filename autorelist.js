@@ -6,6 +6,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
+// @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/autorelist.js
 // @version             1.3.8.5
 // ==/UserScript==
 
