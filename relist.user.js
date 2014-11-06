@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.2.1
+// @version             1.4.2.2
 // ==/UserScript==
 
 (function () {
@@ -120,31 +120,35 @@
                     killstreak = 0,
                     unpriced = 0;
                 for (var a = 0; a < itms.length; a++) {
-                    if (itms[a].hasAttribute("data-part-1-name")) {
-                        itms[a].style.backgroundColor = "lime";
-                        parted++;
-                    }
                     if (itms[a].hasAttribute("data-paint-name")) {
                         itms[a].style.backgroundColor = "pink";
                         painted++;
                     }
-                    if (itms[a].hasAttribute("data-spell-1"))
-                        itms[a].style.border = "4px #005EFF solid";
-                    if (itms[a].hasAttribute("data-default-name"))
-                        if (itms[a].getAttribute("data-default-name").contains("Killstreak"))
-                            if (!itms[a].getAttribute("data-default-name").contains("Kit")) {
-                                itms[a].style.borderRadius = "25%";
-                                killstreak++;
-                            }
-                    if (itms[a].getAttribute("title").contains("Killstreak"))
-                        if (!itms[a].getAttribute("title").contains("Kit")) {
-                            itms[a].style.borderRadius = "25%";
-                            killstreak++;
-                        }
+                    if (itms[a].hasAttribute("data-part-1-name")) {
+                        itms[a].style.backgroundColor = "lime";
+                        parted++;
+                    }
                     if (!+itms[a].getAttribute("data-price")) {
                         itms[a].style.backgroundColor = "grey";
                         unpriced++;
                     }
+                    if (itms[a].hasAttribute("data-spell-1"))
+                        itms[a].style.border = "4px #005EFF solid";
+                    if (itms[a].hasAttribute("data-default-name")) {
+                        var title = itms[a].getAttribute("data-default-name");
+                        if (title.contains("Killstreak") && !title.contains("Kit")) {
+                            itms[a].style.borderRadius = "25%";
+                            killstreak++;
+                        }
+                    }
+                    else {
+                        var title = itms[a].getAttribute("title");
+                        if (title.contains("Killstreak") && !title.contains("Kit")) {
+                            itms[a].style.borderRadius = "25%";
+                            killstreak++;
+                        }
+                    }
+
                 }
                 var note = document.createElement("small"),
                     panel = document.getElementsByClassName("panel-heading")[3];
