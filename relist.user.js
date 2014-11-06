@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.2.4
+// @version             1.4.2.5
 // ==/UserScript==
 
 (function () {
@@ -97,7 +97,7 @@
 
     if (!localStorage.getItem("keyP") || !localStorage.getItem("budP"))
         update();
-    else if (!localStorage.getItem("lastupdt") || (new Date() - localStorage.getItem("lastupdt") >= 86400 * updateFreq))
+    else if (!localStorage.getItem("lastupdt") || (new Date() - Date.parse(localStorage.getItem("lastupdt")) >= 86400e3 * updateFreq))
         update();
 
     if (window.location.href.contains("profiles")) {
