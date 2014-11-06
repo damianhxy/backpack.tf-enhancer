@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.2.5
+// @version             1.4.2.6
 // ==/UserScript==
 
 (function () {
@@ -19,7 +19,7 @@
         randomMin = 1,               //(minutes) minimum random reload time
         randomMax = 10,              //(minutes) maximum random reload time
         updateFreq = 3,              //(days) currency price refresh frequency
-        notes = "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
+        notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
     var listPage = window.location.href.contains("/add");
