@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.2.3
+// @version             1.4.2.4
 // ==/UserScript==
 
 (function () {
@@ -121,8 +121,10 @@
                     unpriced = 0;
                 for (var a = 0; a < itms.length; a++) {
                     if (itms[a].hasAttribute("data-paint-name")) {
-                        itms[a].style.backgroundColor = "pink";
-                        painted++;
+                        if (itms[a].getAttribute("data-paint-name") !== itms[a].getAttribute("data-name")) {
+                            itms[a].style.backgroundColor = "pink";
+                            painted++;
+                        }
                     }
                     if (itms[a].hasAttribute("data-part-1-name")) {
                         itms[a].style.backgroundColor = "lime";
@@ -148,7 +150,6 @@
                             killstreak++;
                         }
                     }
-
                 }
                 var note = document.createElement("small"),
                     panel = document.getElementsByClassName("panel-heading")[3];
