@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.2.2
+// @version             1.4.2.3
 // ==/UserScript==
 
 (function () {
@@ -110,7 +110,7 @@
         }
         else {
             setTimeout(function() {
-                document.querySelectorAll("[href='#page0']")[0].innerHTML += " >" + (document.getElementById("newlist").children.length - 1);
+                document.querySelectorAll("[href='#page0']")[0].innerHTML += " (" + (document.getElementById("newlist").children.length - 1) + ")";
             }, 1000)
             addButton("highlight", "Highlight", false);
             if (JSON.parse(sessionStorage.getItem("highlight"))) {
@@ -153,8 +153,8 @@
                 var note = document.createElement("small"),
                     panel = document.getElementsByClassName("panel-heading")[3];
                 note.setAttribute("style", "color: orange;");
-                note.innerHTML = " [Contains: " + killstreak + " killstreaked, " + parted + " parted, " + painted
-                               + " painted & " + unpriced + " unpriced item(s)]";
+                note.innerHTML = " (" + killstreak + " Killstreaked, " + parted + " Parted, " + painted
+                               + " Painted & " + unpriced + " Unpriced items)";
                 panel.insertBefore(note, panel.children[1]);
             }
         }
