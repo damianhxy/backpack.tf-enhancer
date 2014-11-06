@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.1
+// @version             1.4.2
 // ==/UserScript==
 
 (function () {
@@ -23,23 +23,10 @@
     /******** END OF SETTINGS *******/
 
     var listPage = window.location.href.contains("/add");
-    if (!listPage) {
-        if (window.location.href.contains("profiles")) {
-            if (JSON.parse(sessionStorage.getItem("persistent"))) {
-                var listings = document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild;
-                if (listings.href.slice(-17) === window.location.href.slice(-17))
-                    listings.click();
-            }
-            else
-                setTimeout(function() {
-                    document.querySelectorAll("[href='#page0']")[0].innerHTML += " (" + (document.getElementById("newlist").children.length - 1) + ")";
-                }, 1000)
-        }
-        else {
-            var classifieds = document.getElementsByClassName("listing-remove")[0] && window.location.href.contains("?steamid="),
-                firstPage = document.getElementsByClassName("fa-angle-left")[0].parentNode.parentNode.className === "disabled",
-                lastPage = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled";
-        }
+    if (!listPage && !window.location.href.contains("profiles")) {
+        var classifieds = document.getElementsByClassName("listing-remove")[0] && window.location.href.contains("?steamid="),
+            firstPage = document.getElementsByClassName("fa-angle-left")[0].parentNode.parentNode.className === "disabled",
+            lastPage = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled";
     }
 
     function addButton(prop, val, def) {
@@ -112,6 +99,62 @@
         update();
     else if (!localStorage.getItem("lastupdt") || (new Date() - localStorage.getItem("lastupdt") >= 86400 * updateFreq))
         update();
+
+    if (window.location.href.contains("profiles")) {
+        if (JSON.parse(sessionStorage.getItem("persistent"))) {
+            if (window.location.href.contains("profiles") && JSON.parse(sessionStorage.getItem("persistent"))) {
+                var listings = document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild;
+                if (listings.href.slice(-17) === window.location.href.slice(-17))
+                    listings.click();
+            }
+        }
+        else {
+            setTimeout(function() {
+                document.querySelectorAll("[href='#page0']")[0].innerHTML += " >" + (document.getElementById("newlist").children.length - 1);
+            }, 1000)
+            addButton("highlight", "Highlight", false);
+            if (JSON.parse(sessionStorage.getItem("highlight"))) {
+                var itms = document.getElementsByClassName("item trade"),
+                    parted = 0,
+                    painted = 0,
+                    killstreak = 0,
+                    unpriced = 0;
+                for (var a = 0; a < itms.length; a++) {
+                    if (itms[a].hasAttribute("data-part-1-name")) {
+                        itms[a].style.backgroundColor = "lime";
+                        parted++;
+                    }
+                    if (itms[a].hasAttribute("data-paint-name")) {
+                        itms[a].style.backgroundColor = "pink";
+                        painted++;
+                    }
+                    if (itms[a].hasAttribute("data-spell-1"))
+                        itms[a].style.borderColor = "blue";
+                    if (itms[a].hasAttribute("data-default-name"))
+                        if (itms[a].getAttribute("data-default-name").contains("Killstreak"))
+                            if (!itms[a].getAttribute("data-default-name").contains("Kit")) {
+                                itms[a].style.borderRadius = "25%";
+                                killstreak++;
+                            }
+                    if (itms[a].getAttribute("title").contains("Killstreak"))
+                        if (!itms[a].getAttribute("title").contains("Kit")) {
+                            itms[a].style.borderRadius = "25%";
+                            killstreak++;
+                        }
+                    if (!+itms[a].getAttribute("data-price")) {
+                        itms[a].style.backgroundColor = "grey";
+                        unpriced++;
+                    }
+                }
+                var note = document.createElement("small"),
+                    panel = document.getElementsByClassName("panel-heading")[3];
+                note.setAttribute("style", "color: orange;");
+                note.innerHTML = " [Contains: " + killstreak + " killstreaked, " + parted + " parted, " + painted
+                               + " painted & " + unpriced + " unpriced item(s)]";
+                panel.insertBefore(note, panel.children[1]);
+            }
+        }
+    }
 
     if (classifieds || listPage) {
         var keyP = +localStorage.getItem("keyP"),
