@@ -128,8 +128,6 @@
                         itms[a].style.backgroundColor = "pink";
                         painted++;
                     }
-                    if (itms[a].hasAttribute("data-spell-1"))
-                        itms[a].style.borderColor = "blue";
                     if (itms[a].hasAttribute("data-default-name"))
                         if (itms[a].getAttribute("data-default-name").contains("Killstreak"))
                             if (!itms[a].getAttribute("data-default-name").contains("Kit")) {
