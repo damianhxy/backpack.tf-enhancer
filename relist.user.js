@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.0
+// @version             1.4.1
 // ==/UserScript==
 
 (function () {
@@ -128,12 +128,13 @@
                 window.location.href = window.location.href + "&page=" + sessionStorage.getItem("curPage");
             else {
                 var button = document.getElementsByClassName("listing-relist");
-                if (button.length) {
-                    if (window.location.href.contains("&page=") && !firstPage)
-                        sessionStorage.setItem("curPage", window.location.href.slice(-1));
+                if (button.length)
                     button[randomRelist ? range(0, button.length - 1) : 0].click();
-                }
                 else {
+                    if (JSON.parse(sessionStorage.getItem("curPage")) === 1 && firstPage)
+                        sessionStorage.setItem("curPage", 2);
+                    else if (!firstPage)
+                        sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1)
                     if (lastPage) {
                         sessionStorage.removeItem("curPage");
                         var data = document.createElement("small"),
