@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.3.3
+// @version             1.4.3.4
 // ==/UserScript==
 
 (function () {
@@ -142,19 +142,10 @@
                     }
                     if (itms[a].hasAttribute("data-spell-1"))
                         box.innerHTML += "<li class='fa fa-magic fa-inverse fa-border pull-left'></li>";
-                    if (itms[a].hasAttribute("data-default-name")) {
-                        var title = itms[a].getAttribute("data-default-name");
-                        if (title.contains("Killstreak") && !title.contains("Kit")) {
-                            box.innerHTML += "<li class='fa fa-bomb fa-inverse fa-border pull-left'></li>";
-                            killstreak++;
-                        }
-                    }
-                    else {
-                        var title = itms[a].getAttribute("title");
-                        if (title.contains("Killstreak") && !title.contains("Kit")) {
-                            box.innerHTML += "<li class='fa fa-bomb fa-inverse fa-border pull-left'></li>";
-                            killstreak++;
-                        }
+                    var title = itms[a].getAttribute(itms[a].hasAttribute("data-default-name") ? "data-default-name" : "title");
+                    if (title.contains("Killstreak") && !title.contains("Kit")) {
+                        box.innerHTML += "<li class='fa fa-bomb fa-inverse fa-border pull-left'></li>";
+                        killstreak++;
                     }
                 }
                 var note = document.createElement("small"),
