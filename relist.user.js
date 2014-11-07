@@ -225,5 +225,5 @@
             }
         }
     }
-    console.info("Script Loaded.");
+    console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
 }).call(this);
