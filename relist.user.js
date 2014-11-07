@@ -73,16 +73,20 @@
             onload: function(e) {
                 var data = JSON.parse(e.response);
                 if (!data)
-                    alert("API Error: Received nothing");
+                    alert("API Error: Empty Response");
                 else if (data.response.message)
                     alert(data.response.message);
                 var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
                     bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
                     k = key.value_high ? ((key.value + key.value_high) / 2) : key.value,
                     b = bud.value_high ? ((bud.value + bud.value_high) / 2) : bud.value;
+                    kOld = +localStorage.getItem("keyP");
+                    bOld = +localStorage.getItem("budP");
+                    kChange = " (" + (k === kOld ? "=" : (k < kOld ? "↓" : "↑")) + ")";
+                    bChange = " (" + (b === bOld ? "=" : (b < bOld ? "↓" : "↑")) + ")";
                     localStorage.setItem("keyP", k);
                     localStorage.setItem("budP", b);
-                    alert("Updated, Key: " + k + ", Bud: " + b);
+                    alert("Updated Prices, Key: " + k + " refined" + kChange + ", Bud: " + b + " keys" + bChange);
                     localStorage.setItem("lastupdt", new Date());
             }
         });
