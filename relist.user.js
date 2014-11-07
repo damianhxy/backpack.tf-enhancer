@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.3.4
+// @version             1.4.3.5
 // ==/UserScript==
 
 (function () {
@@ -31,12 +31,16 @@
     }
 
     function addButton(prop, val, def) {
-        var button = document.createElement("input");
+        var button = document.createElement("a"),
+            toggle = document.createElement("i"),
+            text = document.createTextNode(" " + val);
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
-        button.setAttribute("style", "color: white; float: right; margin-right: 5px; width: 70px; padding: 5px; border-radius: 5px; border-color: black;" + "background-color: " + (JSON.parse(sessionStorage.getItem(prop)) ? "#628C2A;" : "#F15853;"));
-        button.setAttribute("value", val);
-        button.setAttribute("type", "button");
+        button.setAttribute("style", "color: white; float: right; margin-right: 5px; width: 100px; padding: 5px; border-radius: 5px;");
         button.setAttribute("onclick", "window.stop(); sessionStorage.setItem('" + prop + "', !JSON.parse(sessionStorage.getItem('" + prop + "'))); location.reload();");
+        button.setAttribute("class", "btn btn-success btn-sm");
+        toggle.setAttribute("class", "fa fa-toggle-" + (JSON.parse(sessionStorage.getItem(prop)) ? "on" : "off"));
+        button.appendChild(toggle);
+        button.appendChild(text);
         document.getElementById("#navbar").appendChild(button);
     }
 
