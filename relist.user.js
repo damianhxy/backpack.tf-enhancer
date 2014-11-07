@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.2.6
+// @version             1.4.2.7
 // ==/UserScript==
 
 (function () {
@@ -154,14 +154,14 @@
                 var note = document.createElement("small"),
                     panel = document.getElementsByClassName("panel-heading")[3];
                 note.setAttribute("style", "color: orange;");
-                note.innerHTML = " (" + killstreak + " Killstreaked, " + parted + " Parted, " + painted
-                               + " Painted & " + unpriced + " Unpriced items)";
+                note.innerHTML = " (" + killstreak + " Killstreaked, " + parted + " Parted, " + painted +
+                                 " Painted & " + unpriced + " Unpriced items)";
                 panel.insertBefore(note, panel.children[1]);
             }
         }
     }
 
-    if (classifieds || listPage) {
+    else if (classifieds || listPage) {
         var keyP = +localStorage.getItem("keyP"),
             budP = +localStorage.getItem("budP");
         sessionStorage.curPage = sessionStorage.curPage || 1;
@@ -179,9 +179,7 @@
                 if (button.length)
                     button[randomRelist ? range(0, button.length - 1) : 0].click();
                 else {
-                    if (JSON.parse(sessionStorage.getItem("curPage")) === 1 && firstPage)
-                        sessionStorage.setItem("curPage", 2);
-                    else if (!firstPage)
+                    if ((JSON.parse(sessionStorage.getItem("curPage")) === 1 && firstPage) || !firstPage)
                         sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1)
                     if (lastPage) {
                         sessionStorage.removeItem("curPage");
