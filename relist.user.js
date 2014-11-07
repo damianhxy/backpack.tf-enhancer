@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.2.9
+// @version             1.4.2.10
 // ==/UserScript==
 
 (function () {
@@ -23,13 +23,11 @@
     /******** END OF SETTINGS *******/
 
     var listPage = window.location.href.contains("/add"),
-        profile = window.location.href.contains("profiles");
-    if (!listPage && !profile) {
-        var classifieds = document.getElementsByClassName("listing-remove").length && window.location.href.contains("?steamid=");
-        if (classifieds) {
-            firstPage = document.getElementsByClassName("fa-angle-left")[0].parentNode.parentNode.className === "disabled",
-            lastPage = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled";
-        }
+        profile = window.location.href.contains("profiles"),
+        classifieds = document.getElementsByClassName("listing-remove").length && window.location.href.contains("?steamid=");
+    if (classifieds) {
+        firstPage = document.getElementsByClassName("fa-angle-left")[0].parentNode.parentNode.className === "disabled",
+        lastPage = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled";
     }
 
     function addButton(prop, val, def) {
