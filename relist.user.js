@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.3.2
+// @version             1.4.3.3
 // ==/UserScript==
 
 (function () {
@@ -128,31 +128,31 @@
                     var box = itms[a].firstElementChild;
                     if (itms[a].hasAttribute("data-paint-name")) {
                         if (itms[a].getAttribute("data-paint-name") !== itms[a].getAttribute("data-name")) {
-                            box.innerHTML += "<li class='fa fa-paint-brush fa-border pull-left'></li>";
+                            box.innerHTML += "<li class='fa fa-paint-brush fa-inverse fa-border pull-left'></li>";
                             painted++;
                         }
                     }
                     if (itms[a].hasAttribute("data-part-1-name")) {
-                        box.innerHTML += "<li class='fa fa-cogs fa-border pull-left'></li>";
+                        box.innerHTML += "<li class='fa fa-cogs fa-inverse fa-border pull-left'></li>";
                         parted++;
                     }
                     if (!+itms[a].getAttribute("data-price")) {
-                        box.innerHTML += "<li class='fa fa-question-circle fa-border pull-left'></li>";
+                        box.innerHTML += "<li class='fa fa-question-circle fa-inverse fa-border pull-left'></li>";
                         unpriced++;
                     }
                     if (itms[a].hasAttribute("data-spell-1"))
-                        box.innerHTML += "<li class='fa fa-magic fa-border pull-left'></li>";
+                        box.innerHTML += "<li class='fa fa-magic fa-inverse fa-border pull-left'></li>";
                     if (itms[a].hasAttribute("data-default-name")) {
                         var title = itms[a].getAttribute("data-default-name");
                         if (title.contains("Killstreak") && !title.contains("Kit")) {
-                            box.innerHTML += "<li class='fa fa-bomb fa-border pull-left'></li>";
+                            box.innerHTML += "<li class='fa fa-bomb fa-inverse fa-border pull-left'></li>";
                             killstreak++;
                         }
                     }
                     else {
                         var title = itms[a].getAttribute("title");
                         if (title.contains("Killstreak") && !title.contains("Kit")) {
-                            box.innerHTML += "<li class='fa fa-bomb fa-border pull-left'></li>";
+                            box.innerHTML += "<li class='fa fa-bomb fa-inverse fa-border pull-left'></li>";
                             killstreak++;
                         }
                     }
