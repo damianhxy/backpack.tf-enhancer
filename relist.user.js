@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.3.0
+// @version             1.4.3.1
 // ==/UserScript==
 
 (function () {
@@ -69,20 +69,16 @@
             onload: function(e) {
                 var data = JSON.parse(e.response);
                 if (!data)
-                    alert("API Error: Empty Response");
+                    alert("API Error: Received nothing");
                 else if (data.response.message)
                     alert(data.response.message);
                 var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
                     bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
                     k = key.value_high ? ((key.value + key.value_high) / 2) : key.value,
                     b = bud.value_high ? ((bud.value + bud.value_high) / 2) : bud.value;
-                    kOld = +localStorage.getItem("keyP");
-                    bOld = +localStorage.getItem("budP");
-                    kChange = " (" + (k === kOld ? "=" : (k < kOld ? "↓" : "↑")) + ")";
-                    bChange = " (" + (b === bOld ? "=" : (b < bOld ? "↓" : "↑")) + ")";
                     localStorage.setItem("keyP", k);
                     localStorage.setItem("budP", b);
-                    alert("Updated Prices, Key: " + k + " refined" + kChange + ", Bud: " + b + " keys" + bChange);
+                    alert("Updated, Key: " + k + ", Bud: " + b);
                     localStorage.setItem("lastupdt", new Date());
             }
         });
@@ -117,41 +113,46 @@
             setTimeout(function() {
                 document.querySelectorAll("[href='#page0']")[0].innerHTML += " (" + (document.getElementById("newlist").children.length - 1) + ")";
             }, 1000)
-            addButton("highlight", "Highlight", false);
-            if (JSON.parse(sessionStorage.getItem("highlight"))) {
+            addButton("annotate", "Annotate", false);
+            if (JSON.parse(sessionStorage.getItem("annotate"))) {
                 var itms = document.getElementsByClassName("item trade"),
+                    cNo = document.getElementsByClassName("value"),
                     parted = 0,
                     painted = 0,
                     killstreak = 0,
                     unpriced = 0;
-                for (var a = 0; a < itms.length; a++) {
+                for (var a = 0; a < cNo.length; a++) {
+                    cNo[a].style.display = "none";
+                }
+                for (a = 0; a < itms.length; a++) {
+                    var box = itms[a].firstElementChild;
                     if (itms[a].hasAttribute("data-paint-name")) {
                         if (itms[a].getAttribute("data-paint-name") !== itms[a].getAttribute("data-name")) {
-                            itms[a].style.backgroundColor = "pink";
+                            box.innerHTML += "<li class='fa fa-paint-brush fa-border pull-left'></li>";
                             painted++;
                         }
                     }
                     if (itms[a].hasAttribute("data-part-1-name")) {
-                        itms[a].style.backgroundColor = "lime";
+                        box.innerHTML += "<li class='fa fa-cogs fa-border pull-left'></li>";
                         parted++;
                     }
                     if (!+itms[a].getAttribute("data-price")) {
-                        itms[a].style.backgroundColor = "grey";
+                        box.innerHTML += "<li class='fa fa-question-circle fa-border pull-left'></li>";
                         unpriced++;
                     }
                     if (itms[a].hasAttribute("data-spell-1"))
-                        itms[a].style.border = "4px #005EFF solid";
+                        box.innerHTML += "<li class='fa fa-fire fa-border pull-left'></li>";
                     if (itms[a].hasAttribute("data-default-name")) {
                         var title = itms[a].getAttribute("data-default-name");
                         if (title.contains("Killstreak") && !title.contains("Kit")) {
-                            itms[a].style.borderRadius = "25%";
+                            box.innerHTML += "<li class='fa fa-bomb fa-border pull-left'></li>";
                             killstreak++;
                         }
                     }
                     else {
                         var title = itms[a].getAttribute("title");
                         if (title.contains("Killstreak") && !title.contains("Kit")) {
-                            itms[a].style.borderRadius = "25%";
+                            box.innerHTML += "<li class='fa fa-bomb fa-border pull-left'></li>";
                             killstreak++;
                         }
                     }
@@ -159,9 +160,9 @@
                 var note = document.createElement("small"),
                     panel = document.getElementsByClassName("panel-heading")[3];
                 note.setAttribute("style", "color: orange;");
-                note.innerHTML = " (" + killstreak + " Killstreaked, " + parted + " Parted, " + painted +
-                                 " Painted & " + unpriced + " Unpriced items)";
-                panel.insertBefore(note, panel.children[1]);
+                note.innerHTML += " (" + killstreak + " Killstreaked, " + parted + " Parted, " + painted +
+                                  " Painted & " + unpriced + " Unpriced items)";
+                panel.insertBefore(note, panel.children[2]);
             }
         }
     }
