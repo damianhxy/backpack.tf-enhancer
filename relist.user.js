@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.2.8
+// @version             1.4.2.9
 // ==/UserScript==
 
 (function () {
@@ -22,11 +22,14 @@
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
-    var listPage = window.location.href.contains("/add");
-    if (!listPage && !window.location.href.contains("profiles")) {
-        var classifieds = document.getElementsByClassName("listing-remove")[0] && window.location.href.contains("?steamid="),
+    var listPage = window.location.href.contains("/add"),
+        profile = window.location.href.contains("profiles");
+    if (!listPage && !profile) {
+        var classifieds = document.getElementsByClassName("listing-remove").length && window.location.href.contains("?steamid=");
+        if (classifieds) {
             firstPage = document.getElementsByClassName("fa-angle-left")[0].parentNode.parentNode.className === "disabled",
             lastPage = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled";
+        }
     }
 
     function addButton(prop, val, def) {
@@ -100,7 +103,7 @@
     else if (!localStorage.getItem("lastupdt") || (new Date() - Date.parse(localStorage.getItem("lastupdt")) >= 86400e3 * updateFreq))
         update();
 
-    if (window.location.href.contains("profiles")) {
+    if (profile) {
         if (JSON.parse(sessionStorage.getItem("persistent"))) {
             if (window.location.href.contains("profiles") && JSON.parse(sessionStorage.getItem("persistent"))) {
                 var listings = document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild;
