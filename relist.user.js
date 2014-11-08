@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.3.5
+// @version             1.4.3.6
 // ==/UserScript==
 
 (function () {
@@ -131,28 +131,30 @@
                     unpriced = 0;
                 for (var a = 0; a < cNo.length; a++) {
                     cNo[a].style.display = "none";
+                    if (+cNo[a].firstChild.nodeValue.split("#")[1] <= 100)
+                        cNo[a].parentNode.innerHTML += "<i class='fa fa-exclamation-triangle fa-inverse fa-border pull-left'></i>";
                 }
                 for (a = 0; a < itms.length; a++) {
                     var box = itms[a].firstElementChild;
                     if (itms[a].hasAttribute("data-paint-name")) {
                         if (itms[a].getAttribute("data-paint-name") !== itms[a].getAttribute("data-name")) {
-                            box.innerHTML += "<li class='fa fa-paint-brush fa-inverse fa-border pull-left'></li>";
+                            box.innerHTML += "<i class='fa fa-paint-brush fa-inverse fa-border pull-left'></i>";
                             painted++;
                         }
                     }
                     if (itms[a].hasAttribute("data-part-1-name")) {
-                        box.innerHTML += "<li class='fa fa-cogs fa-inverse fa-border pull-left'></li>";
+                        box.innerHTML += "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>";
                         parted++;
                     }
                     if (!+itms[a].getAttribute("data-price")) {
-                        box.innerHTML += "<li class='fa fa-question-circle fa-inverse fa-border pull-left'></li>";
+                        box.innerHTML += "<i class='fa fa-question-circle fa-inverse fa-border pull-left'></i>";
                         unpriced++;
                     }
                     if (itms[a].hasAttribute("data-spell-1"))
-                        box.innerHTML += "<li class='fa fa-magic fa-inverse fa-border pull-left'></li>";
+                        box.innerHTML += "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>";
                     var title = itms[a].getAttribute(itms[a].hasAttribute("data-default-name") ? "data-default-name" : "title");
                     if (title.contains("Killstreak") && !title.contains("Kit")) {
-                        box.innerHTML += "<li class='fa fa-bomb fa-inverse fa-border pull-left'></li>";
+                        box.innerHTML += "<i class='fa fa-bomb fa-inverse fa-border pull-left'></i>";
                         killstreak++;
                     }
                 }
