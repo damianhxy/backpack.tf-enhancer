@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.3.6
+// @version             1.4.4
 // ==/UserScript==
 
 (function () {
@@ -35,9 +35,9 @@
             toggle = document.createElement("i"),
             text = document.createTextNode(" " + val);
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
-        button.setAttribute("style", "color: white; float: right; margin-right: 5px; width: 100px; padding: 5px; border-radius: 5px;");
+        button.setAttribute("style", "margin-right: 5px; width: 100px;");
         button.setAttribute("onclick", "window.stop(); sessionStorage.setItem('" + prop + "', !JSON.parse(sessionStorage.getItem('" + prop + "'))); location.reload();");
-        button.setAttribute("class", "btn btn-success btn-sm");
+        button.setAttribute("class", "btn btn-success btn-sm pull-right");
         toggle.setAttribute("class", "fa fa-toggle-" + (JSON.parse(sessionStorage.getItem(prop)) ? "on" : "off"));
         button.appendChild(toggle);
         button.appendChild(text);
@@ -125,8 +125,8 @@
             if (JSON.parse(sessionStorage.getItem("annotate"))) {
                 var itms = document.getElementsByClassName("item trade"),
                     cNo = document.getElementsByClassName("value"),
-                    parted = 0,
                     painted = 0,
+                    parted = 0,
                     killstreak = 0,
                     unpriced = 0;
                 for (var a = 0; a < cNo.length; a++) {
@@ -134,7 +134,7 @@
                     if (+cNo[a].firstChild.nodeValue.split("#")[1] <= 100)
                         cNo[a].parentNode.innerHTML += "<i class='fa fa-exclamation-triangle fa-inverse fa-border pull-left'></i>";
                 }
-                for (a = 0; a < itms.length; a++) {
+                for (var a = 0; a < itms.length; a++) {
                     var box = itms[a].firstElementChild;
                     if (itms[a].hasAttribute("data-paint-name")) {
                         if (itms[a].getAttribute("data-paint-name") !== itms[a].getAttribute("data-name")) {
@@ -161,8 +161,8 @@
                 var note = document.createElement("small"),
                     panel = document.getElementsByClassName("panel-heading")[3];
                 note.setAttribute("style", "color: orange;");
-                note.innerHTML += " (" + killstreak + " Killstreaked, " + parted + " Parted, " + painted +
-                                  " Painted & " + unpriced + " Unpriced items)";
+                note.innerHTML += " (" + killstreak + " Killstreaked, " + painted + " Painted, " + parted +
+                                  " Parted & " + unpriced + " Unpriced items)";
                 panel.insertBefore(note, panel.children[2]);
             }
         }
