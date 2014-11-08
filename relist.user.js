@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.4
+// @version             1.4.4.1
 // ==/UserScript==
 
 (function () {
@@ -56,7 +56,7 @@
             val = Math.floor(num) + (Math.round(num % 1 * 9)) / 9;
         if (val.toFixed(2) % 1 >= 5 / 90)
             val -= 0.005;
-        return +val.toFixed(2);
+        return val;
     }
 
     function update() {
@@ -224,7 +224,7 @@
                         console.log(price + "%" + keyP + "=" + price%keyP);
                         price %= keyP;
                     }
-                    price = round(price);
+                    price = round(price).toFixed(2);
                     if (price)
                         document.getElementById("metal").value = price;
                     document.getElementById("details").value = notes;
