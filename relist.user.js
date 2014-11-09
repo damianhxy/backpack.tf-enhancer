@@ -8,7 +8,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.4.1
+// @version             1.4.4.2
 // ==/UserScript==
 
 (function () {
@@ -221,11 +221,10 @@
                     }
                     if (price >= keyP && !itm.getAttribute("data-name").contains("Key")) {
                         document.getElementById("keys").value = Math.floor(price / keyP);
-                        console.log(price + "%" + keyP + "=" + price%keyP);
                         price %= keyP;
                     }
                     price = round(price).toFixed(2);
-                    if (price)
+                    if (+price)
                         document.getElementById("metal").value = price;
                     document.getElementById("details").value = notes;
                     break;
