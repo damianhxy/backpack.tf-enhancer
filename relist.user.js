@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.4.8
+// @version             1.4.5
 // ==/UserScript==
 
 (function () {
@@ -19,17 +19,13 @@
         defaultTime = 5,             //(minutes) default reload time
         randomMin = 1,               //(minutes) minimum random reload time
         randomMax = 10,              //(minutes) maximum random reload time
-        updateFreq = 3,              //(days) currency price refresh frequency
+        updateFreq = 3,              //(days) price refresh frequency
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
     var listPage = window.location.href.contains("/add"),
         profile = window.location.href.contains("profiles"),
         classifieds = document.getElementsByClassName("listing-remove").length && window.location.href.contains("?steamid=");
-    if (classifieds) {
-        firstPage = document.getElementsByClassName("fa-angle-left")[0].parentNode.parentNode.className === "disabled",
-        lastPage = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled";
-    }
 
     function addButton(prop, val, def) {
         var button = document.createElement("a"),
@@ -80,10 +76,10 @@
                 var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
                     bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
                     k = key.value_high ? ((key.value + key.value_high) / 2) : key.value,
-                    b = bud.value_high ? ((bud.value + bud.value_high) / 2) : bud.value;
-                    kOld = +localStorage.getItem("keyP");
-                    bOld = +localStorage.getItem("budP");
-                    kChange = " (" + (k === kOld ? "=" : (k < kOld ? "↓" : "↑")) + ")";
+                    b = bud.value_high ? ((bud.value + bud.value_high) / 2) : bud.value,
+                    kOld = +localStorage.getItem("keyP"),
+                    bOld = +localStorage.getItem("budP"),
+                    kChange = " (" + (k === kOld ? "=" : (k < kOld ? "↓" : "↑")) + ")",
                     bChange = " (" + (b === bOld ? "=" : (b < bOld ? "↓" : "↑")) + ")";
                     localStorage.setItem("keyP", k);
                     localStorage.setItem("budP", b);
@@ -122,7 +118,7 @@
         else {
             setTimeout(function() {
                 document.querySelectorAll("[href='#page0']")[0].innerHTML += " (" + (document.getElementById("newlist").children.length - 1) + ")";
-            }, 1000)
+            }, 1000);
             addButton("annotate", "Annotate", false);
             if (JSON.parse(sessionStorage.getItem("annotate"))) {
                 var itms = document.getElementsByClassName("item trade"),
@@ -190,6 +186,8 @@
             return;
         }
         if (classifieds) {
+            var firstPage = document.getElementsByClassName("fa-angle-left")[0].parentNode.parentNode.className === "disabled",
+                lastPage = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled";
             if (firstPage && sessionStorage.getItem("curPage") > 2)
                 window.location.href = window.location.href + "&page=" + sessionStorage.getItem("curPage");
             else {
@@ -198,7 +196,7 @@
                     button[randomRelist ? range(0, button.length - 1) : 0].click();
                 else {
                     if ((JSON.parse(sessionStorage.getItem("curPage")) === 1 && firstPage) || !firstPage)
-                        sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1)
+                        sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1);
                     if (lastPage) {
                         sessionStorage.removeItem("curPage");
                         var data = document.createElement("small"),
