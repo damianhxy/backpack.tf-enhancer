@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.5
+// @version             1.4.5.1
 // ==/UserScript==
 
 (function () {
@@ -153,7 +153,7 @@
                     if (itms[a].hasAttribute("data-spell-1"))
                         box.innerHTML += "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>";
                     var title = itms[a].getAttribute(itms[a].hasAttribute("data-default-name") ? "data-default-name" : "title");
-                    if (title.contains("Killstreak") && !title.contains("Kit")) {
+                    if (title.contains("Killstreak")) {
                         var colour;
                         if (title.contains("Professional"))
                             colour = "#ffd700";
@@ -161,7 +161,8 @@
                             colour = "#c0c0c0";
                         else
                             colour = "#cd7f32";
-                        box.innerHTML += "<i class='fa fa-bomb fa-border pull-left' style='color: " + colour + "'></i>";
+                        box.innerHTML += "<i class='fa fa-bomb fa-border pull-left' " +
+                                         "style='color: " + colour + "; background-color: white'></i>";
                         killstreak++;
                     }
                 }
