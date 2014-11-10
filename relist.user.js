@@ -4,11 +4,12 @@
 // @downloadURL         https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.user.js
 // @grant               GM_xmlhttpRequest
 // @include             /^https?:\/\/backpack\.tf.*/
+// @exclude             /^https?:\/\/backpack\.tf\/api\/.*/
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.4.6
+// @version             1.4.4.7
 // ==/UserScript==
 
 (function () {
@@ -61,7 +62,7 @@
 
     function update() {
         if (!localStorage.getItem("apikey"))
-            localStorage.setItem("apikey", prompt("API Key not set, please enter below:"));
+            localStorage.setItem("apikey", prompt("API Key not set, get yours from http://backpack.tf/api/ and enter below"));
         if (localStorage.getItem("apikey").length !== 24) {
             alert("Invalid API Key");
             localStorage.removeItem("apikey");
@@ -103,6 +104,7 @@
         else
             document.getElementsByClassName("fa-angle-double-left")[0].parentNode.click();
     }
+
 
     if (!localStorage.getItem("keyP") || !localStorage.getItem("budP"))
         update();
