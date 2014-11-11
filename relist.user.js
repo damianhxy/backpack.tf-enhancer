@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.5.1
+// @version             1.4.5.2
 // ==/UserScript==
 
 (function () {
@@ -51,7 +51,7 @@
             val = Math.round(num * 90) / 90;
         else
             val = Math.floor(num) + (Math.round(num % 1 * 9)) / 9;
-        if (val.toFixed(2) % 1 >= 0.5)
+        if (val.toFixed(2) % 1 * 10 >= 0.5)
             val -= 0.005;
         return val;
     }
