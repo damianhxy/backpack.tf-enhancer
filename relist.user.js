@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.5.2
+// @version             1.4.5.3
 // ==/UserScript==
 
 (function () {
@@ -25,7 +25,7 @@
 
     var listPage = window.location.href.contains("/add"),
         profile = window.location.href.contains("profiles"),
-        classifieds = document.getElementsByClassName("listing-remove").length && window.location.href.contains("?steamid=");
+        classifieds = document.getElementsByClassName("listing-remove").length && window.location.href.contains("steamid=");
 
     function addButton(prop, val, def) {
         var button = document.createElement("a"),
