@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @run-at              document-end
 // @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
-// @version             1.4.5.3
+// @version             1.4.5.4
 // ==/UserScript==
 
 (function () {
@@ -129,9 +129,13 @@
                     unpriced = 0;
                 for (var a = 0; a < cNo.length; a++) {
                     if (!cNo[a].parentNode.parentNode.hasAttribute("data-crate")) {
-                        cNo[a].style.display = "none";
-                        if (+cNo[a].firstChild.nodeValue.split("#")[1] <= 100)
+                        if (+cNo[a].firstChild.nodeValue.split("#")[1] <= 100) {
                             cNo[a].parentNode.innerHTML += "<i class='fa fa-exclamation-triangle fa-inverse fa-border pull-left'></i>";
+                            cNo[a].style.left = "initial";
+                            cNo[a].style.right = "2px";
+                        }
+                        else
+                            cNo[a].style.display = "none";
                     }
                 }
                 for (var a = 0; a < itms.length; a++) {
