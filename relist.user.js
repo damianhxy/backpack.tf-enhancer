@@ -8,7 +8,6 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @updateURL           https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.meta.js
 // @version             1.4.5.5
 // ==/UserScript==
 
@@ -54,6 +53,17 @@
         if (val.toFixed(2) % 1 * 10 >= 0.5)
             val -= 0.005;
         return val;
+    }
+
+    function timeUpdate() {
+        var lastUpdt = Date.parse(localStorage.getItem("lastupdt")),
+            curTime = new Date(),
+            diff = 864e5 * updateFreq - (curTime - lastUpdt),
+            days = Math.floor(diff / 864e5),
+            hours = Math.floor((diff % 864e5) / 36e5),
+            minutes = Math.floor((diff % 36e5) / 6e4),
+            str = "Prices will update in " + days + " day(s), " + hours + " hour(s), and " + minutes + " minute(s).";
+        return str;
     }
 
     function update() {
@@ -104,7 +114,7 @@
 
     if (!localStorage.getItem("keyP") || !localStorage.getItem("budP"))
         update();
-    else if (!localStorage.getItem("lastupdt") || (new Date() - Date.parse(localStorage.getItem("lastupdt")) >= 86400e3 * updateFreq))
+    else if (!localStorage.getItem("lastupdt") || (new Date() - Date.parse(localStorage.getItem("lastupdt")) >= 864e5 * updateFreq))
         update();
 
     if (profile) {
@@ -246,4 +256,5 @@
         }
     }
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
+    console.info(timeUpdate());
 }).call(this);
