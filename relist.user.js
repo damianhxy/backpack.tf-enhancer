@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.5.6
+// @version             1.4.5.7
 // ==/UserScript==
 
 (function () {
@@ -118,35 +118,33 @@
         update();
 
     if (profile) {
+        var isSelf = document.getElementsByClassName("dropdown-btn")[0].href === window.location.href;
         if (JSON.parse(sessionStorage.getItem("persistent"))) {
-            if (window.location.href.contains("profiles") && JSON.parse(sessionStorage.getItem("persistent"))) {
-                var listings = document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild;
-                if (listings.href.slice(-17) === window.location.href.slice(-17))
-                    listings.click();
-            }
+            if (isSelf)
+                document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild.click();
         }
         else {
             setTimeout(function() {
                 document.querySelectorAll("[href='#page0']")[0].innerHTML += " (" + (document.getElementById("newlist").children.length - 1) + ")";
             }, 1000);
             addButton("annotate", "Annotate", false);
-            addButton("quick", "Easy Listing", false);
-            if (JSON.parse(sessionStorage.getItem("quick"))) {
-                var itms = document.getElementsByClassName("item trade");
-                for (var a = 0; a < itms.length; a++) {
-                    var box = itms[a].firstElementChild;
-                    if (!itms[a].getAttribute("data-name").contains("Metal"))
-                        box.innerHTML += "<a href=http://backpack.tf/classifieds/add/" + itms[a].getAttribute("data-id") +             " class='fa fa-plus-square fa-inverse fa-2x' style='position: absolute;" +
-                                         " bottom: 2px; left: 2px;'></a>";
+            if (isSelf) {
+                addButton("quicklist", "Easy Listing", false);
+                if (JSON.parse(sessionStorage.getItem("quicklist"))) {
+                    var itms = document.getElementsByClassName("item trade");
+                    for (var a = 0; a < itms.length; a++) {
+                        var box = itms[a].firstElementChild;
+                        if (!itms[a].getAttribute("data-name").contains("Metal"))
+                            box.innerHTML += "<a href=http://backpack.tf/classifieds/add/" +
+                                             itms[a].getAttribute("data-id") +
+                                             " class='fa fa-plus-square fa-inverse fa-2x' style='position: absolute;" +
+                                             " bottom: 2px; left: 2px;'></a>";
+                    }
                 }
             }
             if (JSON.parse(sessionStorage.getItem("annotate"))) {
                 var itms = document.getElementsByClassName("item trade"),
-                    cNo = document.getElementsByClassName("value"),
-                    painted = 0,
-                    parted = 0,
-                    killstreak = 0,
-                    unpriced = 0;
+                    cNo = document.getElementsByClassName("value");
                 for (var a = 0; a < cNo.length; a++) {
                     if (!cNo[a].parentNode.parentNode.hasAttribute("data-crate")) {
                         if (+cNo[a].firstChild.nodeValue.split("#")[1] <= 100) {
@@ -161,19 +159,13 @@
                 for (var a = 0; a < itms.length; a++) {
                     var box = itms[a].firstElementChild;
                     if (itms[a].hasAttribute("data-paint-name")) {
-                        if (itms[a].getAttribute("data-paint-name") !== itms[a].getAttribute("data-name")) {
+                        if (itms[a].getAttribute("data-paint-name") !== itms[a].getAttribute("data-name"))
                             box.innerHTML += "<i class='fa fa-paint-brush fa-inverse fa-border pull-left'></i>";
-                            painted++;
-                        }
                     }
-                    if (itms[a].hasAttribute("data-part-1-name")) {
+                    if (itms[a].hasAttribute("data-part-1-name"))
                         box.innerHTML += "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>";
-                        parted++;
-                    }
-                    if (!+itms[a].getAttribute("data-price")) {
+                    if (!+itms[a].getAttribute("data-price"))
                         box.innerHTML += "<i class='fa fa-question-circle fa-inverse fa-border pull-left'></i>";
-                        unpriced++;
-                    }
                     if (itms[a].hasAttribute("data-spell-1"))
                         box.innerHTML += "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>";
                     var title = itms[a].getAttribute(itms[a].hasAttribute("data-default-name") ? "data-default-name" : "title");
@@ -187,15 +179,8 @@
                             colour = "#cd7f32";
                         box.innerHTML += "<i class='fa fa-bomb fa-border pull-left' " +
                                          "style='color: " + colour + "; background-color: white'></i>";
-                        killstreak++;
                     }
                 }
-                var note = document.createElement("small"),
-                    panel = document.getElementsByClassName("panel-heading")[3];
-                note.setAttribute("style", "color: orange;");
-                note.innerHTML += " (" + killstreak + " Killstreaked, " + painted + " Painted, " + parted +
-                                  " Parted & " + unpriced + " Unpriced items)";
-                panel.insertBefore(note, panel.children[2]);
             }
         }
     }
@@ -220,7 +205,7 @@
                 if (button.length)
                     button[randomRelist ? range(0, button.length - 1) : 0].click();
                 else {
-                    if ((JSON.parse(sessionStorage.getItem("curPage")) === 1 && firstPage) || !firstPage)
+                    if ((firstPage && JSON.parse(sessionStorage.getItem("curPage")) === 1) || !firstPage)
                         sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1);
                     if (lastPage) {
                         sessionStorage.removeItem("curPage");
