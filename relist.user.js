@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.5.5
+// @version             1.4.5.6
 // ==/UserScript==
 
 (function () {
@@ -130,6 +130,16 @@
                 document.querySelectorAll("[href='#page0']")[0].innerHTML += " (" + (document.getElementById("newlist").children.length - 1) + ")";
             }, 1000);
             addButton("annotate", "Annotate", false);
+            addButton("quick", "Easy Listing", false);
+            if (JSON.parse(sessionStorage.getItem("quick"))) {
+                var itms = document.getElementsByClassName("item trade");
+                for (var a = 0; a < itms.length; a++) {
+                    var box = itms[a].firstElementChild;
+                    if (!itms[a].getAttribute("data-name").contains("Metal"))
+                        box.innerHTML += "<a href=http://backpack.tf/classifieds/add/" + itms[a].getAttribute("data-id") +             " class='fa fa-plus-square fa-inverse fa-2x' style='position: absolute;" +
+                                         " bottom: 2px; left: 2px;'></a>";
+                }
+            }
             if (JSON.parse(sessionStorage.getItem("annotate"))) {
                 var itms = document.getElementsByClassName("item trade"),
                     cNo = document.getElementsByClassName("value"),
