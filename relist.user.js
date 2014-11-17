@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.5.8
+// @version             1.4.5.9
 // ==/UserScript==
 
 (function () {
@@ -133,8 +133,8 @@
                         if (!itms[a].getAttribute("data-name").contains("Metal"))
                             box.innerHTML += "<a href=http://backpack.tf/classifieds/add/" +
                                              itms[a].getAttribute("data-id") +
-                                             " class='fa fa-plus-square fa-inverse fa-2x' style='position: absolute;" +
-                                             " bottom: 2px; left: 2px;'></a>";
+                                             "'><i class='fa fa-plus-square fa-inverse fa-2x'" +
+                                             "style='position: absolute; bottom: 2px; left: 2px;'></i></a>";
                     }
                 }
             }
