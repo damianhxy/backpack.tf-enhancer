@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.5.7
+// @version             1.4.5.8
 // ==/UserScript==
 
 (function () {
@@ -68,35 +68,38 @@
 
     function update() {
         if (!localStorage.getItem("apikey"))
-            localStorage.setItem("apikey", prompt("API Key not set, get yours from http://backpack.tf/api/ and enter below"));
+            localStorage.setItem("apikey", prompt("API Key not set, please get one from http://backpack.tf/api/"));
         if (localStorage.getItem("apikey").length !== 24) {
-            alert("Invalid API Key");
+            alert("Invalid API Key Entered");
             localStorage.removeItem("apikey");
             update();
         }
-        GM_xmlhttpRequest({
-            method: "GET",
-            url: "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey + "&compress=1",
-            onload: function(e) {
-                var data = JSON.parse(e.response);
-                if (!data)
-                    alert("API Error: Empty Response");
-                else if (data.response.message)
-                    alert(data.response.message);
-                var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
-                    bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
-                    k = key.value_high ? ((key.value + key.value_high) / 2) : key.value,
-                    b = bud.value_high ? ((bud.value + bud.value_high) / 2) : bud.value,
-                    kOld = +localStorage.getItem("keyP"),
-                    bOld = +localStorage.getItem("budP"),
-                    kChange = " (" + (k === kOld ? "=" : (k < kOld ? "↓" : "↑")) + ")",
-                    bChange = " (" + (b === bOld ? "=" : (b < bOld ? "↓" : "↑")) + ")";
+        if (!localStorage.getItem("keyP") || !localStorage.getItem("budP") || (new Date() - Date.parse(localStorage.getItem("lastupdt")) >= 864e5 * updateFreq)) {
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey + "&compress=1",
+                onload: function(e) {
+                    var data = JSON.parse(e.response);
+                    if (!data)
+                        alert("API Error: Empty Response");
+                    else if (data.response.message)
+                        alert("Received Error: " + data.response.message);
+                    var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
+                        bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
+                        k = key.value_high ? ((key.value + key.value_high) / 2) : key.value,
+                        b = bud.value_high ? ((bud.value + bud.value_high) / 2) : bud.value,
+                        kOld = +localStorage.getItem("keyP"),
+                        bOld = +localStorage.getItem("budP"),
+                        kChange = " (" + (k === kOld ? "=" : (k < kOld ? "↓" : "↑")) + ")",
+                        bChange = " (" + (b === bOld ? "=" : (b < bOld ? "↓" : "↑")) + ")";
                     localStorage.setItem("keyP", k);
                     localStorage.setItem("budP", b);
-                    alert("Updated Prices, Key: " + k + " refined" + kChange + ", Bud: " + b + " keys" + bChange);
+                    alert("Prices updated, Key: " + k + " refined" + kChange + ", Bud: " + b + " keys" + bChange);
                     localStorage.setItem("lastupdt", new Date());
-            }
-        });
+                }
+            });
+            location.reload();
+        }
     }
 
     function showStatus() {
@@ -111,18 +114,11 @@
             document.getElementsByClassName("fa-angle-double-left")[0].parentNode.click();
     }
 
-
-    if (!localStorage.getItem("keyP") || !localStorage.getItem("budP"))
-        update();
-    else if (!localStorage.getItem("lastupdt") || (new Date() - Date.parse(localStorage.getItem("lastupdt")) >= 864e5 * updateFreq))
-        update();
-
+    update();
     if (profile) {
         var isSelf = document.getElementsByClassName("dropdown-btn")[0].href === window.location.href;
-        if (JSON.parse(sessionStorage.getItem("persistent"))) {
-            if (isSelf)
-                document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild.click();
-        }
+        if (JSON.parse(sessionStorage.getItem("persistent")) && isSelf)
+            document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild.click();
         else {
             setTimeout(function() {
                 document.querySelectorAll("[href='#page0']")[0].innerHTML += " (" + (document.getElementById("newlist").children.length - 1) + ")";
@@ -184,11 +180,10 @@
             }
         }
     }
-
     else if (classifieds || listPage) {
         var keyP = +localStorage.getItem("keyP"),
             budP = +localStorage.getItem("budP");
-        sessionStorage.curPage = sessionStorage.curPage || 1;
+        sessionStorage.setItem("curPage", sessionStorage.getItem("curPage") || 1);
         addButton("paused", "Paused", false);
         addButton("persistent", "Persistent", false);
         if (JSON.parse(sessionStorage.getItem("paused"))) {
@@ -197,26 +192,25 @@
         }
         if (classifieds) {
             var firstPage = document.getElementsByClassName("fa-angle-left")[0].parentNode.parentNode.className === "disabled",
-                lastPage = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled";
+                lastPage = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled",
+                button = document.getElementsByClassName("listing-relist");
             if (firstPage && sessionStorage.getItem("curPage") > 2)
                 window.location.href = window.location.href + "&page=" + sessionStorage.getItem("curPage");
+            else if (button.length)
+                button[randomRelist ? range(0, button.length - 1) : 0].click();
             else {
-                var button = document.getElementsByClassName("listing-relist");
-                if (button.length)
-                    button[randomRelist ? range(0, button.length - 1) : 0].click();
-                else {
-                    if ((firstPage && JSON.parse(sessionStorage.getItem("curPage")) === 1) || !firstPage)
-                        sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1);
-                    if (lastPage) {
-                        sessionStorage.removeItem("curPage");
-                        var data = document.createElement("small"),
-                            reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
-                        data.setAttribute("style", "color: orange; float: right;");
-                        document.getElementsByClassName("panel-heading")[0].appendChild(data);
-                        setInterval(showStatus, 1000);
-                    }
-                    document.getElementsByClassName("fa-angle-right")[0].parentNode.click();
+                if ((firstPage && JSON.parse(sessionStorage.getItem("curPage")) === 1) || !firstPage)
+                    sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1);
+                if (lastPage) {
+                    sessionStorage.removeItem("curPage");
+                    var data = document.createElement("small"),
+                        reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
+                    data.setAttribute("style", "color: orange; float: right;");
+                    document.getElementsByClassName("panel-heading")[0].appendChild(data);
+                    setInterval(showStatus, 1000);
                 }
+                else
+                    document.getElementsByClassName("fa-angle-right")[0].parentNode.click();
             }
         }
         else if (listPage) {
