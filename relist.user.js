@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.6.0
+// @version             1.4.6.1
 // ==/UserScript==
 
 (function () {
@@ -126,9 +126,9 @@
                     for (var a = 0; a < itms.length; a++) {
                         var box = itms[a].firstElementChild;
                         if (!itms[a].getAttribute("data-name").contains("Metal"))
-                            box.innerHTML += "<a href=http://backpack.tf/classifieds/add/" +
+                            box.innerHTML += "<a href='http://backpack.tf/classifieds/add/" +
                                              itms[a].getAttribute("data-id") +
-                                             "'><i class='fa fa-plus-square fa-inverse fa-2x'" +
+                                             "'><i class='fa fa-plus-square fa-inverse fa-border'" +
                                              "style='position: absolute; bottom: 2px; left: 2px;'></i></a>";
                     }
                 }
@@ -138,13 +138,9 @@
                     cNo = document.getElementsByClassName("value");
                 for (var a = 0; a < cNo.length; a++) {
                     if (!cNo[a].parentNode.parentNode.hasAttribute("data-crate")) {
-                        if (+cNo[a].firstChild.nodeValue.split("#")[1] <= 100) {
-                            cNo[a].parentNode.innerHTML += "<i class='fa fa-exclamation-triangle fa-inverse fa-border pull-left'></i>";
-                            cNo[a].style.top = "initial";
-                            cNo[a].style.bottom = "2px";
-                        }
-                        else
-                            cNo[a].style.display = "none";
+                        if (+cNo[a].firstChild.nodeValue.split("#")[1] <= 100)
+                            cNo[a].parentNode.innerHTML += "<i class='fa fa-exclamation-triangle fa-inverse fa-border pull-left'>" + +cNo[a].firstChild.nodeValue + "</i>";
+                        cNo[a].style.display = "none";
                     }
                 }
                 for (var a = 0; a < itms.length; a++) {
@@ -155,8 +151,6 @@
                     }
                     if (itms[a].hasAttribute("data-part-1-name"))
                         box.innerHTML += "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>";
-                    if (!+itms[a].getAttribute("data-price"))
-                        box.innerHTML += "<i class='fa fa-question-circle fa-inverse fa-border pull-left'></i>";
                     if (itms[a].hasAttribute("data-spell-1"))
                         box.innerHTML += "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>";
                     var title = itms[a].getAttribute(itms[a].hasAttribute("data-default-name") ? "data-default-name" : "title");
