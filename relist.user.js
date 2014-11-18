@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.6.1
+// @version             1.4.6.2
 // ==/UserScript==
 
 (function () {
@@ -50,8 +50,6 @@
             val = Math.round(num * 90) / 90;
         else
             val = Math.floor(num) + (Math.round(num % 1 * 9)) / 9;
-        if (val.toFixed(2) % 1 * 10 >= 0.5)
-            val -= 0.005;
         return val;
     }
 
@@ -92,9 +90,8 @@
         var diff = 864e5 * updateFreq - (new Date() - Date.parse(localStorage.getItem("lastupdt"))),
             days = Math.floor(diff / 864e5),
             hours = Math.floor((diff % 864e5) / 36e5),
-            minutes = Math.floor((diff % 36e5) / 6e4),
-            str = "Prices will update in " + days + " day(s), " + hours + " hour(s), and " + minutes + " minute(s).";
-        console.info(str);
+            minutes = Math.floor((diff % 36e5) / 6e4);
+            console.info("Prices update in " + days + " day(s), " + hours + " hour(s), and " + minutes + " min(s).");
     }
 
     function showStatus() {
@@ -139,7 +136,8 @@
                 for (var a = 0; a < cNo.length; a++) {
                     if (!cNo[a].parentNode.parentNode.hasAttribute("data-crate")) {
                         if (+cNo[a].firstChild.nodeValue.split("#")[1] <= 100)
-                            cNo[a].parentNode.innerHTML += "<i class='fa fa-exclamation-triangle fa-inverse fa-border pull-left'>" + +cNo[a].firstChild.nodeValue + "</i>";
+                            cNo[a].parentNode.innerHTML += "<i class='fa fa-exclamation-triangle fa-inverse fa-border" +
+                                                           " pull-left'>" + +cNo[a].firstChild.nodeValue + "</i>";
                         cNo[a].style.display = "none";
                     }
                 }
@@ -225,7 +223,10 @@
                         document.getElementById("keys").value = Math.floor(price / keyP);
                         price %= keyP;
                     }
-                    price = round(price).toFixed(2);
+                    price = round(price);
+                    if (price.toFixed(2) % 1 * 10 >= 0.5)
+                        price -= 0.005;
+                    price = price.toFixed(2);
                     if (+price)
                         document.getElementById("metal").value = price;
                     document.getElementById("details").value = notes;
