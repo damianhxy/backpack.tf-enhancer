@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.6.3
+// @version             1.4.6.4
 // ==/UserScript==
 
 (function () {
@@ -135,10 +135,10 @@ try {
             }, 1000);
             addButton("annotate", "Annotate", false);
             if (isSelf) {
-                addButton("quicklist", "Easy Listing", false);
-                if (JSON.parse(sessionStorage.getItem("quicklist"))) {
+                addButton("fastlist", "Fast Listing", false);
+                if (JSON.parse(sessionStorage.getItem("fastlist"))) {
                     var itms = document.getElementsByClassName("item trade");
-                    for (var a = 0; a < itms.length; a++)
+                    for (var a = 0; a < itms.length; a++) {
                         if (itms[a].getAttribute("data-name").contains("Metal"))
                             continue;
                         itms[a].firstElementChild.innerHTML += "<a href='http://backpack.tf/classifieds/add/" +
@@ -146,6 +146,7 @@ try {
                                                                  "<i class='fa fa-plus-square fa-inverse" +
                                                                  " fa-border' style='position: absolute; " +
                                                                  "bottom: 2px; left: 2px;'></i></a>";
+                    }
                 }
             }
             if (JSON.parse(sessionStorage.getItem("annotate"))) {
@@ -186,12 +187,14 @@ try {
         }
     }
 
-    sessionStorage.setItem("curPage", sessionStorage.getItem("curPage") || 1);
-    addButton("paused", "Paused", false);
-    addButton("persistent", "Persistent", false);
-    if (JSON.parse(sessionStorage.getItem("paused"))) {
-        window.document.title = "Classifieds: Paused";
-        return;
+    if (listings || listPage) {
+        sessionStorage.setItem("curPage", sessionStorage.getItem("curPage") || 1);
+        addButton("paused", "Paused", false);
+        addButton("persistent", "Persistent", false);
+        if (JSON.parse(sessionStorage.getItem("paused"))) {
+            window.document.title = "Classifieds: Paused";
+            return;
+        }
     }
 
     if (listings) {
