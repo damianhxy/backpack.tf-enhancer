@@ -122,9 +122,6 @@ try {
         budP = +localStorage.getItem("budP");
     /****** END SCRIPT GLOBALS ******/
 
-    if (!(profile || listPage || listings))
-        return;
-
     if (profile) {
         if (JSON.parse(sessionStorage.getItem("persistent")) && isSelf)
             document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild.click();
