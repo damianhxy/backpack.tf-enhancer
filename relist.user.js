@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.6.4
+// @version             1.4.6.5
 // ==/UserScript==
 
 (function () {
@@ -252,6 +252,6 @@ try {
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
 }
 catch(e) {
-    alert("An error has occured: " + e.message + "\nStack Trace: " + e.stack);
+    alert("[An error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
 }
 })();
