@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.6.5
+// @version             1.4.6.6
 // ==/UserScript==
 
 (function () {
@@ -44,7 +44,7 @@
     function round(num) {
         var val;
         if (num <= 5 / 90)
-            val = Math.round(num * 90) / 90;
+            val = +num;
         else
             val = Math.floor(num) + (Math.round(num % 1 * 9)) / 9;
         return val;
@@ -138,9 +138,11 @@ try {
                     for (var a = 0; a < itms.length; a++) {
                         if (itms[a].getAttribute("data-name").contains("Metal"))
                             continue;
+                        var listed = itms[a].hasAttribute("data-listing-price"),
+                            style = listed ? "fa-refresh" : "fa-plus-square";
                         itms[a].firstElementChild.innerHTML += "<a href='http://backpack.tf/classifieds/add/" +
                                                                  itms[a].getAttribute("data-id") + "'>" +
-                                                                 "<i class='fa fa-plus-square fa-inverse" +
+                                                                 "<i class='fa " + style + " fa-inverse" +
                                                                  " fa-border' style='position: absolute; " +
                                                                  "bottom: 2px; left: 2px;'></i></a>";
                     }
@@ -240,10 +242,10 @@ try {
                     price %= keyP;
                 }
                 price = round(price);
-                if (price.toFixed(2) % 1 * 10 >= 0.5)
+                if (price * 100 % 1 >= 0.5)
                     price -= 0.005;
-                price = price.toFixed(2);
-                if (+price)
+                price = +price.toFixed(2);
+                if (price)
                     document.getElementById("metal").value = price;
                 document.getElementById("details").value = notes;
                 break;
