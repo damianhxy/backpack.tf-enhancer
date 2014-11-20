@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.6.7
+// @version             1.4.6.8
 // ==/UserScript==
 
 (function () {
@@ -136,8 +136,8 @@ try {
                 if (JSON.parse(sessionStorage.getItem("fastlist"))) {
                     Array.prototype.forEach.call(document.getElementsByClassName("item trade"), function(e) {
                         if (!e.getAttribute("data-name").contains("Metal")) {
-                            var style = itms[a].hasAttribute("data-listing-price") ? "fa-refresh" : "fa-plus-square",
-                                html = "<a href='http://backpack.tf/classifieds/add/" + itms[a].getAttribute("data-id") +
+                            var style = e.hasAttribute("data-listing-price") ? "fa-refresh" : "fa-plus-square",
+                                html = "<a href='http://backpack.tf/classifieds/add/" + e.getAttribute("data-id") +
                                        "'>" + "<i class='fa " + style + " fa-inverse fa-border' " +
                                        "style='position: absolute; bottom: 2px; left: 2px;'></i></a>";
                             e.firstElementChild.insertAdjacentHTML("beforeend", html);
