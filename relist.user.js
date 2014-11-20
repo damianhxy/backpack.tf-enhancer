@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.6.8
+// @version             1.4.6.9
 // ==/UserScript==
 
 (function () {
@@ -148,11 +148,10 @@ try {
             if (JSON.parse(sessionStorage.getItem("annotate"))) {
                 Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
                     if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
-                        if (+e.textContent.split("#")[1] <= 100) {
+                        if (+e.textContent.split("#")[1] <= 100)
                             e.insertAdjacentHTML("afterend", "<i class='fa fa-exclamation-triangle fa-inverse fa-border" +
                                                              " pull-left'>" + e.textContent + "</i>");
-                            e.style.display = "none";
-                        }
+                        e.style.display = "none";
                     }
                 });
                 Array.prototype.forEach.call(document.getElementsByClassName("item trade"), function(e) {
@@ -161,6 +160,10 @@ try {
                         if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
                             box.insertAdjacentHTML("beforeend", "<i class='fa fa-paint-brush fa-inverse fa-border " +
                                                    "pull-left'></i>");
+                    }
+                    if (e.querySelector(".fa-gift") !== null) {
+                        e.querySelectorAll(".icons")[0].style.display = "none";
+                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-gift fa-inverse fa-border pull-left'></i>");
                     }
                     if (e.hasAttribute("data-part-1-name"))
                         box.insertAdjacentHTML("beforeend", "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>");
