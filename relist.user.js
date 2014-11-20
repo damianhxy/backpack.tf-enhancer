@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.0a
+// @version             1.4.7.1
 // ==/UserScript==
 
 (function () {
@@ -20,7 +20,6 @@
         randomMin = 1,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
-        experimental = 1,            //[boolean] enable experimental options
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
@@ -254,27 +253,23 @@ try {
                 if (price)
                     metal.value = price;
                 document.getElementById("details").value = notes;
-                if (experimental) {
-                    var quality = itm.getAttribute("data-q-name"),
-                        item = itm.getAttribute("data-name"),
-                        tradable = +itm.getAttribute("data-tradable") ? "Tradable": "Non-Tradable",
-                        craftable = +itm.getAttribute("data-craftable") ? "Craftable" : "Non-Craftable"
-                        url = "http://backpack.tf/stats/" + quality + "/" + item + "/" + tradable + "/" + craftable,
-                        html = "<div class='row'><div class='col-12'><div class='panel-heading'>Classifieds</div>" +
-                               "<div class='panel-body padded' style='height: 300px;'>" +
-                               "<iframe id='list' scrolling='yes' src='" + url + "'  frameborder='0' height='100%'" +
-                               " width='100%'></iframe><br></div></div></div>";
-                    document.getElementById("page-content").querySelector(".row").insertAdjacentHTML("afterend", html);
-                    setTimeout(function() {
-                        var frame = document.getElementById("list"),
-                            content = frame.contentDocument || frame.contentWindow.document,
-                            listed = content.querySelector(".media-list").children,
-                            lowest = listed[0].querySelector(".item").getAttribute("data-listing-price"),
-                            highest = listed[listed.length - 1].querySelector(".item").getAttribute("data-listing-price");
-                        frame.parentNode.previousElementSibling.textContent += " (Lowest: " + lowest + ", Highest: " +
-                                                                               highest + ")";
-                    }, 1000);
-                }
+
+                var quality = itm.getAttribute("data-q-name"),
+                    item = itm.getAttribute("data-name"),
+                    tradable = (+itm.getAttribute("data-tradable") ? "" : "Non-") + "Tradable",
+                    craftable = (+itm.getAttribute("data-craftable") ? "" : "Non-") + "Craftable",
+                    url = "http://backpack.tf/stats/" + quality + "/" + item + "/" + tradable + "/" + craftable,
+                    xmlhttp = new XMLHttpRequest();
+                xmlhttp.open("GET", url, false);
+                xmlhttp.send();
+                var res = xmlhttp.responseText,
+                    ele = document.createElement("div");
+                ele.innerHTML += res;
+                var listed = ele.querySelector(".media-list").children,
+                    lowest = listed[0].querySelector(".item").getAttribute("data-listing-price"),
+                    highest = listed[listed.length - 1].querySelector(".item").getAttribute("data-listing-price");
+                document.getElementsByClassName("panel-heading")[1].textContent += " (Lowest: " + lowest +
+                                                                                   ", Highest: " + highest + ")";
                 break;
         }
     }
