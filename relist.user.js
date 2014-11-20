@@ -8,7 +8,7 @@
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @run-at              document-end
-// @version             1.4.6.6
+// @version             1.4.6.7
 // ==/UserScript==
 
 (function () {
@@ -80,7 +80,7 @@
                         alert("Error: API returned empty response");
                     else if (!data.response.success) {
                         if (data.response.message === "API key does not exist.") {
-                            alert("Invalid API key")
+                            alert("Invalid API key");
                             localStorage.removeItem("apikey");
                             update();
                         }
@@ -128,48 +128,45 @@ try {
         else {
             setTimeout(function() {
                 var head = document.querySelectorAll("[href='#page0']")[0];
-                head.innerHTML = (document.getElementById("newlist").children.length - 1) + " " + head.innerHTML;
+                head.insertAdjacentHTML('afterbegin', document.getElementById("newlist").children.length - 1 + " ");
             }, 1000);
             addButton("annotate", "Annotate", false);
             if (isSelf) {
                 addButton("fastlist", "Fast Listing", false);
                 if (JSON.parse(sessionStorage.getItem("fastlist"))) {
-                    var itms = document.getElementsByClassName("item trade");
-                    for (var a = 0; a < itms.length; a++) {
-                        if (itms[a].getAttribute("data-name").contains("Metal"))
-                            continue;
-                        var listed = itms[a].hasAttribute("data-listing-price"),
-                            style = listed ? "fa-refresh" : "fa-plus-square";
-                        itms[a].firstElementChild.innerHTML += "<a href='http://backpack.tf/classifieds/add/" +
-                                                                 itms[a].getAttribute("data-id") + "'>" +
-                                                                 "<i class='fa " + style + " fa-inverse" +
-                                                                 " fa-border' style='position: absolute; " +
-                                                                 "bottom: 2px; left: 2px;'></i></a>";
-                    }
+                    Array.prototype.forEach.call(document.getElementsByClassName("item trade"), function(e) {
+                        if (!e.getAttribute("data-name").contains("Metal")) {
+                            var style = itms[a].hasAttribute("data-listing-price") ? "fa-refresh" : "fa-plus-square",
+                                html = "<a href='http://backpack.tf/classifieds/add/" + itms[a].getAttribute("data-id") +
+                                       "'>" + "<i class='fa " + style + " fa-inverse fa-border' " +
+                                       "style='position: absolute; bottom: 2px; left: 2px;'></i></a>";
+                            e.firstElementChild.insertAdjacentHTML("beforeend", html);
+                        }
+                    });
                 }
             }
             if (JSON.parse(sessionStorage.getItem("annotate"))) {
-                var cNo = document.getElementsByClassName("value"),
-                    itms = document.getElementsByClassName("item trade");
-                for (var a = 0; a < cNo.length; a++) {
-                    if (!cNo[a].parentNode.parentNode.hasAttribute("data-crate")) {
-                        if (+cNo[a].firstChild.nodeValue.split("#")[1] <= 100)
-                            cNo[a].parentNode.innerHTML += "<i class='fa fa-exclamation-triangle fa-inverse fa-border" +
-                                                           " pull-left'>" + cNo[a].firstChild.nodeValue + "</i>";
-                        cNo[a].style.display = "none";
+                Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
+                    if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
+                        if (+e.textContent.split("#")[1] <= 100) {
+                            e.insertAdjacentHTML("afterend", "<i class='fa fa-exclamation-triangle fa-inverse fa-border" +
+                                                             " pull-left'>" + e.textContent + "</i>");
+                            e.style.display = "none";
+                        }
                     }
-                }
-                for (var a = 0; a < itms.length; a++) {
-                    var box = itms[a].firstElementChild;
-                    if (itms[a].hasAttribute("data-paint-name")) {
-                        if (itms[a].getAttribute("data-paint-name") !== itms[a].getAttribute("data-name"))
-                            box.innerHTML += "<i class='fa fa-paint-brush fa-inverse fa-border pull-left'></i>";
+                });
+                Array.prototype.forEach.call(document.getElementsByClassName("item trade"), function(e) {
+                    var box = e.firstElementChild;
+                    if (e.hasAttribute("data-paint-name")) {
+                        if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
+                            box.insertAdjacentHTML("beforeend", "<i class='fa fa-paint-brush fa-inverse fa-border " +
+                                                   "pull-left'></i>");
                     }
-                    if (itms[a].hasAttribute("data-part-1-name"))
-                        box.innerHTML += "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>";
-                    if (itms[a].hasAttribute("data-spell-1"))
-                        box.innerHTML += "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>";
-                    var title = itms[a].getAttribute("data-default-name") || itms[a].getAttribute("title");
+                    if (e.hasAttribute("data-part-1-name"))
+                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>");
+                    if (e.hasAttribute("data-spell-1"))
+                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>");
+                    var title = e.getAttribute("data-default-name") || e.getAttribute("title");
                     if (title.contains("Killstreak")) {
                         var colour;
                         if (title.contains("Professional"))
@@ -178,10 +175,10 @@ try {
                             colour = "#c0c0c0";
                         else
                             colour = "#cd7f32";
-                        box.innerHTML += "<i class='fa fa-bomb fa-border pull-left' " +
-                                         "style='color: " + colour + "; background-color: white'></i>";
+                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-bomb fa-border pull-left' " +
+                                               "style='color: " + colour + "; background-color: white'></i>");
                     }
-                }
+                });
             }
         }
     }
@@ -201,7 +198,7 @@ try {
             last = document.getElementsByClassName("fa-angle-right")[0].parentNode.parentNode.className === "disabled",
             buttons = document.getElementsByClassName("listing-relist");
         if (first && sessionStorage.getItem("curPage") > 2)
-            window.location.href = window.location.href + "&page=" + sessionStorage.getItem("curPage");
+            location.assign(window.location.href + "&page=" + sessionStorage.getItem("curPage"));
         else if (buttons.length)
             buttons[randomRelist ? range(0, buttons.length - 1) : 0].click();
         else {
@@ -225,14 +222,15 @@ try {
                 break;
             case "Creating a new listing for this item":
                 var itm = document.getElementsByClassName("item")[0],
-                    price = +itm.getAttribute("data-price");
+                    price = +itm.getAttribute("data-price"),
+                    metal = document.getElementById("metal");
                 if (!price || itm.getAttribute("title").contains("Killstreak")) {
-                    document.getElementById("metal").previousElementSibling.innerHTML += " (Unpriced)";
+                    metal.previousElementSibling.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
                         price = +itm.getAttribute("data-market-p") / 249 * keyP;
                 }
                 else if (itm.getAttribute("data-p-bptf").contains("–"))
-                    document.getElementById("metal").previousElementSibling.innerHTML += " (Ranged)";
+                    metal.previousElementSibling.insertAdjacentHTML("beforeend", " (Ranged)");
                 if (price >= keyP && !itm.getAttribute("data-name").contains("Key")) {
                     if (price >= keyP * budP && !itm.getAttribute("data-name").contains("Earbuds")) {
                         document.getElementById("earbuds").value = Math.floor(price / (keyP * budP));
@@ -246,7 +244,7 @@ try {
                     price -= 0.005;
                 price = +price.toFixed(2);
                 if (price)
-                    document.getElementById("metal").value = price;
+                    metal.value = price;
                 document.getElementById("details").value = notes;
                 break;
         }
