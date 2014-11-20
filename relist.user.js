@@ -3,8 +3,8 @@
 // @description         Relists trades on Backpack.tf Classifieds
 // @downloadURL         https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.user.js
 // @grant               GM_xmlhttpRequest
-// @include             /^https?:\/\/backpack\.tf.*/
-// @exclude             /^https?:\/\/backpack\.tf\/api\/.*/
+// @include             /^http:\/\/backpack\.tf.*/
+// @exclude             /^http:\/\/backpack\.tf\/api\/.*/
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
 // @noframes
