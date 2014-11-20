@@ -7,6 +7,7 @@
 // @exclude             /^https?:\/\/backpack\.tf\/api\/.*/
 // @name                Backpack.tf Classifieds AutoRelist
 // @namespace           localhost
+// @noframes
 // @run-at              document-end
 // @version             1.4.7.0a
 // ==/UserScript==
