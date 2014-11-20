@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.1
+// @version             1.4.7.2
 // ==/UserScript==
 
 (function () {
@@ -20,19 +20,22 @@
         randomMin = 1,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
+        experimental = 1,            //[boolean] activate experimental features?
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
     //FUNCTION DECLARATIONS
     function addButton(prop, val, def) {
+        sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
             toggle = document.createElement("i"),
-            text = document.createTextNode(" " + val);
-        sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
+            text = document.createTextNode(" " + val),
+            activated = JSON.parse(sessionStorage.getItem(prop));
         button.setAttribute("style", "margin-right: 5px; width: 100px;");
-        button.setAttribute("onclick", "window.stop(); sessionStorage.setItem('" + prop + "', !JSON.parse(sessionStorage.getItem('" + prop + "'))); location.reload();");
-        button.setAttribute("class", "btn btn-success btn-sm pull-right");
-        toggle.setAttribute("class", "fa fa-toggle-" + (JSON.parse(sessionStorage.getItem(prop)) ? "on" : "off"));
+        button.setAttribute("onclick", "window.stop(); sessionStorage.setItem('" + prop +
+                            "', !JSON.parse(sessionStorage.getItem('" + prop + "'))); location.reload();");
+        button.setAttribute("class", "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right");
+        toggle.setAttribute("class", "fa fa-toggle-" + (activated ? "on" : "off"));
         button.appendChild(toggle);
         button.appendChild(text);
         document.getElementById("#navbar").appendChild(button);
@@ -123,6 +126,38 @@ try {
         budP = +localStorage.getItem("budP");
     /****** END SCRIPT GLOBALS ******/
 
+    if (experimental && window.location.href === "http://backpack.tf/")
+        addButton("restore", "Restore All", false);
+
+    if (experimental && JSON.parse(sessionStorage.getItem("restore"))) {
+        if (window.location.href.contains("/add")) {
+            var item = Object.keys(localStorage).find(function(e) {
+                return e === "trdata-" + document.querySelector(".item").getAttribute("data-id");
+            }),
+                arr = localStorage.getItem(item).split("$");
+            document.getElementById("metal").value = arr[0];
+            document.getElementById("keys").value = arr[1];
+            document.getElementById("earbuds").value = arr[2];
+            document.getElementById("details").value = arr[3];
+            localStorage.removeItem(item);
+        }
+        else {
+            var stored = Object.keys(localStorage).filter(function(e) {
+                return e.startsWith("trdata-");
+            });
+            if (stored.length)
+                location.assign("http://backpack.tf/classifieds/add/" + stored[range(0, stored.length - 1)].slice(7));
+            else {
+                if (window.location.href === "http://backpack.tf/")
+                    alert("Nothing to restore!");
+                else
+                    alert("Finished restoring!");
+                sessionStorage.setItem("restore", false);
+                document.querySelector(".navbar-brand").click();
+            }
+        }
+    }
+
     if (profile) {
         if (JSON.parse(sessionStorage.getItem("persistent")) && isSelf)
             document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild.click();
@@ -192,6 +227,8 @@ try {
         sessionStorage.setItem("curPage", sessionStorage.getItem("curPage") || 1);
         addButton("paused", "Paused", false);
         addButton("persistent", "Persistent", false);
+        if (experimental)
+            addButton("save", "Save All", false);
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             window.document.title = "Classifieds: Paused";
             return;
@@ -209,6 +246,8 @@ try {
         else {
             if (last) {
                 sessionStorage.removeItem("curPage");
+                if (experimental)
+                    sessionStorage.removeItem("save");
                 var data = document.createElement("small"),
                     reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
                 data.setAttribute("style", "color: orange; float: right;");
@@ -225,6 +264,14 @@ try {
     else if (listPage) {
         switch (document.getElementById("item-overview-name").firstElementChild.innerHTML) {
             case "Relisting this item":
+                if (experimental && JSON.parse(sessionStorage.getItem("save"))) {
+                    var itm = document.querySelector(".item").getAttribute("data-id"),
+                        metal = document.getElementById("metal").value || "0",
+                        key = document.getElementById("keys").value || "0",
+                        bud = document.getElementById("earbuds").value || "0",
+                        note = document.getElementById("details").value || "";
+                    localStorage.setItem("trdata-" + itm, [metal, key, bud, note].join("$"));
+                }
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
