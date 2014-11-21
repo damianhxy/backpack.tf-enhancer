@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.8
+// @version             1.4.7.9
 // ==/UserScript==
 
 (function () {
@@ -20,7 +20,7 @@
         randomMin = 1,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
-        experimental = 0,            //[boolean] activate experimental features?
+        experimental = 1,            //[boolean] activate experimental features?
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
@@ -146,7 +146,7 @@ try {
                 document.getElementById("keys").value = arr[1];
                 document.getElementById("earbuds").value = arr[2];
                 document.getElementById("details").value = arr[3];
-                localStorage.removeItem(item);
+                localStorage.removeItem(itm);
                 document.getElementById("button_save").click();
                 return;
             }
@@ -157,7 +157,7 @@ try {
                 if (stored.length)
                     location.assign("http://backpack.tf/classifieds/add/" + stored[range(0, stored.length - 1)].slice(7));
                 else {
-                    alert("Finished restoring!");
+                    alert("Classifieds Restored!");
                     sessionStorage.setItem("restore", false);
                     document.querySelector(".navbar-brand").click();
                 }
@@ -165,9 +165,8 @@ try {
             }
         }
         else if (JSON.parse(sessionStorage.getItem("delete"))) {
-            if (!listings) {
+            if (!listings)
                 document.querySelector("[href^='/classifieds/?steamid=']").click();
-            }
             else {
                 var remove = document.getElementsByClassName("listing-remove");
                 if (remove.length) {
@@ -178,7 +177,7 @@ try {
                     document.querySelector(".fa-angle-right").click();
                 }
                 else {
-                    alert("Deleted all!");
+                    alert("Listings Deleted!");
                     sessionStorage.setItem("delete", false);
                     document.querySelector(".navbar-brand").click();
                 }
@@ -192,7 +191,7 @@ try {
             stored.forEach(function(e) {
                 localStorage.removeItem(e);
             });
-            alert("Cleared Data!");
+            alert("Data Cleared!");
         }
     }
 
@@ -201,8 +200,8 @@ try {
             document.querySelector("[href^='/classifieds/?steamid=']").click();
         else {
             setTimeout(function() {
-                var head = document.querySelector("[href='#page0']");
-                head.insertAdjacentHTML('afterbegin', document.getElementById("newlist").children.length - 1 + " ");
+                document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
+                         document.getElementById("newlist").children.length - 1 + " ");
             }, 1000);
             addButton("annotate", "Annotate", false);
             if (isSelf) {
@@ -212,14 +211,14 @@ try {
                         if (!e.getAttribute("data-name").contains("Metal")) {
                             var style = e.hasAttribute("data-listing-price") ? "fa-refresh" : "fa-plus-square",
                                 html = "<a href='http://backpack.tf/classifieds/add/" + e.getAttribute("data-id") +
-                                       "'>" + "<i class='fa " + style + " fa-inverse fa-border' " +
-                                       "style='position: absolute; bottom: 2px; left: 2px;'></i></a>";
+                                       "'>" + "<i class='fa " + style + " fa-inverse fa-border'" +
+                                       " style='position: absolute; bottom: 2px; left: 2px;'></i></a>";
                             e.firstElementChild.insertAdjacentHTML("beforeend", html);
                         }
                         if (e.hasAttribute("data-gifted-name")) {
                             e.querySelector(".fa-gift").style.display = "none";
-                            e.firstElementChild.insertAdjacentHTML("beforeend", "<i class='fa fa-gift fa-inverse " +
-                                                                   "fa-border pull-left'></i>");
+                            e.firstElementChild.insertAdjacentHTML("beforeend", "<i class='fa fa-gift fa-inverse" +
+                                                                   " fa-border pull-left'></i>");
                         }
                     });
                 }
@@ -237,8 +236,8 @@ try {
                     var box = e.firstElementChild;
                     if (e.hasAttribute("data-paint-name")) {
                         if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
-                            box.insertAdjacentHTML("beforeend", "<i class='fa fa-paint-brush fa-inverse fa-border " +
-                                                   "pull-left'></i>");
+                            box.insertAdjacentHTML("beforeend", "<i class='fa fa-paint-brush fa-inverse fa-border" +
+                                                   " pull-left'></i>");
                     }
                     if (e.hasAttribute("data-part-1-name"))
                         box.insertAdjacentHTML("beforeend", "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>");
@@ -253,8 +252,8 @@ try {
                             colour = "#c0c0c0";
                         else
                             colour = "#cd7f32";
-                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-bomb fa-border pull-left' " +
-                                               "style='color: " + colour + "; background-color: white'></i>");
+                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-bomb fa-border pull-left'" +
+                                               " style='color: " + colour + "; background-color: white'></i>");
                     }
                 });
             }
@@ -267,6 +266,7 @@ try {
         addButton("persistent", "Persistent", false);
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             window.document.title = "Classifieds: Paused";
+            console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             return;
         }
     }
