@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.2
+// @version             1.4.7.3
 // ==/UserScript==
 
 (function () {
@@ -131,27 +131,30 @@ try {
 
     if (experimental && JSON.parse(sessionStorage.getItem("restore"))) {
         if (window.location.href.contains("/add")) {
-            var item = Object.keys(localStorage).find(function(e) {
+            var itm = Object.keys(localStorage).find(function(e) {
                 return e === "trdata-" + document.querySelector(".item").getAttribute("data-id");
             }),
-                arr = localStorage.getItem(item).split("$");
+                arr = localStorage.getItem(itm).split("$");
+            console.info("Restoring data for: " + item);
             document.getElementById("metal").value = arr[0];
             document.getElementById("keys").value = arr[1];
             document.getElementById("earbuds").value = arr[2];
             document.getElementById("details").value = arr[3];
             localStorage.removeItem(item);
+            document.getElementById("button_save").click();
         }
         else {
+            console.info("Looking for next item...");
             var stored = Object.keys(localStorage).filter(function(e) {
                 return e.startsWith("trdata-");
             });
-            if (stored.length)
+            console.info("Length: " + stored.length);
+            if (stored.length) {
+                console.info("Picking a random listing to restore");
                 location.assign("http://backpack.tf/classifieds/add/" + stored[range(0, stored.length - 1)].slice(7));
+            }
             else {
-                if (window.location.href === "http://backpack.tf/")
-                    alert("Nothing to restore!");
-                else
-                    alert("Finished restoring!");
+                alert("Finished restoring!");
                 sessionStorage.setItem("restore", false);
                 document.querySelector(".navbar-brand").click();
             }
@@ -246,8 +249,6 @@ try {
         else {
             if (last) {
                 sessionStorage.removeItem("curPage");
-                if (experimental)
-                    sessionStorage.removeItem("save");
                 var data = document.createElement("small"),
                     reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
                 data.setAttribute("style", "color: orange; float: right;");
@@ -271,6 +272,7 @@ try {
                         bud = document.getElementById("earbuds").value || "0",
                         note = document.getElementById("details").value || "";
                     localStorage.setItem("trdata-" + itm, [metal, key, bud, note].join("$"));
+                    console.info("Saved item data for: " + itm);
                 }
                 document.getElementById("button_save").click();
                 break;
