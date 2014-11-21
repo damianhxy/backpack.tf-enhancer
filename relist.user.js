@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.7
+// @version             1.4.7.8
 // ==/UserScript==
 
 (function () {
@@ -125,63 +125,75 @@ try {
         budP = +localStorage.getItem("budP");
     /****** END SCRIPT GLOBALS ******/
 
-    if (experimental && window.location.href === "http://backpack.tf/") {
-        addButton("restore", "Restore All", false);
-        addButton("save", "Save All", false);
-        addButton("delete", "Delete All", false);
-        if (JSON.parse(sessionStorage.getItem("save"))) {
-            console.info("Redirecting to classifieds...");
-            document.querySelector("[href^='/classifieds/?steamid=']").click();
-            return;
+    if (experimental) {
+        if (window.location.href === "http://backpack.tf/") {
+            addButton("restore", "Restore All", false);
+            addButton("save", "Save All", false);
+            addButton("delete", "Delete All", false);
+            addButton("clear", "Clear Data", false);
+            if (JSON.parse(sessionStorage.getItem("save"))) {
+                document.querySelector("[href^='/classifieds/?steamid=']").click();
+                return;
+            }
         }
-    }
-
-    if (experimental && JSON.parse(sessionStorage.getItem("restore"))) {
-        if (window.location.href.contains("/add")) {
-            var itm = Object.keys(localStorage).find(function(e) {
-                return e === "trdata-" + document.querySelector(".item").getAttribute("data-id");
-            }),
-                arr = localStorage.getItem(itm).split("$");
-            console.info("Restoring data for: " + item);
-            document.getElementById("metal").value = arr[0];
-            document.getElementById("keys").value = arr[1];
-            document.getElementById("earbuds").value = arr[2];
-            document.getElementById("details").value = arr[3];
-            localStorage.removeItem(item);
-            document.getElementById("button_save").click();
-            return;
-        }
-        else {
-            console.info("Looking for next item...");
-            var stored = Object.keys(localStorage).filter(function(e) {
-                return e.startsWith("trdata-");
-            });
-            console.info("Length: " + stored.length);
-            if (stored.length) {
-                console.info("Picking a random listing to restore");
-                location.assign("http://backpack.tf/classifieds/add/" + stored[range(0, stored.length - 1)].slice(7));
+        if (JSON.parse(sessionStorage.getItem("restore"))) {
+            if (window.location.href.contains("/add")) {
+                var itm = Object.keys(localStorage).find(function(e) {
+                    return e === "trdata-" + document.querySelector(".item").getAttribute("data-id");
+                }),
+                    arr = localStorage.getItem(itm).split("$");
+                document.getElementById("metal").value = arr[0];
+                document.getElementById("keys").value = arr[1];
+                document.getElementById("earbuds").value = arr[2];
+                document.getElementById("details").value = arr[3];
+                localStorage.removeItem(item);
+                document.getElementById("button_save").click();
                 return;
             }
             else {
-                alert("Finished restoring!");
-                sessionStorage.setItem("restore", false);
-                document.querySelector(".navbar-brand").click();
+                var stored = Object.keys(localStorage).filter(function(e) {
+                    return e.startsWith("trdata-");
+                });
+                if (stored.length)
+                    location.assign("http://backpack.tf/classifieds/add/" + stored[range(0, stored.length - 1)].slice(7));
+                else {
+                    alert("Finished restoring!");
+                    sessionStorage.setItem("restore", false);
+                    document.querySelector(".navbar-brand").click();
+                }
                 return;
             }
         }
-    }
-
-    if (experimental && JSON.parse(sessionStorage.getItem("delete"))) {
-        if (!listings) {
-            document.querySelector("[href^='/classifieds/?steamid=']").click();
+        else if (JSON.parse(sessionStorage.getItem("delete"))) {
+            if (!listings) {
+                document.querySelector("[href^='/classifieds/?steamid=']").click();
+            }
+            else {
+                var remove = document.getElementsByClassName("listing-remove");
+                if (remove.length) {
+                    Array.prototype.forEach.call(remove, function(e) {
+                        e.click();
+                        e.click();
+                    });
+                    document.querySelector(".fa-angle-right").click();
+                }
+                else {
+                    alert("Deleted all!");
+                    sessionStorage.setItem("delete", false);
+                    document.querySelector(".navbar-brand").click();
+                }
+                return;
+            }
         }
-        else {
-            Array.prototype.forEach.call(document.getElementsByClassName("listing-remove"), function(e) {
-                e.click();
-                e.click();
+        else if (JSON.parse(sessionStorage.getItem("clear"))) {
+            var stored = Object.keys(localStorage).filter(function(e) {
+                return e.startsWith("trdata-");
             });
+            stored.forEach(function(e) {
+                localStorage.removeItem(e);
+            });
+            alert("Cleared Data!");
         }
-        return;
     }
 
     if (profile) {
@@ -298,7 +310,6 @@ try {
                         bud = document.getElementById("earbuds").value || "0",
                         note = document.getElementById("details").value || "";
                     localStorage.setItem("trdata-" + itm, [metal, key, bud, note].join("$"));
-                    console.info("Saved item data for: " + itm);
                 }
                 document.getElementById("button_save").click();
                 break;
