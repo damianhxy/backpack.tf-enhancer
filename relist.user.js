@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.9
+// @version             1.4.8.0
 // ==/UserScript==
 
 (function () {
@@ -174,7 +174,7 @@ try {
                         e.click();
                         e.click();
                     });
-                    document.querySelector(".fa-angle-right").click();
+                    location.reload();
                 }
                 else {
                     alert("Listings Deleted!");
@@ -192,6 +192,43 @@ try {
                 localStorage.removeItem(e);
             });
             alert("Data Cleared!");
+            sessionStorage.setItem("clear", false);
+            location.reload();
+        }
+        else if (JSON.parse(sessionStorage.getItem("save"))) {
+            if (!listings)
+                document.querySelector("[href^='/classifieds/?steamid=']").click();
+            else {
+                var itms = document.getElementsByClassName("item");
+                Array.prototype.forEach.call(itms, function(e) {
+                    var itm = e.getAttribute("data-id"),
+                        price = e.getAttribute("data-listing-price").split(" "),
+                        metal = 0,
+                        key = 0,
+                        bud = 0,
+                        note = e.getAttribute("data-listing-comment");
+                    if (price.length === 6) {
+                        bud = price[0];
+                        key = price[2];
+                        metal = price[4];
+                    }
+                    else if (price.length === 4) {
+                        key = price[0];
+                        metal = price[2];
+                    }
+                    else
+                        metal = price[0];
+                    localStorage.setItem("trdata-" + itm, [metal, key, bud, note].join("$"));
+                });
+                if (document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")
+                    document.querySelector(".fa-angle-right").click();
+                else {
+                    alert("Data Saved!");
+                    sessionStorage.setItem("save", false);
+                    document.querySelector(".navbar-brand").click();
+                }
+                return;
+            }
         }
     }
 
@@ -272,8 +309,8 @@ try {
     }
 
     if (listings) {
-        var first = document.querySelector(".fa-angle-double-left").parentNode.parentNode.className === "disabled",
-            last = document.querySelector(".fa-angle-double-right").parentNode.parentNode.className === "disabled",
+        var first = document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
+            last = document.querySelector(".pagination-filters").lastElementChild.className === "disabled",
             buttons = document.getElementsByClassName("listing-relist");
         if (first && sessionStorage.getItem("curPage") > 2)
             location.assign(window.location.href + "&page=" + sessionStorage.getItem("curPage"));
@@ -287,30 +324,17 @@ try {
                 data.setAttribute("style", "color: orange; float: right;");
                 document.querySelector(".panel-heading").appendChild(data);
                 setInterval(showStatus, 1000);
-                if (experimental && JSON.parse(sessionStorage.getItem("save"))) {
-                    sessionStorage.setItem("save", false);
-                    alert("Finished saving trade data");
-                    document.querySelector(".navbar-brand").click();
-                }
             }
             else {
                 if (!first || (first && JSON.parse(sessionStorage.getItem("curPage")) === 1))
                     sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1);
-                document.querySelector(".fa-angle-right").parentNode.click();
+                document.querySelector(".fa-angle-right").click();
             }
         }
     }
     else if (listPage) {
         switch (document.getElementById("item-overview-name").firstElementChild.innerHTML) {
             case "Relisting this item":
-                if (experimental && JSON.parse(sessionStorage.getItem("save"))) {
-                    var itm = document.querySelector(".item").getAttribute("data-id"),
-                        metal = document.getElementById("metal").value || "0",
-                        key = document.getElementById("keys").value || "0",
-                        bud = document.getElementById("earbuds").value || "0",
-                        note = document.getElementById("details").value || "";
-                    localStorage.setItem("trdata-" + itm, [metal, key, bud, note].join("$"));
-                }
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
