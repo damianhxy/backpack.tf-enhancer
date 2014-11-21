@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.5
+// @version             1.4.7.6
 // ==/UserScript==
 
 (function () {
@@ -20,7 +20,7 @@
         randomMin = 1,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
-        experimental = 1,            //[boolean] activate experimental features?
+        experimental = 0,            //[boolean] activate experimental features?
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
@@ -105,7 +105,6 @@
                     localStorage.setItem("lastupdt", new Date());
                 }
             });
-            location.reload();
         }
         var diff = 864e5 * updateFreq - (new Date() - Date.parse(localStorage.getItem("lastupdt"))),
             days = Math.floor(diff / 864e5),
