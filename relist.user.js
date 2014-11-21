@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.4
+// @version             1.4.7.5
 // ==/UserScript==
 
 (function () {
@@ -129,6 +129,10 @@ try {
     if (experimental && window.location.href === "http://backpack.tf/") {
         addButton("restore", "Restore All", false);
         addButton("save", "Save All", false);
+        if (JSON.parse(sessionStorage.getItem("save"))) {
+            console.info("Redirecting to classifieds...");
+            document.querySelector("[href^='/classifieds/?steamid=']").click();
+        }
     }
 
     if (experimental && JSON.parse(sessionStorage.getItem("restore"))) {
@@ -165,7 +169,7 @@ try {
 
     if (profile) {
         if (JSON.parse(sessionStorage.getItem("persistent")) && isSelf)
-            document.getElementsByClassName("dropdown-menu")[1].children[9].firstElementChild.click();
+            document.querySelector("[href^='/classifieds/?steamid=']").click();
         else {
             setTimeout(function() {
                 var head = document.querySelector("[href='#page0']");
