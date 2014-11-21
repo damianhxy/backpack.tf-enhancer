@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.3
+// @version             1.4.7.4
 // ==/UserScript==
 
 (function () {
@@ -126,8 +126,10 @@ try {
         budP = +localStorage.getItem("budP");
     /****** END SCRIPT GLOBALS ******/
 
-    if (experimental && window.location.href === "http://backpack.tf/")
+    if (experimental && window.location.href === "http://backpack.tf/") {
         addButton("restore", "Restore All", false);
+        addButton("save", "Save All", false);
+    }
 
     if (experimental && JSON.parse(sessionStorage.getItem("restore"))) {
         if (window.location.href.contains("/add")) {
@@ -230,8 +232,6 @@ try {
         sessionStorage.setItem("curPage", sessionStorage.getItem("curPage") || 1);
         addButton("paused", "Paused", false);
         addButton("persistent", "Persistent", false);
-        if (experimental)
-            addButton("save", "Save All", false);
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             window.document.title = "Classifieds: Paused";
             return;
@@ -254,6 +254,11 @@ try {
                 data.setAttribute("style", "color: orange; float: right;");
                 document.querySelector(".panel-heading").appendChild(data);
                 setInterval(showStatus, 1000);
+                if (experimental && JSON.parse(sessionStorage.getItem("save"))) {
+                    sessionStorage.setItem("save", false);
+                    alert("Finished saving trade data");
+                    document.querySelector(".navbar-brand").click();
+                }
             }
             else {
                 if (!first || (first && JSON.parse(sessionStorage.getItem("curPage")) === 1))
