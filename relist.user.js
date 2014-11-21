@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.7.6
+// @version             1.4.7.7
 // ==/UserScript==
 
 (function () {
@@ -128,9 +128,11 @@ try {
     if (experimental && window.location.href === "http://backpack.tf/") {
         addButton("restore", "Restore All", false);
         addButton("save", "Save All", false);
+        addButton("delete", "Delete All", false);
         if (JSON.parse(sessionStorage.getItem("save"))) {
             console.info("Redirecting to classifieds...");
             document.querySelector("[href^='/classifieds/?steamid=']").click();
+            return;
         }
     }
 
@@ -147,6 +149,7 @@ try {
             document.getElementById("details").value = arr[3];
             localStorage.removeItem(item);
             document.getElementById("button_save").click();
+            return;
         }
         else {
             console.info("Looking for next item...");
@@ -157,13 +160,28 @@ try {
             if (stored.length) {
                 console.info("Picking a random listing to restore");
                 location.assign("http://backpack.tf/classifieds/add/" + stored[range(0, stored.length - 1)].slice(7));
+                return;
             }
             else {
                 alert("Finished restoring!");
                 sessionStorage.setItem("restore", false);
                 document.querySelector(".navbar-brand").click();
+                return;
             }
         }
+    }
+
+    if (experimental && JSON.parse(sessionStorage.getItem("delete"))) {
+        if (!listings) {
+            document.querySelector("[href^='/classifieds/?steamid=']").click();
+        }
+        else {
+            Array.prototype.forEach.call(document.getElementsByClassName("listing-remove"), function(e) {
+                e.click();
+                e.click();
+            });
+        }
+        return;
     }
 
     if (profile) {
