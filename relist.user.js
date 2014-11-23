@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.1
+// @version             1.4.8.2
 // ==/UserScript==
 
 (function () {
@@ -130,6 +130,7 @@ try {
     var listPage = window.location.href.contains("/add"),
         profile = window.location.href.contains("profiles"),
         listings = document.getElementsByClassName("listing-remove").length && window.location.href.contains("steamid="),
+        isSelf = document.querySelector(".dropdown-btn").href === window.location.href,
         keyP = +localStorage.getItem("keyP"),
         budP = +localStorage.getItem("budP");
     /****** END SCRIPT GLOBALS ******/
@@ -200,7 +201,6 @@ try {
             stored.forEach(function(e) {
                 localStorage.removeItem(e);
             });
-            alert("Data Cleared!");
             sessionStorage.setItem("clear", false);
             location.reload();
         }
@@ -232,7 +232,6 @@ try {
                 if (document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")
                     document.querySelector(".fa-angle-right").click();
                 else {
-                    alert("Data Saved!");
                     sessionStorage.setItem("save", false);
                     document.querySelector(".navbar-brand").click();
                 }
@@ -242,7 +241,6 @@ try {
     }
 
     if (profile) {
-        var isSelf = document.querySelector(".dropdown-btn").href === window.location.href;
         if (JSON.parse(sessionStorage.getItem("persistent")) && isSelf)
             document.querySelector("[href^='/classifieds/?steamid=']").click();
         else {
@@ -426,7 +424,7 @@ try {
                         tier = 1;
                 }
                 var url;
-                if (!isKS && !hasPaint || !price)
+                if ((!isKS && !hasPaint) || !price)
                     url = "http://backpack.tf/stats/" + itm.getAttribute("data-q-name") + "/" + name +
                            "/" + (tradable ? "" : "Non-") + "Tradable" + "/" + (craftable ? "" : "Non-") + "Craftable";
                 else
