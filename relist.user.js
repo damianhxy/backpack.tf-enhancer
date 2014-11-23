@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.0
+// @version             1.4.8.1
 // ==/UserScript==
 
 (function () {
@@ -46,11 +46,9 @@
     }
 
     function round(num) {
-        var val;
-        if (num <= 5 / 90)
-            val = +num;
-        else
-            val = Math.floor(num) + (Math.round(num % 1 * 9)) / 9;
+        var val = +num;
+        if (num > 5 / 90)
+            val = Math.floor(val) + (Math.round(val % 1 * 9)) / 9;
         return val;
     }
 
@@ -67,6 +65,8 @@
     }
 
     function update() {
+        if (document.getElementById("login"))
+            console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
         if (!localStorage.getItem("apikey"))
             localStorage.setItem("apikey", prompt("API key not set, register one from http://backpack.tf/api/"));
         if (localStorage.getItem("apikey").length !== 24) {
@@ -74,7 +74,8 @@
             localStorage.removeItem("apikey");
             update();
         }
-        if (!localStorage.getItem("keyP") || !localStorage.getItem("budP") || (new Date() - (Date.parse(localStorage.getItem("lastupdt")) || 0) >= 864e5 * updateFreq)) {
+        if (!localStorage.getItem("keyP") || !localStorage.getItem("budP")
+            || (new Date() - (Date.parse(localStorage.getItem("lastupdt")) || 0) >= 864e5 * updateFreq)) {
             GM_xmlhttpRequest({
                 method: "GET",
                 url: "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey + "&compress=1",
@@ -113,6 +114,15 @@
         console.info("Prices will update in " + days + " day(s), " + hours + " hour(s), and " + minutes + " min(s)");
     }
 
+    function HTTPRequest(URL) {
+        var xmlhttp = new XMLHttpRequest(),
+            ele = document.createElement("div");
+        xmlhttp.open("GET", URL, false);
+        xmlhttp.send();
+        ele.innerHTML += xmlhttp.responseText;
+        return ele;
+    }
+
     //START OF SCRIPT
 try {
     /******** SCRIPT GLOBALS ********/
@@ -120,7 +130,6 @@ try {
     var listPage = window.location.href.contains("/add"),
         profile = window.location.href.contains("profiles"),
         listings = document.getElementsByClassName("listing-remove").length && window.location.href.contains("steamid="),
-        isSelf = document.querySelector(".dropdown-btn").href === window.location.href,
         keyP = +localStorage.getItem("keyP"),
         budP = +localStorage.getItem("budP");
     /****** END SCRIPT GLOBALS ******/
@@ -233,6 +242,7 @@ try {
     }
 
     if (profile) {
+        var isSelf = document.querySelector(".dropdown-btn").href === window.location.href;
         if (JSON.parse(sessionStorage.getItem("persistent")) && isSelf)
             document.querySelector("[href^='/classifieds/?steamid=']").click();
         else {
@@ -302,7 +312,6 @@ try {
         addButton("paused", "Paused", false);
         addButton("persistent", "Persistent", false);
         if (JSON.parse(sessionStorage.getItem("paused"))) {
-            window.document.title = "Classifieds: Paused";
             console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             return;
         }
@@ -340,16 +349,18 @@ try {
             case "Creating a new listing for this item":
                 var itm = document.querySelector(".item"),
                     price = +itm.getAttribute("data-price"),
-                    metal = document.getElementById("metal");
-                if (!price || itm.getAttribute("title").contains("Killstreak")) {
-                    metal.previousElementSibling.insertAdjacentHTML("beforeend", " (Unpriced)");
+                    name = itm.getAttribute("data-name"),
+                    title = itm.getAttribute("data-title") || "";
+                if (!price || title.contains("Killstreak")) {
+                    document.getElementById("metal").previousElementSibling.insertAdjacentHTML("beforeend",
+                                                                                               " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
                         price = +itm.getAttribute("data-market-p") / 249 * keyP;
                 }
                 else if (itm.getAttribute("data-p-bptf").contains("–"))
-                    metal.previousElementSibling.insertAdjacentHTML("beforeend", " (Ranged)");
-                if (price >= keyP && !itm.getAttribute("data-name").contains("Key")) {
-                    if (price >= keyP * budP && !itm.getAttribute("data-name").contains("Earbuds")) {
+                    document.getElementById("metal").previousElementSibling.insertAdjacentHTML("beforeend", " (Ranged)");
+                if (price >= keyP && !name.contains("Key")) {
+                    if (price >= keyP * budP && !name.contains("Earbuds")) {
                         document.getElementById("earbuds").value = Math.floor(price / (keyP * budP));
                         price %= keyP * budP;
                     }
@@ -361,26 +372,78 @@ try {
                     price -= 0.005;
                 price = +price.toFixed(2);
                 if (price)
-                    metal.value = price;
+                    document.getElementById("metal").value = price;
                 document.getElementById("details").value = notes;
 
-                var quality = itm.getAttribute("data-q-name"),
-                    item = itm.getAttribute("data-name"),
-                    tradable = (+itm.getAttribute("data-tradable") ? "" : "Non-") + "Tradable",
-                    craftable = (+itm.getAttribute("data-craftable") ? "" : "Non-") + "Craftable",
-                    url = "http://backpack.tf/stats/" + quality + "/" + item + "/" + tradable + "/" + craftable,
-                    xmlhttp = new XMLHttpRequest();
-                xmlhttp.open("GET", url, false);
-                xmlhttp.send();
-                var res = xmlhttp.responseText,
-                    ele = document.createElement("div");
-                ele.innerHTML += res;
-                var listed = ele.querySelector(".media-list").children,
+                var quality = itm.getAttribute("data-quality"),
+                    tradable = +itm.getAttribute("data-tradable"),
+                    craftable = +itm.getAttribute("data-craftable"),
+                    isAust = itm.hasAttribute("data-australium"),
+                    isKS = title.contains("Killstreak") && !title.contains("Kit"),
+                    hasPaint = itm.hasAttribute("data-paint-name"),
+                    colour,
+                    tier;
+                if (hasPaint) {
+                    var paint = {
+                        "A Color Similar to Slate": "3100495",
+                        "A Deep Commitment to Purple": "8208497",
+                        "A Distinctive Lack of Hue": "1315860",
+                        "A Mann's Mint": "12377523",
+                        "After Eight": "2960676",
+                        "Aged Moustache Grey": "8289918",
+                        "An Air of Debonair": "6637376",
+                        "An Extraordinary Abundance of Tinge": "15132390",
+                        "Australium Gold": "15185211",
+                        "Balaclavas Are Forever": "3874595",
+                        "Color No. 216-190-216": "14204632",
+                        "Cream Spirit": "12807213",
+                        "Dark Salmon Injustice": "15308410",
+                        "Drably Olive": "8421376",
+                        "Indubitably Green": "7511618",
+                        "Mann Co. Orange": "13595446",
+                        "Muskelmannbraun": "10843461",
+                        "Noble Hatter's Violet": "5322826",
+                        "Operator's Overalls": "4732984",
+                        "Peculiarly Drab Tincture": "12955537",
+                        "Pink as Hell": "16738740",
+                        "Radigan Conagher Brown": "6901050",
+                        "Team Spirit": "12073019",
+                        "The Bitter Taste of Defeat and Lime": "3329330",
+                        "The Color of a Gentlemann's Business Pants": "15787660",
+                        "The Value of Teamwork": "8400928",
+                        "Waterlogged Lab Coat": "11049612",
+                        "Ye Olde Rustic Colour": "8154199",
+                        "Zepheniah's Greed": "4345659"
+                    },
+                    colour = paint[itm.getAttribute("data-paint-name")];
+                }
+                if (isKS) {
+                    if (title.contains("Professional"))
+                        tier = 3;
+                    else if (title.contains("Specialized"))
+                        tier = 2;
+                    else
+                        tier = 1;
+                }
+                var url;
+                if (!isAust && !isKS && !hasPaint || !price)
+                    url = "http://backpack.tf/stats/" + itm.getAttribute("data-q-name") + "/" + name +
+                           "/" + (tradable ? "" : "Non-") + "Tradable" + "/" + (craftable ? "" : "Non-") + "Craftable";
+                else
+                    url = "http://backpack.tf/classifieds/?item=" + (isAust ? name.slice(11) : name)+
+                              "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
+                              (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
+                              (hasPaint ? "&paint=" + colour : "");
+                var ele = HTTPRequest(url),
+                    listed = ele.querySelector(".media-list").children,
+                    heading = document.getElementsByClassName("panel-heading")[1];
+                if (listed.length) {
                     lowest = listed[0].querySelector(".item").getAttribute("data-listing-price"),
                     highest = listed[listed.length - 1].querySelector(".item").getAttribute("data-listing-price");
-                document.getElementsByClassName("panel-heading")[1].textContent += " (Lowest: " + lowest +
-                                                                                   ", Highest: " + highest + ")";
-                break;
+                heading.textContent += " (Lowest: " + lowest + ", Highest: " + highest + ")";
+                }
+                else
+                    heading.textContent += " (No Other Listings)";
         }
     }
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
