@@ -426,11 +426,11 @@ try {
                         tier = 1;
                 }
                 var url;
-                if (!isAust && !isKS && !hasPaint || !price)
+                if (!isKS && !hasPaint || !price)
                     url = "http://backpack.tf/stats/" + itm.getAttribute("data-q-name") + "/" + name +
                            "/" + (tradable ? "" : "Non-") + "Tradable" + "/" + (craftable ? "" : "Non-") + "Craftable";
                 else
-                    url = "http://backpack.tf/classifieds/?item=" + (isAust ? name.slice(11) : name)+
+                    url = "http://backpack.tf/classifieds/?item=" + (isAust ? name.slice(11) : name) +
                               "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                               (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                               (hasPaint ? "&paint=" + colour : "");
