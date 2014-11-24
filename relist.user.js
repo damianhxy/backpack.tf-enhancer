@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.2
+// @version             1.4.8.3
 // ==/UserScript==
 
 (function () {
@@ -350,13 +350,12 @@ try {
                     name = itm.getAttribute("data-name"),
                     title = itm.getAttribute("data-title") || "";
                 if (!price || title.contains("Killstreak")) {
-                    document.getElementById("metal").previousElementSibling.insertAdjacentHTML("beforeend",
-                                                                                               " (Unpriced)");
+                    document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
                         price = +itm.getAttribute("data-market-p") / 249 * keyP;
                 }
                 else if (itm.getAttribute("data-p-bptf").contains("–"))
-                    document.getElementById("metal").previousElementSibling.insertAdjacentHTML("beforeend", " (Ranged)");
+                    document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
                 if (price >= keyP && !name.contains("Key")) {
                     if (price >= keyP * budP && !name.contains("Earbuds")) {
                         document.getElementById("earbuds").value = Math.floor(price / (keyP * budP));
@@ -373,7 +372,7 @@ try {
                     document.getElementById("metal").value = price;
                 document.getElementById("details").value = notes;
 
-                var quality = itm.getAttribute("data-quality"),
+                var quality = +itm.getAttribute("data-quality"),
                     tradable = +itm.getAttribute("data-tradable"),
                     craftable = +itm.getAttribute("data-craftable"),
                     isAust = itm.hasAttribute("data-australium"),
@@ -423,25 +422,30 @@ try {
                     else
                         tier = 1;
                 }
-                var url;
-                if ((!isKS && !hasPaint) || !price)
-                    url = "http://backpack.tf/stats/" + itm.getAttribute("data-q-name") + "/" + name +
-                           "/" + (tradable ? "" : "Non-") + "Tradable" + "/" + (craftable ? "" : "Non-") + "Craftable";
-                else
-                    url = "http://backpack.tf/classifieds/?item=" + (isAust ? name.slice(11) : name) +
-                              "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
-                              (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
-                              (hasPaint ? "&paint=" + colour : "");
-                var ele = HTTPRequest(url),
-                    listed = ele.querySelector(".media-list").children,
+                var url,
                     heading = document.getElementsByClassName("panel-heading")[1];
-                if (listed.length) {
-                    lowest = listed[0].querySelector(".item").getAttribute("data-listing-price"),
-                    highest = listed[listed.length - 1].querySelector(".item").getAttribute("data-listing-price");
-                heading.textContent += " (Lowest: " + lowest + ", Highest: " + highest + ")";
+                if (title.contains("Kit"))
+                    heading.textContent += " (Killstreak Kits & Fabricators not supported)";
+                else {
+                    if (!isKS && !hasPaint)
+                        url = "http://backpack.tf/stats/" + itm.getAttribute("data-q-name") + "/" + name + "/" +
+                              (tradable ? "" : "Non-") + "Tradable" + "/" + (craftable ? "" : "Non-") + "Craftable";
+                    else
+                        url = "http://backpack.tf/classifieds/?item=" + (isAust ? name.slice(11) : name) +
+                                  "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
+                                  (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
+                                  (hasPaint ? "&paint=" + colour : "");
+                    var ele = HTTPRequest(url),
+                        list = ele.querySelector(".media-list").children;
+                    if (list.length) {
+                        var lowest = list[0].querySelector(".item").getAttribute("data-listing-price"),
+                            highest = list[list.length - 1].querySelector(".item").getAttribute("data-listing-price");
+                        heading.textContent += " (Lowest: " + lowest + ", Highest: " + highest + ")";
+                    }
+                    else
+                        heading.textContent += " (No other listings found)";
                 }
-                else
-                    heading.textContent += " (No Other Listings)";
+
         }
     }
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
