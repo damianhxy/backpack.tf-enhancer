@@ -1,15 +1,15 @@
 // ==UserScript==
 // @copyright           2014, Damian Ho
-// @description         Relists trades on Backpack.tf Classifieds
+// @description         Helper script for Backpack.tf
 // @downloadURL         https://raw.githubusercontent.com/damianhxy/BP.TF-Auto-Relist/master/relist.user.js
 // @grant               GM_xmlhttpRequest
 // @include             /^http:\/\/backpack\.tf.*/
 // @exclude             /^http:\/\/backpack\.tf\/api\/.*/
-// @name                Backpack.tf Classifieds AutoRelist
+// @name                Backpack.tf Enhancer
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.3
+// @version             1.4.8.4
 // ==/UserScript==
 
 (function () {
@@ -24,7 +24,6 @@
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
-    //FUNCTION DECLARATIONS
     function addButton(prop, val, def) {
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
@@ -68,7 +67,7 @@
         if (document.getElementById("login"))
             console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
         if (!localStorage.getItem("apikey"))
-            localStorage.setItem("apikey", prompt("API key not set, register one from http://backpack.tf/api/"));
+            localStorage.setItem("apikey", prompt("API key not set, register yours from http://backpack.tf/api/"));
         if (localStorage.getItem("apikey").length !== 24) {
             alert("Incorrect API key length");
             localStorage.removeItem("apikey");
@@ -81,28 +80,24 @@
                 url: "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey + "&compress=1",
                 onload: function(e) {
                     var data = JSON.parse(e.response);
-                    if (!data)
-                        alert("Error: API returned empty response");
-                    else if (!data.response.success) {
+                    if (!data.response.success) {
                         if (data.response.message === "API key does not exist.") {
                             alert("Invalid API key");
                             localStorage.removeItem("apikey");
                             update();
                         }
                         else
-                            alert("Error occurred: " + data.response.message);
+                            alert("Error: " + data.response.message);
                     }
                     var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
                         bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
-                        k = key.value_high ? ((key.value + key.value_high) / 2) : key.value,
-                        b = bud.value_high ? ((bud.value + bud.value_high) / 2) : bud.value,
-                        kOld = +localStorage.getItem("keyP"),
-                        bOld = +localStorage.getItem("budP"),
-                        kChange = " (" + (k === kOld ? "=" : (k < kOld ? "↓" : "↑")) + ")",
-                        bChange = " (" + (b === bOld ? "=" : (b < bOld ? "↓" : "↑")) + ")";
+                        k = (key.value + key.value_high || key.value) / 2,
+                        b = (bud.value + bud.value_high || bud.value) / 2,
+                        kDiff = " (" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
+                        bDiff = " (" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
                     localStorage.setItem("keyP", k);
                     localStorage.setItem("budP", b);
-                    alert("Prices updated, Keys: " + k + " Refined" + kChange + ", Earbuds: " + b + " Keys" + bChange);
+                    alert("Prices updated, Keys: " + k + " Refined" + kDiff + ", Earbuds: " + b + " Keys" + bDiff);
                     localStorage.setItem("lastupdt", new Date());
                 }
             });
@@ -116,23 +111,22 @@
 
     function HTTPRequest(URL) {
         var xmlhttp = new XMLHttpRequest(),
-            ele = document.createElement("div");
+            ele = document.createElement("html");
         xmlhttp.open("GET", URL, false);
         xmlhttp.send();
         ele.innerHTML += xmlhttp.responseText;
         return ele;
     }
 
-    //START OF SCRIPT
 try {
     /******** SCRIPT GLOBALS ********/
-    update();
     var listPage = window.location.href.contains("/add"),
         profile = window.location.href.contains("profiles"),
         listings = document.getElementsByClassName("listing-remove").length && window.location.href.contains("steamid="),
         isSelf = document.querySelector(".dropdown-btn").href === window.location.href,
         keyP = +localStorage.getItem("keyP"),
         budP = +localStorage.getItem("budP");
+    update();
     /****** END SCRIPT GLOBALS ******/
 
     if (experimental) {
@@ -201,6 +195,7 @@ try {
             stored.forEach(function(e) {
                 localStorage.removeItem(e);
             });
+            alert("Savedata Cleared!");
             sessionStorage.setItem("clear", false);
             location.reload();
         }
@@ -212,26 +207,16 @@ try {
                 Array.prototype.forEach.call(itms, function(e) {
                     var itm = e.getAttribute("data-id"),
                         price = e.getAttribute("data-listing-price").split(" "),
-                        metal = 0,
-                        key = 0,
-                        bud = 0,
+                        metal = price[price.length - 2],
+                        key = price[price.length - 4] || 0,
+                        bud = price[price.length - 6] || 0,
                         note = e.getAttribute("data-listing-comment");
-                    if (price.length === 6) {
-                        bud = price[0];
-                        key = price[2];
-                        metal = price[4];
-                    }
-                    else if (price.length === 4) {
-                        key = price[0];
-                        metal = price[2];
-                    }
-                    else
-                        metal = price[0];
                     localStorage.setItem("trdata-" + itm, [metal, key, bud, note].join("$"));
                 });
                 if (document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")
                     document.querySelector(".fa-angle-right").click();
                 else {
+                    alert("Listings Data Saved!");
                     sessionStorage.setItem("save", false);
                     document.querySelector(".navbar-brand").click();
                 }
