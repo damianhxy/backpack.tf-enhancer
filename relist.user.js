@@ -20,7 +20,6 @@
         randomMin = 1,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
-        experimental = 0,            //[boolean] activate experimental features?
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
@@ -128,102 +127,6 @@ try {
         budP = +localStorage.getItem("budP");
     update();
     /****** END SCRIPT GLOBALS ******/
-
-    if (experimental) {
-        if (window.location.href === "http://backpack.tf/") {
-            addButton("restore", "Restore All", false);
-            addButton("save", "Save All", false);
-            addButton("delete", "Delete All", false);
-            addButton("clear", "Clear Data", false);
-            if (JSON.parse(sessionStorage.getItem("save"))) {
-                document.querySelector("[href^='/classifieds/?steamid=']").click();
-                return;
-            }
-        }
-        if (JSON.parse(sessionStorage.getItem("restore"))) {
-            if (window.location.href.contains("/add")) {
-                var itm = Object.keys(localStorage).find(function(e) {
-                    return e === "trdata-" + document.querySelector(".item").getAttribute("data-id");
-                }),
-                    arr = localStorage.getItem(itm).split("$");
-                document.getElementById("metal").value = arr[0];
-                document.getElementById("keys").value = arr[1];
-                document.getElementById("earbuds").value = arr[2];
-                document.getElementById("details").value = arr[3];
-                localStorage.removeItem(itm);
-                document.getElementById("button_save").click();
-                return;
-            }
-            else {
-                var stored = Object.keys(localStorage).filter(function(e) {
-                    return e.startsWith("trdata-");
-                });
-                if (stored.length)
-                    location.assign("http://backpack.tf/classifieds/add/" + stored[range(0, stored.length - 1)].slice(7));
-                else {
-                    alert("Classifieds Restored!");
-                    sessionStorage.setItem("restore", false);
-                    document.querySelector(".navbar-brand").click();
-                }
-                return;
-            }
-        }
-        else if (JSON.parse(sessionStorage.getItem("delete"))) {
-            if (!listings)
-                document.querySelector("[href^='/classifieds/?steamid=']").click();
-            else {
-                var remove = document.getElementsByClassName("listing-remove");
-                if (remove.length) {
-                    Array.prototype.forEach.call(remove, function(e) {
-                        e.click();
-                        e.click();
-                    });
-                    location.reload();
-                }
-                else {
-                    alert("Listings Deleted!");
-                    sessionStorage.setItem("delete", false);
-                    document.querySelector(".navbar-brand").click();
-                }
-                return;
-            }
-        }
-        else if (JSON.parse(sessionStorage.getItem("clear"))) {
-            var stored = Object.keys(localStorage).filter(function(e) {
-                return e.startsWith("trdata-");
-            });
-            stored.forEach(function(e) {
-                localStorage.removeItem(e);
-            });
-            alert("Savedata Cleared!");
-            sessionStorage.setItem("clear", false);
-            location.reload();
-        }
-        else if (JSON.parse(sessionStorage.getItem("save"))) {
-            if (!listings)
-                document.querySelector("[href^='/classifieds/?steamid=']").click();
-            else {
-                var itms = document.getElementsByClassName("item");
-                Array.prototype.forEach.call(itms, function(e) {
-                    var itm = e.getAttribute("data-id"),
-                        price = e.getAttribute("data-listing-price").split(" "),
-                        metal = price[price.length - 2],
-                        key = price[price.length - 4] || 0,
-                        bud = price[price.length - 6] || 0,
-                        note = e.getAttribute("data-listing-comment");
-                    localStorage.setItem("trdata-" + itm, [metal, key, bud, note].join("$"));
-                });
-                if (document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")
-                    document.querySelector(".fa-angle-right").click();
-                else {
-                    alert("Listings Data Saved!");
-                    sessionStorage.setItem("save", false);
-                    document.querySelector(".navbar-brand").click();
-                }
-                return;
-            }
-        }
-    }
 
     if (profile) {
         if (JSON.parse(sessionStorage.getItem("persistent")) && isSelf)
