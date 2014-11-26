@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.5
+// @version             1.4.8.5a
 // ==/UserScript==
 
 (function () {
@@ -324,7 +324,7 @@ try {
                                   (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                                   (hasPaint ? "&paint=" + colour : "");
                     var ele = HTTPRequest(url),
-                        list = ele.getElementsByClassName("item");
+                        list = ele.querySelector(".media-list").getElementsByClassName("item");
                     if (list.length) {
                         var lowest = list[0].getAttribute("data-listing-price"),
                             highest = list[list.length - 1].getAttribute("data-listing-price");
