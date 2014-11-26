@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.5a
+// @version             1.4.8.6
 // ==/UserScript==
 
 (function () {
@@ -236,7 +236,7 @@ try {
                 var itm = document.querySelector(".item"),
                     price = +itm.getAttribute("data-price"),
                     name = itm.getAttribute("data-name"),
-                    title = itm.getAttribute("data-title") || "";
+                    title = itm.getAttribute("title") || "";
                 if (!price || title.contains("Killstreak")) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
@@ -268,6 +268,7 @@ try {
                     hasPaint = itm.hasAttribute("data-paint-name"),
                     colour,
                     tier;
+
                 if (hasPaint) {
                     var paint = {
                         "A Color Similar to Slate": "3100495",
@@ -323,10 +324,11 @@ try {
                                   "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                                   (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                                   (hasPaint ? "&paint=" + colour : "");
-                    var ele = HTTPRequest(url),
-                        list = ele.querySelector(".media-list").getElementsByClassName("item");
-                    if (list.length) {
-                        var lowest = list[0].getAttribute("data-listing-price"),
+
+                    var ele = HTTPRequest(url);
+                    if (!ele.querySelector(".alert-info")) {
+                        var list = ele.querySelector(".media-list").getElementsByClassName("item"),
+                            lowest = list[0].getAttribute("data-listing-price"),
                             highest = list[list.length - 1].getAttribute("data-listing-price");
                         heading.textContent += " (Lowest: " + lowest + ", Highest: " + highest + ")";
                     }
