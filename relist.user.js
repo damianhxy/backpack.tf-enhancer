@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.4
+// @version             1.4.8.5
 // ==/UserScript==
 
 (function () {
@@ -324,10 +324,10 @@ try {
                                   (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                                   (hasPaint ? "&paint=" + colour : "");
                     var ele = HTTPRequest(url),
-                        list = ele.querySelector(".media-list").children;
+                        list = ele.getElementsByClassName("item");
                     if (list.length) {
-                        var lowest = list[0].querySelector(".item").getAttribute("data-listing-price"),
-                            highest = list[list.length - 1].querySelector(".item").getAttribute("data-listing-price");
+                        var lowest = list[0].getAttribute("data-listing-price"),
+                            highest = list[list.length - 1].getAttribute("data-listing-price");
                         heading.textContent += " (Lowest: " + lowest + ", Highest: " + highest + ")";
                     }
                     else
