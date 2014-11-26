@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.6
+// @version             1.4.8.7
 // ==/UserScript==
 
 (function () {
@@ -32,8 +32,8 @@
         button.setAttribute("style", "margin-right: 5px; width: 100px;");
         button.setAttribute("onclick", "window.stop(); sessionStorage.setItem('" + prop +
                             "', !JSON.parse(sessionStorage.getItem('" + prop + "'))); location.reload();");
-        button.setAttribute("class", "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right");
-        toggle.setAttribute("class", "fa fa-toggle-" + (activated ? "on" : "off"));
+        button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
+        toggle.className = "fa fa-toggle-" + (activated ? "on" : "off");
         button.appendChild(toggle);
         button.appendChild(text);
         document.getElementById("#navbar").appendChild(button);
@@ -206,11 +206,22 @@ try {
     if (listings) {
         var first = document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
             last = document.querySelector(".pagination-filters").lastElementChild.className === "disabled",
-            buttons = document.getElementsByClassName("listing-relist");
-        if (first && sessionStorage.getItem("curPage") > 2)
+            buttons = document.getElementsByClassName("listing-relist"),
+            trades = Object.keys(sessionStorage).filter(function(e) {
+                return e.startsWith("itmdata-");
+            });
+        if (trades.length) {
+            var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
+            location.assign("http://backpack.tf/classifieds/add/" + ind);
+        }
+        else if (buttons.length) {
+            Array.prototype.forEach.call(buttons, function(e) {
+                sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
+            });
+            location.reload();
+        }
+        else if (first && sessionStorage.getItem("curPage") > 2)
             location.assign(window.location.href + "&page=" + sessionStorage.getItem("curPage"));
-        else if (buttons.length)
-            buttons[randomRelist ? range(0, buttons.length - 1) : 0].click();
         else {
             if (last) {
                 sessionStorage.removeItem("curPage");
@@ -230,6 +241,7 @@ try {
     else if (listPage) {
         switch (document.getElementById("item-overview-name").firstElementChild.innerHTML) {
             case "Relisting this item":
+                sessionStorage.removeItem("itmdata-" + document.querySelector(".item").getAttribute("data-id"));
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
