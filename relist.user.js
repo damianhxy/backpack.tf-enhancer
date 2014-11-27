@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.7
+// @version             1.4.8.8
 // ==/UserScript==
 
 (function () {
@@ -72,8 +72,8 @@
             localStorage.removeItem("apikey");
             update();
         }
-        if (!localStorage.getItem("keyP") || !localStorage.getItem("budP")
-            || (new Date() - (Date.parse(localStorage.getItem("lastupdt")) || 0) >= 864e5 * updateFreq)) {
+        if (!localStorage.getItem("keyP") || !localStorage.getItem("budP") ||
+            (new Date() - (Date.parse(localStorage.getItem("lastupdt")) || 0) >= 864e5 * updateFreq)) {
             GM_xmlhttpRequest({
                 method: "GET",
                 url: "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey + "&compress=1",
@@ -129,74 +129,70 @@ try {
     /****** END SCRIPT GLOBALS ******/
 
     if (profile) {
-        if (JSON.parse(sessionStorage.getItem("persistent")) && isSelf)
-            document.querySelector("[href^='/classifieds/?steamid=']").click();
-        else {
-            setTimeout(function() {
-                document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                         document.getElementById("newlist").children.length - 1 + " ");
-            }, 1000);
-            addButton("annotate", "Annotate", false);
-            if (isSelf) {
-                addButton("fastlist", "Fast Listing", false);
-                if (JSON.parse(sessionStorage.getItem("fastlist"))) {
-                    Array.prototype.forEach.call(document.getElementsByClassName("item trade"), function(e) {
-                        if (!e.getAttribute("data-name").contains("Metal")) {
-                            var style = e.hasAttribute("data-listing-price") ? "fa-refresh" : "fa-plus-square",
-                                html = "<a href='http://backpack.tf/classifieds/add/" + e.getAttribute("data-id") +
-                                       "'>" + "<i class='fa " + style + " fa-inverse fa-border'" +
-                                       " style='position: absolute; bottom: 2px; left: 2px;'></i></a>";
-                            e.firstElementChild.insertAdjacentHTML("beforeend", html);
-                        }
-                        if (e.hasAttribute("data-gifted-name")) {
-                            e.querySelector(".fa-gift").style.display = "none";
-                            e.firstElementChild.insertAdjacentHTML("beforeend", "<i class='fa fa-gift fa-inverse" +
-                                                                   " fa-border pull-left'></i>");
-                        }
-                    });
-                }
-            }
-            if (JSON.parse(sessionStorage.getItem("annotate"))) {
-                Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
-                    if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
-                        if (+e.textContent.split("#")[1] <= 100)
-                            e.insertAdjacentHTML("afterend", "<i class='fa fa-exclamation-triangle fa-inverse fa-border" +
-                                                             " pull-left'>" + e.textContent + "</i>");
-                        e.style.display = "none";
-                    }
-                });
+        setTimeout(function() {
+            document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
+                     document.getElementById("newlist").children.length - 1 + " ");
+        }, 1000);
+        addButton("annotate", "Annotate", false);
+        if (isSelf) {
+            addButton("fastlist", "Fast Listing", false);
+            if (JSON.parse(sessionStorage.getItem("fastlist"))) {
                 Array.prototype.forEach.call(document.getElementsByClassName("item trade"), function(e) {
-                    var box = e.firstElementChild;
-                    if (e.hasAttribute("data-paint-name")) {
-                        if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
-                            box.insertAdjacentHTML("beforeend", "<i class='fa fa-paint-brush fa-inverse fa-border" +
-                                                   " pull-left'></i>");
+                    if (!e.getAttribute("data-name").contains("Metal")) {
+                        var style = e.hasAttribute("data-listing-price") ? "fa-refresh" : "fa-plus-square",
+                            html = "<a href='http://backpack.tf/classifieds/add/" + e.getAttribute("data-id") +
+                                   "'>" + "<i class='fa " + style + " fa-inverse fa-border'" +
+                                   " style='position: absolute; bottom: 2px; left: 2px;'></i></a>";
+                        e.firstElementChild.insertAdjacentHTML("beforeend", html);
                     }
-                    if (e.hasAttribute("data-part-1-name"))
-                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>");
-                    if (e.hasAttribute("data-spell-1"))
-                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>");
-                    var title = e.getAttribute("data-default-name") || e.getAttribute("title");
-                    if (title.contains("Killstreak")) {
-                        var colour;
-                        if (title.contains("Professional"))
-                            colour = "#ffd700";
-                        else if (title.contains("Specialized"))
-                            colour = "#c0c0c0";
-                        else
-                            colour = "#cd7f32";
-                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-bomb fa-border pull-left'" +
-                                               " style='color: " + colour + "; background-color: white'></i>");
+                    if (e.hasAttribute("data-gifted-name")) {
+                        e.querySelector(".fa-gift").style.display = "none";
+                        e.firstElementChild.insertAdjacentHTML("beforeend", "<i class='fa fa-gift fa-inverse" +
+                                                               " fa-border pull-left'></i>");
                     }
                 });
             }
+        }
+        if (JSON.parse(sessionStorage.getItem("annotate"))) {
+            Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
+                if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
+                    if (+e.textContent.split("#")[1] <= 100)
+                        e.insertAdjacentHTML("afterend", "<i class='fa fa-exclamation-triangle fa-inverse fa-border" +
+                                                         " pull-left'>" + e.textContent + "</i>");
+                    e.style.display = "none";
+                }
+            });
+            Array.prototype.forEach.call(document.getElementsByClassName("item trade"), function(e) {
+                var box = e.firstElementChild;
+                if (e.hasAttribute("data-paint-name")) {
+                    if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
+                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-paint-brush fa-inverse fa-border" +
+                                               " pull-left'></i>");
+                }
+                if (e.hasAttribute("data-part-1-name"))
+                    box.insertAdjacentHTML("beforeend", "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>");
+                if (e.hasAttribute("data-spell-1"))
+                    box.insertAdjacentHTML("beforeend", "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>");
+                var title = e.getAttribute("data-default-name") || e.getAttribute("title");
+                if (title.contains("Killstreak")) {
+                    var colour;
+                    if (title.contains("Professional"))
+                        colour = "#ffd700";
+                    else if (title.contains("Specialized"))
+                        colour = "#c0c0c0";
+                    else
+                        colour = "#cd7f32";
+                    box.insertAdjacentHTML("beforeend", "<i class='fa fa-bomb fa-border pull-left'" +
+                                           " style='color: " + colour + "; background-color: white'></i>");
+                }
+            });
         }
     }
 
     if (listings || listPage) {
         sessionStorage.setItem("curPage", sessionStorage.getItem("curPage") || 1);
         addButton("paused", "Paused", false);
-        addButton("persistent", "Persistent", false);
+        addButton("remove", "Clear Data", false);
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             return;
@@ -204,6 +200,14 @@ try {
     }
 
     if (listings) {
+        if (JSON.parse(sessionStorage.getItem("remove"))) {
+            Object.keys(sessionStorage).forEach(function(e) {
+                sessionStorage.removeItem(e);
+            });
+            sessionStorage.removeItem("remove");
+            location.reload();
+            return;
+        }
         var first = document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
             last = document.querySelector(".pagination-filters").lastElementChild.className === "disabled",
             buttons = document.getElementsByClassName("listing-relist"),
@@ -214,14 +218,14 @@ try {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
         }
+        else if (first && sessionStorage.getItem("curPage") > 2)
+            location.assign(window.location.href + "&page=" + sessionStorage.getItem("curPage"));
         else if (buttons.length) {
             Array.prototype.forEach.call(buttons, function(e) {
                 sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
             });
-            location.reload();
+            document.querySelector(".listing-relist").click();
         }
-        else if (first && sessionStorage.getItem("curPage") > 2)
-            location.assign(window.location.href + "&page=" + sessionStorage.getItem("curPage"));
         else {
             if (last) {
                 sessionStorage.removeItem("curPage");
