@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.8
+// @version             1.4.8.9
 // ==/UserScript==
 
 (function () {
@@ -29,14 +29,26 @@
             toggle = document.createElement("i"),
             text = document.createTextNode(" " + val),
             activated = JSON.parse(sessionStorage.getItem(prop));
-        button.setAttribute("style", "margin-right: 5px; width: 100px;");
-        button.setAttribute("onclick", "window.stop(); sessionStorage.setItem('" + prop +
-                            "', !JSON.parse(sessionStorage.getItem('" + prop + "'))); location.reload();");
+        button.style = "margin-right: 5px; width: 100px;";
         button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
+        button.addEventListener("click", function() {
+            window.stop();
+            sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
+            location.reload();
+        });
         toggle.className = "fa fa-toggle-" + (activated ? "on" : "off");
         button.appendChild(toggle);
         button.appendChild(text);
         document.getElementById("#navbar").appendChild(button);
+    }
+
+    function HTTPRequest(URL) {
+        var xmlhttp = new XMLHttpRequest(),
+            ele = document.createElement("html");
+        xmlhttp.open("GET", URL, false);
+        xmlhttp.send();
+        ele.innerHTML += xmlhttp.responseText;
+        return ele;
     }
 
     function range(lo, hi) {
@@ -106,15 +118,6 @@
             hours = Math.floor((diff % 864e5) / 36e5),
             minutes = Math.floor((diff % 36e5) / 6e4);
         console.info("Prices will update in " + days + " day(s), " + hours + " hour(s), and " + minutes + " min(s)");
-    }
-
-    function HTTPRequest(URL) {
-        var xmlhttp = new XMLHttpRequest(),
-            ele = document.createElement("html");
-        xmlhttp.open("GET", URL, false);
-        xmlhttp.send();
-        ele.innerHTML += xmlhttp.responseText;
-        return ele;
     }
 
 try {
@@ -193,6 +196,10 @@ try {
         sessionStorage.setItem("curPage", sessionStorage.getItem("curPage") || 1);
         addButton("paused", "Paused", false);
         addButton("remove", "Clear Data", false);
+        var stat = document.createElement("div");
+        stat.style = "margin-left: 5px";
+        stat.className = "btn btn-info btn-sm pull-left";
+        document.getElementById("#navbar").appendChild(stat);
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             return;
@@ -201,10 +208,12 @@ try {
 
     if (listings) {
         if (JSON.parse(sessionStorage.getItem("remove"))) {
+            stat.textContent = "Status: Removing Data...";
             Object.keys(sessionStorage).forEach(function(e) {
                 sessionStorage.removeItem(e);
             });
             sessionStorage.removeItem("remove");
+            stat.textContent = "Status: Removed Data";
             location.reload();
             return;
         }
@@ -217,17 +226,23 @@ try {
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
+            stat.textContent = "Status: Relisting from SessionStorage";
         }
-        else if (first && sessionStorage.getItem("curPage") > 2)
+        else if (first && sessionStorage.getItem("curPage") > 2) {
+            stat.textContent = "Status: Jumping to curPage";
             location.assign(window.location.href + "&page=" + sessionStorage.getItem("curPage"));
+        }
         else if (buttons.length) {
+            stat.textContent = "Status: Saving IDs";
             Array.prototype.forEach.call(buttons, function(e) {
                 sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
             });
+            stat.textContent = "Status: Finished Saving IDs";
             document.querySelector(".listing-relist").click();
         }
         else {
             if (last) {
+                stat.textContent = "Status: Finished";
                 sessionStorage.removeItem("curPage");
                 var data = document.createElement("small"),
                     reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
@@ -238,6 +253,7 @@ try {
             else {
                 if (!first || (first && JSON.parse(sessionStorage.getItem("curPage")) === 1))
                     sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1);
+                stat.textContent = "Status: Moving to next page";
                 document.querySelector(".fa-angle-right").click();
             }
         }
@@ -245,10 +261,12 @@ try {
     else if (listPage) {
         switch (document.getElementById("item-overview-name").firstElementChild.innerHTML) {
             case "Relisting this item":
-                sessionStorage.removeItem("itmdata-" + document.querySelector(".item").getAttribute("data-id"));
+                stat.textContent = "Status: Relisting: " + window.location.href.slice(35);
+                sessionStorage.removeItem("itmdata-" + window.location.href.slice(35));
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
+                stat.textContent = "Status: Listing Page";
                 var itm = document.querySelector(".item"),
                     price = +itm.getAttribute("data-price"),
                     name = itm.getAttribute("data-name"),
@@ -340,7 +358,6 @@ try {
                                   "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                                   (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                                   (hasPaint ? "&paint=" + colour : "");
-
                     var ele = HTTPRequest(url);
                     if (!ele.querySelector(".alert-info")) {
                         var list = ele.querySelector(".media-list").getElementsByClassName("item"),
@@ -351,7 +368,7 @@ try {
                     else
                         heading.textContent += " (No other listings found)";
                 }
-
+                stat.textContent = "Status: Finished Loading";
         }
     }
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
