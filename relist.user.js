@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.0
+// @version             1.4.9.1
 // ==/UserScript==
 
 (function () {
@@ -188,7 +188,7 @@ try {
     }
 
     if (listings || listPage) {
-        sessionStorage.setItem("curPage", sessionStorage.getItem("curPage") || 1);
+        sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
         addButton("paused", "Paused", false);
         addButton("remove", "Reset", false);
         var stat = document.createElement("div");
@@ -215,7 +215,7 @@ try {
                 sessionStorage.removeItem(e);
             });
             sessionStorage.removeItem("remove");
-            sessionStorage.removeItem("curPage");
+            sessionStorage.removeItem("nextPage");
             stat.textContent = "Status: Removed Data";
             location.reload();
             return;
@@ -223,11 +223,11 @@ try {
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
-            stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("curPage"));
+            stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage"));
         }
-        else if (first && +sessionStorage.getItem("curPage") > 2) {
+        else if (first && +sessionStorage.getItem("nextPage") > 2) {
             stat.textContent = "Status: Jumping to next page";
-            location.assign(window.location.href + "&page=" + sessionStorage.getItem("curPage"));
+            location.assign(window.location.href + "&page=" + sessionStorage.getItem("nextPage"));
         }
         else if (buttons.length) {
             stat.textContent = "Status: Saving IDs";
@@ -240,7 +240,7 @@ try {
         else {
             if (last) {
                 stat.textContent = "Status: Finished";
-                sessionStorage.removeItem("curPage");
+                sessionStorage.removeItem("nextPage");
                 var data = document.createElement("small"),
                     reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
                 data.style =  "color: orange; float: right;";
@@ -248,8 +248,8 @@ try {
                 setInterval(showStatus, 1000);
             }
             else {
-                if (!first || (first && +sessionStorage.getItem("curPage") === 1))
-                    sessionStorage.setItem("curPage", +sessionStorage.getItem("curPage") + 1);
+                if (!first || (first && +sessionStorage.getItem("nextPage") === 1))
+                    sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + 1);
                 stat.textContent = "Status: Moving to next page";
                 document.querySelector(".fa-angle-right").click();
             }
