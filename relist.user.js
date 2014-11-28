@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.8.9
+// @version             1.4.9.0
 // ==/UserScript==
 
 (function () {
@@ -43,12 +43,10 @@
     }
 
     function HTTPRequest(URL) {
-        var xmlhttp = new XMLHttpRequest(),
-            ele = document.createElement("html");
+        var xmlhttp = new XMLHttpRequest();
         xmlhttp.open("GET", URL, false);
         xmlhttp.send();
-        ele.innerHTML += xmlhttp.responseText;
-        return ele;
+        return xmlhttp.responseText;
     }
 
     function range(lo, hi) {
@@ -86,32 +84,29 @@
         }
         if (!localStorage.getItem("keyP") || !localStorage.getItem("budP") ||
             (new Date() - (Date.parse(localStorage.getItem("lastupdt")) || 0) >= 864e5 * updateFreq)) {
-            GM_xmlhttpRequest({
-                method: "GET",
-                url: "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey + "&compress=1",
-                onload: function(e) {
-                    var data = JSON.parse(e.response);
-                    if (!data.response.success) {
-                        if (data.response.message === "API key does not exist.") {
-                            alert("Invalid API key");
-                            localStorage.removeItem("apikey");
-                            update();
-                        }
-                        else
-                            alert("Error: " + data.response.message);
-                    }
-                    var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
-                        bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
-                        k = (key.value + key.value_high || key.value) / 2,
-                        b = (bud.value + bud.value_high || bud.value) / 2,
-                        kDiff = " (" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
-                        bDiff = " (" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
-                    localStorage.setItem("keyP", k);
-                    localStorage.setItem("budP", b);
-                    alert("Prices updated, Keys: " + k + " Refined" + kDiff + ", Earbuds: " + b + " Keys" + bDiff);
-                    localStorage.setItem("lastupdt", new Date());
+            var xml = HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey + "&compress=1"),
+                data = JSON.parse(xml);
+            if (!data.response.success) {
+                if (data.response.message === "API key does not exist.") {
+                    alert("Invalid API key");
+                    localStorage.removeItem("apikey");
+                    update();
                 }
-            });
+                else
+                    alert("Error: " + data.response.message);
+            }
+            var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
+                bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
+                k = (key.value + key.value_high || key.value) / 2,
+                b = (bud.value + bud.value_high || bud.value) / 2,
+                kDiff = " (" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
+                bDiff = " (" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
+            localStorage.setItem("keyP", k);
+            localStorage.setItem("budP", b);
+            alert("Prices updated, Keys: " + k + " Refined" + kDiff + ", Earbuds: " + b + " Keys" + bDiff);
+            localStorage.setItem("lastupdt", new Date());
+            location.reload();
+            return;
         }
         var diff = 864e5 * updateFreq - (new Date() - Date.parse(localStorage.getItem("lastupdt"))),
             days = Math.floor(diff / 864e5),
@@ -186,7 +181,7 @@ try {
                     else
                         colour = "#cd7f32";
                     box.insertAdjacentHTML("beforeend", "<i class='fa fa-bomb fa-border pull-left'" +
-                                           " style='color: " + colour + "; background-color: white'></i>");
+                                           " style='color: " + colour + "; background-color: white;'></i>");
                 }
             });
         }
@@ -195,41 +190,43 @@ try {
     if (listings || listPage) {
         sessionStorage.setItem("curPage", sessionStorage.getItem("curPage") || 1);
         addButton("paused", "Paused", false);
-        addButton("remove", "Clear Data", false);
+        addButton("remove", "Reset", false);
         var stat = document.createElement("div");
-        stat.style = "margin-left: 5px";
+        stat.style = "margin-left: 5px;";
         stat.className = "btn btn-info btn-sm pull-left";
         document.getElementById("#navbar").appendChild(stat);
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
+            stat.textContent = "Status: Paused";
             return;
         }
     }
 
     if (listings) {
-        if (JSON.parse(sessionStorage.getItem("remove"))) {
-            stat.textContent = "Status: Removing Data...";
-            Object.keys(sessionStorage).forEach(function(e) {
-                sessionStorage.removeItem(e);
-            });
-            sessionStorage.removeItem("remove");
-            stat.textContent = "Status: Removed Data";
-            location.reload();
-            return;
-        }
         var first = document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
             last = document.querySelector(".pagination-filters").lastElementChild.className === "disabled",
             buttons = document.getElementsByClassName("listing-relist"),
             trades = Object.keys(sessionStorage).filter(function(e) {
                 return e.startsWith("itmdata-");
             });
+        if (JSON.parse(sessionStorage.getItem("remove"))) {
+            stat.textContent = "Status: Removing Data...";
+            Object.keys(sessionStorage).forEach(function(e) {
+                sessionStorage.removeItem(e);
+            });
+            sessionStorage.removeItem("remove");
+            sessionStorage.removeItem("curPage");
+            stat.textContent = "Status: Removed Data";
+            location.reload();
+            return;
+        }
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
-            stat.textContent = "Status: Relisting from SessionStorage";
+            stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("curPage"));
         }
-        else if (first && sessionStorage.getItem("curPage") > 2) {
-            stat.textContent = "Status: Jumping to curPage";
+        else if (first && +sessionStorage.getItem("curPage") > 2) {
+            stat.textContent = "Status: Jumping to next page";
             location.assign(window.location.href + "&page=" + sessionStorage.getItem("curPage"));
         }
         else if (buttons.length) {
@@ -246,22 +243,22 @@ try {
                 sessionStorage.removeItem("curPage");
                 var data = document.createElement("small"),
                     reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
-                data.setAttribute("style", "color: orange; float: right;");
+                data.style =  "color: orange; float: right;";
                 document.querySelector(".panel-heading").appendChild(data);
                 setInterval(showStatus, 1000);
             }
             else {
-                if (!first || (first && JSON.parse(sessionStorage.getItem("curPage")) === 1))
-                    sessionStorage.setItem("curPage", JSON.parse(sessionStorage.getItem("curPage")) + 1);
+                if (!first || (first && +sessionStorage.getItem("curPage") === 1))
+                    sessionStorage.setItem("curPage", +sessionStorage.getItem("curPage") + 1);
                 stat.textContent = "Status: Moving to next page";
                 document.querySelector(".fa-angle-right").click();
             }
         }
     }
     else if (listPage) {
-        switch (document.getElementById("item-overview-name").firstElementChild.innerHTML) {
+        switch (document.getElementById("item-overview-name").firstElementChild.textContent) {
             case "Relisting this item":
-                stat.textContent = "Status: Relisting: " + window.location.href.slice(35);
+                stat.textContent = "Status: Relisting " + window.location.href.slice(35);
                 sessionStorage.removeItem("itmdata-" + window.location.href.slice(35));
                 document.getElementById("button_save").click();
                 break;
@@ -298,7 +295,7 @@ try {
                     tradable = +itm.getAttribute("data-tradable"),
                     craftable = +itm.getAttribute("data-craftable"),
                     isAust = itm.hasAttribute("data-australium"),
-                    isKS = title.contains("Killstreak") && !title.contains("Kit"),
+                    isKS = title.contains("Killstreak"),
                     hasPaint = itm.hasAttribute("data-paint-name"),
                     colour,
                     tier;
@@ -358,7 +355,8 @@ try {
                                   "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                                   (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                                   (hasPaint ? "&paint=" + colour : "");
-                    var ele = HTTPRequest(url);
+                    var ele = document.createElement("html");
+                    ele.innerHTML += HTTPRequest(url);
                     if (!ele.querySelector(".alert-info")) {
                         var list = ele.querySelector(".media-list").getElementsByClassName("item"),
                             lowest = list[0].getAttribute("data-listing-price"),
