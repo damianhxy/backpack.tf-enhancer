@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.1a
+// @version             1.4.9.2
 // ==/UserScript==
 
 (function () {
@@ -84,8 +84,7 @@
         }
         if (!localStorage.getItem("keyP") || !localStorage.getItem("budP") ||
             (new Date() - (Date.parse(localStorage.getItem("lastupdt")) || 0) >= 864e5 * updateFreq)) {
-            var xml = HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey + "&compress=1"),
-                data = JSON.parse(xml);
+            var xml = JSON.parse(HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey));
             if (!data.response.success) {
                 if (data.response.message === "API key does not exist.") {
                     alert("Invalid API key");
@@ -97,8 +96,8 @@
             }
             var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
                 bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
-                k = (key.value + key.value_high || key.value) / 2,
-                b = (bud.value + bud.value_high || bud.value) / 2,
+                k = (key.value + (key.value_high || key.value)) / 2,
+                b = (bud.value + (bud.value_high || bud.value)) / 2,
                 kDiff = " (" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
                 bDiff = " (" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
             localStorage.setItem("keyP", k);
@@ -156,7 +155,7 @@ try {
                 if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
                     if (+e.textContent.split("#")[1] <= 100)
                         e.insertAdjacentHTML("afterend", "<i class='fa fa-exclamation-triangle fa-inverse fa-border" +
-                                                         " pull-left'>" + e.textContent + "</i>");
+                                             " pull-left'>" + e.textContent + "</i>");
                     e.style.display = "none";
                 }
             });
@@ -173,13 +172,11 @@ try {
                     box.insertAdjacentHTML("beforeend", "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>");
                 var title = e.getAttribute("data-default-name") || e.getAttribute("title");
                 if (title.contains("Killstreak")) {
-                    var colour;
-                    if (title.contains("Professional"))
-                        colour = "#ffd700";
-                    else if (title.contains("Specialized"))
+                    var colour = "#cd7f32";
+                    if (title.contains("Specialized"))
                         colour = "#c0c0c0";
-                    else
-                        colour = "#cd7f32";
+                    else if (title.contains("Professional"))
+                        colour = "#ffd700";
                     box.insertAdjacentHTML("beforeend", "<i class='fa fa-bomb fa-border pull-left'" +
                                            " style='color: " + colour + "; background-color: white;'></i>");
                 }
@@ -263,7 +260,7 @@ try {
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
-                stat.textContent = "Status: Listing Page";
+                stat.textContent = "Status: Loading Data...";
                 var itm = document.querySelector(".item"),
                     price = +itm.getAttribute("data-price"),
                     name = itm.getAttribute("data-name"),
@@ -335,12 +332,11 @@ try {
                     colour = paint[itm.getAttribute("data-paint-name")];
                 }
                 if (isKS) {
-                    if (title.contains("Professional"))
-                        tier = 3;
-                    else if (title.contains("Specialized"))
+                    tier = 1;
+                    if (title.contains("Specialized"))
                         tier = 2;
-                    else
-                        tier = 1;
+                    else if (title.contains("Professional"))
+                        tier = 3;
                 }
                 var url,
                     heading = document.getElementsByClassName("panel-heading")[1];
