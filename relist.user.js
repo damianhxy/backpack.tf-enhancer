@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.1
+// @version             1.4.9.1a
 // ==/UserScript==
 
 (function () {
@@ -223,7 +223,7 @@ try {
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
-            stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage"));
+            stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage") - 1);
         }
         else if (first && +sessionStorage.getItem("nextPage") > 2) {
             stat.textContent = "Status: Jumping to next page";
