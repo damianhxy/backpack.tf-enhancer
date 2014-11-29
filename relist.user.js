@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.2
+// @version             1.4.9.2a
 // ==/UserScript==
 
 (function () {
@@ -128,7 +128,7 @@ try {
     if (profile) {
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                     document.getElementById("newlist").children.length - 1 + " ");
+                                                      document.getElementById("newlist").children.length - 1 + " ");
         }, 1000);
         addButton("annotate", "Annotate", false);
         if (isSelf) {
