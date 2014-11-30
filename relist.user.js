@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.2a
+// @version             1.4.9.3
 // ==/UserScript==
 
 (function () {
@@ -128,7 +128,7 @@ try {
     if (profile) {
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                                                      document.getElementById("newlist").children.length - 1 + " ");
+                     document.getElementById("newlist").children.length - 1 + " ");
         }, 1000);
         addButton("annotate", "Annotate", false);
         if (isSelf) {
@@ -351,13 +351,14 @@ try {
                                   "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                                   (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                                   (hasPaint ? "&paint=" + colour : "");
+                    console.info("Loading: " + url);
                     var ele = document.createElement("html");
                     ele.innerHTML += HTTPRequest(url);
-                    if (!ele.querySelector(".alert-info")) {
+                    if (!ele.querySelector(".media-list").querySelector(".alert-info")) {
                         var list = ele.querySelector(".media-list").getElementsByClassName("item"),
                             lowest = list[0].getAttribute("data-listing-price"),
                             highest = list[list.length - 1].getAttribute("data-listing-price");
-                        heading.textContent += " (Lowest: " + lowest + ", Highest: " + highest + ")";
+                        heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
                     }
                     else
                         heading.textContent += " (No other listings found)";
