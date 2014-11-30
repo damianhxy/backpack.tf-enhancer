@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.4a
+// @version             1.4.9.5
 // ==/UserScript==
 
 (function () {
@@ -134,7 +134,7 @@ try {
         if (isSelf) {
             addButton("fastlist", "Fast Listing", false);
             if (JSON.parse(sessionStorage.getItem("fastlist"))) {
-                Array.prototype.forEach.call(document.getElementsByClassName("item trade"), function(e) {
+                Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
                     if (!e.getAttribute("data-name").contains("Metal")) {
                         var style = e.hasAttribute("data-listing-price") ? "fa-refresh" : "fa-plus-square",
                             html = "<a href='http://backpack.tf/classifieds/add/" + e.getAttribute("data-id") +
@@ -148,6 +148,9 @@ try {
                                                                " fa-border pull-left'></i>");
                     }
                 });
+                Array.prototype.forEach.call(document.getElementsByClassName("killstreaker"), function(e) {
+                    e.style.display = "none";
+                });
             }
         }
         if (JSON.parse(sessionStorage.getItem("annotate"))) {
@@ -159,7 +162,7 @@ try {
                     e.style.display = "none";
                 }
             });
-            Array.prototype.forEach.call(document.getElementsByClassName("item trade"), function(e) {
+            Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
                 var box = e.firstElementChild;
                 if (e.hasAttribute("data-paint-name")) {
                     if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
@@ -370,5 +373,6 @@ try {
 }
 catch(e) {
     alert("[An error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
+    stat.textContent = "Status: Error";
 }
 })();
