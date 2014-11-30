@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.5
+// @version             1.4.9.5a
 // ==/UserScript==
 
 (function () {
@@ -248,7 +248,7 @@ try {
                 setInterval(showStatus, 1000);
             }
             else {
-                if (!first || (first && +sessionStorage.getItem("nextPage") === 1))
+                if (!first)
                     sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + 1);
                 stat.textContent = "Status: Moving to next page";
                 document.querySelector(".fa-angle-right").click();
