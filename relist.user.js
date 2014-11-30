@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.3
+// @version             1.4.9.4
 // ==/UserScript==
 
 (function () {
@@ -84,7 +84,7 @@
         }
         if (!localStorage.getItem("keyP") || !localStorage.getItem("budP") ||
             (new Date() - (Date.parse(localStorage.getItem("lastupdt")) || 0) >= 864e5 * updateFreq)) {
-            var xml = JSON.parse(HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey));
+            var data = JSON.parse(HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey));
             if (!data.response.success) {
                 if (data.response.message === "API key does not exist.") {
                     alert("Invalid API key");
