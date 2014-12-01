@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.5a
+// @version             1.4.9.6
 // ==/UserScript==
 
 (function () {
@@ -195,6 +195,17 @@ try {
         stat.style = "margin-left: 5px;";
         stat.className = "btn btn-info btn-sm pull-left";
         document.getElementById("#navbar").appendChild(stat);
+        if (JSON.parse(sessionStorage.getItem("remove"))) {
+            stat.textContent = "Status: Removing Data...";
+            Object.keys(sessionStorage).forEach(function(e) {
+                sessionStorage.removeItem(e);
+            });
+            sessionStorage.removeItem("remove");
+            sessionStorage.removeItem("nextPage");
+            stat.textContent = "Status: Removed Data";
+            location.reload();
+            return;
+        }
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             stat.textContent = "Status: Paused";
@@ -209,17 +220,6 @@ try {
             trades = Object.keys(sessionStorage).filter(function(e) {
                 return e.startsWith("itmdata-");
             });
-        if (JSON.parse(sessionStorage.getItem("remove"))) {
-            stat.textContent = "Status: Removing Data...";
-            Object.keys(sessionStorage).forEach(function(e) {
-                sessionStorage.removeItem(e);
-            });
-            sessionStorage.removeItem("remove");
-            sessionStorage.removeItem("nextPage");
-            stat.textContent = "Status: Removed Data";
-            location.reload();
-            return;
-        }
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
