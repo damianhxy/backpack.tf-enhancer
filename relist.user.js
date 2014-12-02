@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.8
+// @version             1.4.9.9
 // ==/UserScript==
 
 (function () {
@@ -69,7 +69,7 @@
             reloadTime--;
         }
         else
-            document.querySelector(".fa-angle-double-left").parentNode.click();
+            document.querySelector(".fa-angle-double-left").click();
     }
 
     function update() {
@@ -126,6 +126,11 @@ try {
     /****** END SCRIPT GLOBALS ******/
 
     if (profile) {
+        if (JSON.parse(sessionStorage.getItem("persistent"))) {
+            localStorage.setItem("reset", true);
+            document.querySelector(".fa-tag").click();
+            return;
+        }
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                      document.getElementById("newlist").children.length - 1 + " ");
@@ -190,20 +195,21 @@ try {
     if (listings || listPage) {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
         addButton("paused", "Paused", false);
-        addButton("remove", "Reset", false);
+        addButton("reset", "Reset", false);
+        addButton("persistent", "Persistent", false);
         var stat = document.createElement("div");
         stat.style = "margin-left: 5px;";
         stat.className = "btn btn-info btn-sm pull-left";
         document.getElementById("#navbar").appendChild(stat);
-        if (JSON.parse(sessionStorage.getItem("remove"))) {
+        if (JSON.parse(sessionStorage.getItem("reset"))) {
             stat.textContent = "Status: Removing Data...";
             Object.keys(sessionStorage).forEach(function(e) {
                 sessionStorage.removeItem(e);
             });
-            sessionStorage.removeItem("remove");
+            sessionStorage.removeItem("reset");
             sessionStorage.removeItem("nextPage");
             stat.textContent = "Status: Removed Data";
-            location.reload();
+            document.querySelector(".fa-angle-double-left").click();
             return;
         }
         if (JSON.parse(sessionStorage.getItem("paused"))) {
