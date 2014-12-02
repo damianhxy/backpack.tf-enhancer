@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.6
+// @version             1.4.9.7
 // ==/UserScript==
 
 (function () {
@@ -44,7 +44,7 @@
 
     function HTTPRequest(URL) {
         var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open("GET", URL, false);
+        xmlhttp.open("GET", URL, true);
         xmlhttp.send();
         return xmlhttp.responseText;
     }
