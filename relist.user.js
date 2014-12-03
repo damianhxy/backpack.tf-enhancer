@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.0.1
+// @version             1.5.0.2
 // ==/UserScript==
 
 (function () {
@@ -133,6 +133,8 @@ try {
     }
 
     if (profile) {
+        if (sessionStorage.getItem("nextPage"))
+            alert("Looks like relisting was interrupted...\nPlease notify if this happens");
         stat.textContent = "Status: Loading";
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
@@ -230,6 +232,7 @@ try {
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage") - 1);
+            sessionStorage.removeItem("trdata-" + ind);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
         }
         else if (first && +sessionStorage.getItem("nextPage") > 2) {
@@ -238,11 +241,12 @@ try {
         }
         else if (buttons.length) {
             stat.textContent = "Status: Saving IDs";
-            Array.prototype.forEach.call(buttons, function(e) {
-                sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
+            Array.prototype.forEach.call(buttons, function(e, i) {
+                if (i)
+                    sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
             });
             stat.textContent = "Status: Finished Saving IDs";
-            location.reload();
+            location.assign(buttons[0].href);
         }
         else {
             if (last) {
@@ -265,8 +269,7 @@ try {
     else if (listPage) {
         switch (document.getElementById("item-overview-name").firstElementChild.textContent) {
             case "Relisting this item":
-                sessionStorage.removeItem("itmdata-" + window.location.href.slice(35));
-                stat.textContent = "Status: Relisting " + window.location.href.slice(35);
+                stat.textContent = "Status: Relisting " + window.location.href.match(/\d+/);
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
@@ -361,7 +364,6 @@ try {
                                   "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                                   (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                                   (hasPaint ? "&paint=" + colour : "");
-                    console.info("Loading: " + url);
                     var ele = document.createElement("html");
                     ele.innerHTML += HTTPRequest(url);
                     if (!ele.querySelector(".media-list").querySelector(".alert-info")) {
