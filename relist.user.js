@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.0.2
+// @version             1.5.0.3
 // ==/UserScript==
 
 (function () {
@@ -134,7 +134,8 @@ try {
 
     if (profile) {
         if (sessionStorage.getItem("nextPage"))
-            alert("Looks like relisting was interrupted...\nPlease notify if this happens");
+            alert("Relisting was interrupted...\nWas relisting: " + sessionStorage.getItem("curItem") +
+                  "\nCurrent Length is: " + (sessionStorage.length - 7));
         stat.textContent = "Status: Loading";
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
@@ -203,10 +204,40 @@ try {
     if (listings || listPage) {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
         addButton("paused", "Paused", false);
+        addButton("reset", "Reset", false);
+        if (JSON.parse(sessionStorage.getItem("reset"))) {
+            stat.textContent = "Status: Removing Data";
+            Object.keys(sessionStorage).forEach(function(e) {
+                sessionStorage.removeItem(e);
+            });
+            localStorage.removeItem("threadRunning");
+            sessionStorage.removeItem("mainThread");
+            sessionStorage.removeItem("reset");
+            sessionStorage.removeItem("nextPage");
+            stat.textContent = "Status: Removed Data";
+            if (listings) {
+                if (document.querySelector(".pagination-filters").firstElementChild.className === "disabled")
+                    location.reload();
+                else
+                    document.querySelector(".fa-angle-double-left").click();
+            }
+            else
+                document.querySelector(".fa-tag").click();
+            return;
+        }
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             stat.textContent = "Status: Paused";
             return;
+        }
+        if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
+            console.info("Backpack.tf Script Terminated (Not Main Thread) " + GM_info.script.version);
+            stat.textContent = "Status: Terminated (Not Main)";
+            return;
+        }
+        else if (!localStorage.getItem("threadRunning")) {
+            localStorage.setItem("threadRunning", true);
+            sessionStorage.setItem("mainThread", true);
         }
     }
 
@@ -217,22 +248,11 @@ try {
             trades = Object.keys(sessionStorage).filter(function(e) {
                 return e.startsWith("itmdata-");
             });
-        addButton("reset", "Reset", false);
-        if (JSON.parse(sessionStorage.getItem("reset"))) {
-            stat.textContent = "Status: Removing Data";
-            Object.keys(sessionStorage).forEach(function(e) {
-                sessionStorage.removeItem(e);
-            });
-            sessionStorage.removeItem("reset");
-            sessionStorage.removeItem("nextPage");
-            stat.textContent = "Status: Removed Data";
-            first ? location.reload() : document.querySelector(".fa-angle-double-left").click();
-            return;
-        }
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage") - 1);
-            sessionStorage.removeItem("trdata-" + ind);
+            sessionStorage.setItem("curItem", ind);
+            sessionStorage.removeItem("itmdata-" + ind);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
         }
         else if (first && +sessionStorage.getItem("nextPage") > 2) {
@@ -247,10 +267,13 @@ try {
             });
             stat.textContent = "Status: Finished Saving IDs";
             location.assign(buttons[0].href);
+            sessionStorage.setItem("curItem", "FIRST_ITEM");
         }
         else {
             if (last) {
                 stat.textContent = "Status: Finished";
+                localStorage.removeItem("threadRunning");
+                sessionStorage.removeItem("mainThread");
                 sessionStorage.removeItem("nextPage");
                 var data = document.createElement("small"),
                     reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
