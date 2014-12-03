@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.0
+// @version             1.5.0.1
 // ==/UserScript==
 
 (function () {
@@ -201,18 +201,6 @@ try {
     if (listings || listPage) {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
         addButton("paused", "Paused", false);
-        addButton("reset", "Reset", false);
-        if (JSON.parse(sessionStorage.getItem("reset"))) {
-            stat.textContent = "Status: Removing Data";
-            Object.keys(sessionStorage).forEach(function(e) {
-                sessionStorage.removeItem(e);
-            });
-            sessionStorage.removeItem("reset");
-            sessionStorage.removeItem("nextPage");
-            stat.textContent = "Status: Removed Data";
-            document.querySelector(".fa-angle-double-left").click();
-            return;
-        }
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             stat.textContent = "Status: Paused";
@@ -227,6 +215,18 @@ try {
             trades = Object.keys(sessionStorage).filter(function(e) {
                 return e.startsWith("itmdata-");
             });
+        addButton("reset", "Reset", false);
+        if (JSON.parse(sessionStorage.getItem("reset"))) {
+            stat.textContent = "Status: Removing Data";
+            Object.keys(sessionStorage).forEach(function(e) {
+                sessionStorage.removeItem(e);
+            });
+            sessionStorage.removeItem("reset");
+            sessionStorage.removeItem("nextPage");
+            stat.textContent = "Status: Removed Data";
+            first ? location.reload() : document.querySelector(".fa-angle-double-left").click();
+            return;
+        }
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage") - 1);
@@ -242,7 +242,7 @@ try {
                 sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
             });
             stat.textContent = "Status: Finished Saving IDs";
-            location.assign(buttons[0].href);
+            location.reload();
         }
         else {
             if (last) {
