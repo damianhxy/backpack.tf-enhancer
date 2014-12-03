@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.4.9.9
+// @version             1.5.0
 // ==/UserScript==
 
 (function () {
@@ -17,7 +17,7 @@
     var randomTime = 1,              //[boolean] random reload time?
         randomRelist = 1,            //[boolean] random item relisted?
         defaultTime = 5,             //[minutes] default reload time
-        randomMin = 1,               //[minutes] minimum random reload time
+        randomMin = 3,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
@@ -56,7 +56,7 @@
     function round(num) {
         var val = +num;
         if (num > 5 / 90)
-            val = Math.floor(val) + (Math.round(val % 1 * 9)) / 9;
+            val = Math.floor(val) + Math.round(val % 1 * 9) / 9;
         return val;
     }
 
@@ -125,12 +125,15 @@ try {
     update();
     /****** END SCRIPT GLOBALS ******/
 
+    if (profile || listings || listPage) {
+        var stat = document.createElement("div");
+        stat.style = "margin-left: 5px;";
+        stat.className = "btn btn-info btn-sm pull-left";
+        document.getElementById("#navbar").appendChild(stat);
+    }
+
     if (profile) {
-        if (JSON.parse(sessionStorage.getItem("persistent"))) {
-            localStorage.setItem("reset", true);
-            document.querySelector(".fa-tag").click();
-            return;
-        }
+        stat.textContent = "Status: Loading";
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                      document.getElementById("newlist").children.length - 1 + " ");
@@ -139,6 +142,7 @@ try {
         if (isSelf) {
             addButton("fastlist", "Fast Listing", false);
             if (JSON.parse(sessionStorage.getItem("fastlist"))) {
+                stat.textContent = "Status: Adding Fast Listing";
                 Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
                     if (!e.getAttribute("data-name").contains("Metal")) {
                         var style = e.hasAttribute("data-listing-price") ? "fa-refresh" : "fa-plus-square",
@@ -159,6 +163,7 @@ try {
             }
         }
         if (JSON.parse(sessionStorage.getItem("annotate"))) {
+            stat.textContent = "Status: Annotating";
             Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
                 if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
                     if (+e.textContent.split("#")[1] <= 100)
@@ -190,19 +195,15 @@ try {
                 }
             });
         }
+        stat.textContent = "Status: Loaded";
     }
 
     if (listings || listPage) {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
         addButton("paused", "Paused", false);
         addButton("reset", "Reset", false);
-        addButton("persistent", "Persistent", false);
-        var stat = document.createElement("div");
-        stat.style = "margin-left: 5px;";
-        stat.className = "btn btn-info btn-sm pull-left";
-        document.getElementById("#navbar").appendChild(stat);
         if (JSON.parse(sessionStorage.getItem("reset"))) {
-            stat.textContent = "Status: Removing Data...";
+            stat.textContent = "Status: Removing Data";
             Object.keys(sessionStorage).forEach(function(e) {
                 sessionStorage.removeItem(e);
             });
@@ -228,8 +229,8 @@ try {
             });
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
-            location.assign("http://backpack.tf/classifieds/add/" + ind);
             stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage") - 1);
+            location.assign("http://backpack.tf/classifieds/add/" + ind);
         }
         else if (first && +sessionStorage.getItem("nextPage") > 2) {
             stat.textContent = "Status: Jumping to next page";
@@ -241,7 +242,7 @@ try {
                 sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
             });
             stat.textContent = "Status: Finished Saving IDs";
-            document.querySelector(".listing-relist").click();
+            location.assign(buttons[0].href);
         }
         else {
             if (last) {
@@ -264,12 +265,12 @@ try {
     else if (listPage) {
         switch (document.getElementById("item-overview-name").firstElementChild.textContent) {
             case "Relisting this item":
-                stat.textContent = "Status: Relisting " + window.location.href.slice(35);
                 sessionStorage.removeItem("itmdata-" + window.location.href.slice(35));
+                stat.textContent = "Status: Relisting " + window.location.href.slice(35);
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
-                stat.textContent = "Status: Loading Data...";
+                stat.textContent = "Status: Filling Fields";
                 var itm = document.querySelector(".item"),
                     price = +itm.getAttribute("data-price"),
                     name = itm.getAttribute("data-name"),
@@ -371,6 +372,10 @@ try {
                     }
                     else
                         heading.textContent += " (No other listings found)";
+                    if (isKS)
+                        heading.textContent += " [Killstreak Tier: " + tier + "]";
+                    else if (hasPaint)
+                        heading.textContent += " [Painted: " + itm.getAttribute("data-paint-name") + "]";
                 }
                 stat.textContent = "Status: Finished Loading";
         }
