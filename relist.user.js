@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.0.3
+// @version             1.5.0.4
 // ==/UserScript==
 
 (function () {
@@ -134,8 +134,7 @@ try {
 
     if (profile) {
         if (sessionStorage.getItem("nextPage"))
-            alert("Relisting was interrupted...\nWas relisting: " + sessionStorage.getItem("curItem") +
-                  "\nCurrent Length is: " + (sessionStorage.length - 7));
+            alert("Relisting was interrupted...\nWas relisting: " + sessionStorage.getItem("curItem"));
         stat.textContent = "Status: Loading";
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
@@ -230,15 +229,6 @@ try {
             stat.textContent = "Status: Paused";
             return;
         }
-        if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
-            console.info("Backpack.tf Script Terminated (Not Main Thread) " + GM_info.script.version);
-            stat.textContent = "Status: Terminated (Not Main)";
-            return;
-        }
-        else if (!localStorage.getItem("threadRunning")) {
-            localStorage.setItem("threadRunning", true);
-            sessionStorage.setItem("mainThread", true);
-        }
     }
 
     if (listings) {
@@ -248,6 +238,15 @@ try {
             trades = Object.keys(sessionStorage).filter(function(e) {
                 return e.startsWith("itmdata-");
             });
+        if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
+            console.info("Backpack.tf Script Terminated (Not Main Thread) " + GM_info.script.version);
+            stat.textContent = "Status: Terminated (Not Main Thread)";
+            return;
+        }
+        else if (!localStorage.getItem("threadRunning")) {
+            localStorage.setItem("threadRunning", true);
+            sessionStorage.setItem("mainThread", true);
+        }
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage") - 1);
