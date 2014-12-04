@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.0.8
+// @version             1.5.0.9
 // ==/UserScript==
 
 (function () {
@@ -223,9 +223,6 @@ try {
         addButton("reset", "Reset", false);
         if (JSON.parse(sessionStorage.getItem("reset"))) {
             stat.textContent = "Status: Removing Data";
-            Object.keys(sessionStorage).forEach(function(e) {
-                sessionStorage.removeItem(e);
-            });
             var paused = JSON.parse(sessionStorage.getItem("paused"));
             localStorage.removeItem("threadRunning");
             sessionStorage.clear();
