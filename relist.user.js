@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.0
+// @version             1.5.1.1
 // ==/UserScript==
 
 (function () {
@@ -164,10 +164,13 @@ try {
                 stat.textContent = "Status: Adding Fast Listing";
                 Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
                     if (!e.getAttribute("data-name").contains("Metal")) {
-                        var style = e.hasAttribute("data-listing-price") ? "fa-refresh" : "fa-plus-square",
+                        var listed = e.hasAttribute("data-listing-price"),
+                            style = listed ? "fa-refresh" : "fa-plus-square",
+                            canRelist = listed ? +e.getAttribute("data-listing-price").split(" ")[0] >= 30 : true,
                             html = "<a href='http://backpack.tf/classifieds/add/" + e.getAttribute("data-id") +
                                    "'>" + "<i class='fa " + style + " fa-inverse fa-border'" +
-                                   " style='position: absolute; bottom: 2px; left: 2px;'></i></a>";
+                                   " style='position: absolute; bottom: 2px; left: 2px;" +
+                                   (canRelist ? "" : " background-color: red;") + "'></i></a>";
                         e.firstElementChild.insertAdjacentHTML("beforeend", html);
                     }
                     if (e.hasAttribute("data-gifted-name")) {
