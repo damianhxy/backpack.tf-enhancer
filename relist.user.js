@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.0.7
+// @version             1.5.0.8
 // ==/UserScript==
 
 (function () {
@@ -135,7 +135,7 @@ try {
 
     if (profile) {
         if (preventMulThreads && sessionStorage.getItem("leftThread")) {
-            stat.textContent = "Status: Crashed";
+            stat.textContent = "Status: Interrupted";
             if (prompt("Relisting was interrupted, was this intentional? (Y/N)") === "N") {
                 var ele = document.createElement("html");
                 ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"));
@@ -274,6 +274,8 @@ try {
         }
         else if (preventMulThreads && !localStorage.getItem("threadRunning")) {
             if (trades.length || +sessionStorage.getItem("nextPage") > 2) {
+                stat.textContent = "Status: Interrupted";
+                document.activeElement.blur();
                 if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N') {
                     sessionStorage.setItem("reset", true);
                     location.reload();
