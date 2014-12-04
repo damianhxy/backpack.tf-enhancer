@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.0.4
+// @version             1.5.0.5
 // ==/UserScript==
 
 (function () {
@@ -20,6 +20,7 @@
         randomMin = 3,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
+        preventMulThreads = 1,       //[boolean] prevent multiple threads?
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
@@ -133,8 +134,17 @@ try {
     }
 
     if (profile) {
-        if (sessionStorage.getItem("nextPage"))
-            alert("Relisting was interrupted...\nWas relisting: " + sessionStorage.getItem("curItem"));
+        if (preventMulThreads && sessionStorage.getItem("threadRunning")) {
+            stat.tetContent = "Status: Crashed";
+            var ele = document.createElement("html");
+                ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"));
+            if (ele.querySelector(".avatar")) {
+                alert("Relisting crashed (" + sessionStorage.getItem("curItem") + "), and appears invalid, removing");
+                sessionStorage.removeItem("itmdata-" + curItem);
+            }
+            else
+                alert("Relisting crashed (" + sessionStorage.getItem("curItem") + "), but appears valid, please retry");
+        }
         stat.textContent = "Status: Loading";
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
@@ -238,12 +248,12 @@ try {
             trades = Object.keys(sessionStorage).filter(function(e) {
                 return e.startsWith("itmdata-");
             });
-        if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
+        if (preventMulThreads && localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
             console.info("Backpack.tf Script Terminated (Not Main Thread) " + GM_info.script.version);
             stat.textContent = "Status: Terminated (Not Main Thread)";
             return;
         }
-        else if (!localStorage.getItem("threadRunning")) {
+        else if (preventMulThreads && !localStorage.getItem("threadRunning")) {
             localStorage.setItem("threadRunning", true);
             sessionStorage.setItem("mainThread", true);
         }
@@ -251,7 +261,6 @@ try {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage") - 1);
             sessionStorage.setItem("curItem", ind);
-            sessionStorage.removeItem("itmdata-" + ind);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
         }
         else if (first && +sessionStorage.getItem("nextPage") > 2) {
@@ -260,13 +269,12 @@ try {
         }
         else if (buttons.length) {
             stat.textContent = "Status: Saving IDs";
-            Array.prototype.forEach.call(buttons, function(e, i) {
-                if (i)
-                    sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
+            Array.prototype.forEach.call(buttons, function(e) {
+                sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
             });
             stat.textContent = "Status: Finished Saving IDs";
-            location.assign(buttons[0].href);
-            sessionStorage.setItem("curItem", "FIRST_ITEM");
+            sessionStorage.setItem("curItem", buttons[0].href.slice(35));
+            location.assign(buttons[0].href.slice(35));
         }
         else {
             if (last) {
@@ -291,7 +299,8 @@ try {
     else if (listPage) {
         switch (document.getElementById("item-overview-name").firstElementChild.textContent) {
             case "Relisting this item":
-                stat.textContent = "Status: Relisting " + window.location.href.match(/\d+/);
+                stat.textContent = "Status: Relisting " + window.location.href.slice(35);
+                sessionStorage.removeItem("itmdata-" + window.location.href.slice(35));
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
