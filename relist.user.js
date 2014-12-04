@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.0.6
+// @version             1.5.0.7
 // ==/UserScript==
 
 (function () {
@@ -134,16 +134,23 @@ try {
     }
 
     if (profile) {
-        if (preventMulThreads && sessionStorage.getItem("mainThread")) {
-            stat.tetContent = "Status: Crashed";
-            var ele = document.createElement("html");
+        if (preventMulThreads && sessionStorage.getItem("leftThread")) {
+            stat.textContent = "Status: Crashed";
+            if (prompt("Relisting was interrupted, was this intentional? (Y/N)") === "N") {
+                var ele = document.createElement("html");
                 ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"));
-            if (ele.querySelector(".avatar")) {
-                alert("Relisting crashed (" + sessionStorage.getItem("curItem") + "), and appears invalid, removing");
-                sessionStorage.removeItem("itmdata-" + curItem);
+                if (ele.querySelector(".avatar")) {
+                    alert("Stopped at (" + sessionStorage.getItem("curItem") + "), and appears invalid, removing");
+                    sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
+                }
+                else
+                    alert("Stopped at (" + sessionStorage.getItem("curItem") + "), but appears valid, please retry");
             }
-            else
-                alert("Relisting crashed (" + sessionStorage.getItem("curItem") + "), but appears valid, please retry");
+            else {
+                sessionStorage.removeItem("leftThread");
+                sessionStorage.removeItem("mainThread");
+                localStorage.removeItem("threadRunning");
+            }
         }
         stat.textContent = "Status: Loading";
         setTimeout(function() {
@@ -210,7 +217,7 @@ try {
         stat.textContent = "Status: Loaded";
     }
 
-    if (listings || listPage) {
+    else if (listings || listPage) {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
         addButton("paused", "Paused", false);
         addButton("reset", "Reset", false);
@@ -219,10 +226,10 @@ try {
             Object.keys(sessionStorage).forEach(function(e) {
                 sessionStorage.removeItem(e);
             });
+            var paused = JSON.parse(sessionStorage.getItem("paused"));
             localStorage.removeItem("threadRunning");
-            sessionStorage.removeItem("mainThread");
-            sessionStorage.removeItem("reset");
-            sessionStorage.removeItem("nextPage");
+            sessionStorage.clear();
+            sessionStorage.setItem("paused", paused);
             stat.textContent = "Status: Removed Data";
             if (listings) {
                 if (document.querySelector(".pagination-filters").firstElementChild.className === "disabled")
@@ -239,6 +246,18 @@ try {
             stat.textContent = "Status: Paused";
             return;
         }
+        if (preventMulThreads)
+            window.addEventListener("beforeunload", function() {
+                sessionStorage.setItem("leftThread", true);
+            });
+    }
+
+    else {
+        if (preventMulThreads && JSON.parse(sessionStorage.getItem("leftThread"))) {
+            sessionStorage.removeItem("leftThread");
+            sessionStorage.removeItem("mainThread");
+            localStorage.removeItem("threadRunning");
+        }
     }
 
     if (listings) {
@@ -254,6 +273,13 @@ try {
             return;
         }
         else if (preventMulThreads && !localStorage.getItem("threadRunning")) {
+            if (trades.length || +sessionStorage.getItem("nextPage") > 2) {
+                if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N') {
+                    sessionStorage.setItem("reset", true);
+                    location.reload();
+                    return;
+                }
+            }
             localStorage.setItem("threadRunning", true);
             sessionStorage.setItem("mainThread", true);
         }
