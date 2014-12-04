@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.0.5
+// @version             1.5.0.6
 // ==/UserScript==
 
 (function () {
@@ -134,7 +134,7 @@ try {
     }
 
     if (profile) {
-        if (preventMulThreads && sessionStorage.getItem("threadRunning")) {
+        if (preventMulThreads && sessionStorage.getItem("mainThread")) {
             stat.tetContent = "Status: Crashed";
             var ele = document.createElement("html");
                 ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"));
@@ -274,7 +274,7 @@ try {
             });
             stat.textContent = "Status: Finished Saving IDs";
             sessionStorage.setItem("curItem", buttons[0].href.slice(35));
-            location.assign(buttons[0].href.slice(35));
+            location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
         }
         else {
             if (last) {
