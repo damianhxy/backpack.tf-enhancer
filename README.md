@@ -1,4 +1,4 @@
-BP.TF-Auto-Relist
+Backpack.tf-Enhancer
 =================
 
 Auto-relister for classifieds
