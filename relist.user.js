@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.6
+// @version             1.5.1.7
 // ==/UserScript==
 
 (function () {
@@ -446,7 +446,8 @@ try {
                 console.info(url);
                 var ele = document.createElement("html");
                 ele.innerHTML += HTTPRequest(url);
-                if (!ele.getElementsByClassName("panel-body")[5].querySelector(".alert-info")) {
+                if (!isKS && !hasPaint && !ele.querySelector(".col-6").querySelector(".alert-info") ||
+                    !ele.querySelector(".media-list").querySelector(".alert-info")) {
                     var list = ele.querySelector(".media-list").getElementsByClassName("item"),
                         lowest = list[0].getAttribute("data-listing-price"),
                         highest = list[list.length - 1].getAttribute("data-listing-price");
