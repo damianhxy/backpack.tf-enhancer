@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.4
+// @version             1.5.1.5
 // ==/UserScript==
 
 (function () {
@@ -151,7 +151,7 @@ try {
                     if (!silent)
                         alert("Stopped at (" + sessionStorage.getItem("curItem") + "), but appears valid, please retry");
                     else
-                        stat.textContent = "Status: curITem valid, retrying";
+                        stat.textContent = "Status: curItem valid, retrying";
                 }
                 if (silent) {
                     stat.textContent = "Status: Returning";
@@ -178,7 +178,9 @@ try {
                     if (!e.getAttribute("data-name").contains("Metal")) {
                         var listed = e.hasAttribute("data-listing-price"),
                             style = listed ? "fa-refresh" : "fa-plus-square",
-                            canRelist = listed ? +e.getAttribute("data-listing-date").split(" ")[0] >= 30 : true,
+                            ret = (e.getAttribute("data-listing-date") || "").split(" "),
+                            canRelist = !listed || +ret[0] >= 30 && ret[1].contains("minute") ||
+                                        +ret[0] && ret[1].contains("hour"),
                             html = "<a href='http://backpack.tf/classifieds/add/" + e.getAttribute("data-id") +
                                    "'>" + "<i class='fa " + style + " fa-inverse fa-border'" +
                                    " style='position: absolute; bottom: 2px; left: 2px;" +
