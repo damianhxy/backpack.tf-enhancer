@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.1
+// @version             1.5.1.2
 // ==/UserScript==
 
 (function () {
@@ -135,16 +135,28 @@ try {
 
     if (profile) {
         if (preventMulThreads && sessionStorage.getItem("leftThread")) {
+            var silent = JSON.parse(sessionStorage.getItem("silent"));
             stat.textContent = "Status: Interrupted";
-            if (prompt("Relisting was interrupted, was this intentional? (Y/N)") === "N") {
+            if (silent || prompt("Relisting was interrupted, was this intentional? (Y/N)") === "N") {
                 var ele = document.createElement("html");
                 ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"));
                 if (ele.querySelector(".avatar")) {
-                    alert("Stopped at (" + sessionStorage.getItem("curItem") + "), and appears invalid, removing");
+                    if (!silent)
+                        alert("Stopped at (" + sessionStorage.getItem("curItem") + "), and appears invalid, removing");
+                    else
+                        stat.textContent = "Status: curItem invalid, removing";
                     sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
                 }
-                else
-                    alert("Stopped at (" + sessionStorage.getItem("curItem") + "), but appears valid, please retry");
+                else {
+                    if (!silent)
+                        alert("Stopped at (" + sessionStorage.getItem("curItem") + "), but appears valid, please retry");
+                    else
+                        stat.textContent = "Status: curITem valid, retrying";
+                }
+                if (silent) {
+                    stat.textContent = "Status: Returning";
+                    document.querySelector(".fa-tag").click();
+                }
             }
             else {
                 sessionStorage.removeItem("leftThread");
@@ -224,6 +236,7 @@ try {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
         addButton("paused", "Paused", false);
         addButton("reset", "Reset", false);
+        addButton("silent", "Silent", false);
         if (JSON.parse(sessionStorage.getItem("reset"))) {
             stat.textContent = "Status: Removing Data";
             var paused = JSON.parse(sessionStorage.getItem("paused"));
@@ -276,7 +289,8 @@ try {
             if (trades.length || +sessionStorage.getItem("nextPage") > 2) {
                 stat.textContent = "Status: Interrupted";
                 document.activeElement.blur();
-                if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N') {
+                if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N' ||
+                    JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
                     location.reload();
                     return;
