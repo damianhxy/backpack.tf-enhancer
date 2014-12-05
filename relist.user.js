@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.3
+// @version             1.5.1.4
 // ==/UserScript==
 
 (function () {
@@ -178,7 +178,7 @@ try {
                     if (!e.getAttribute("data-name").contains("Metal")) {
                         var listed = e.hasAttribute("data-listing-price"),
                             style = listed ? "fa-refresh" : "fa-plus-square",
-                            canRelist = listed ? +e.getAttribute("data-listing-price").split(" ")[0] >= 30 : true,
+                            canRelist = listed ? +e.getAttribute("data-listing-date").split(" ")[0] >= 30 : true,
                             html = "<a href='http://backpack.tf/classifieds/add/" + e.getAttribute("data-id") +
                                    "'>" + "<i class='fa " + style + " fa-inverse fa-border'" +
                                    " style='position: absolute; bottom: 2px; left: 2px;" +
