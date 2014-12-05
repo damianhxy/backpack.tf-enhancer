@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.2
+// @version             1.5.1.3
 // ==/UserScript==
 
 (function () {
@@ -259,7 +259,7 @@ try {
             stat.textContent = "Status: Paused";
             return;
         }
-        if (preventMulThreads)
+        if (preventMulThreads && JSON.parse(sessionStorage.getItem("mainThread")))
             window.addEventListener("beforeunload", function() {
                 sessionStorage.setItem("leftThread", true);
             });
