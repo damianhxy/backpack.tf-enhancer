@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.5
+// @version             1.5.1.6
 // ==/UserScript==
 
 (function () {
@@ -443,9 +443,10 @@ try {
                               "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                               (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                               (hasPaint ? "&paint=" + colour : "");
+                console.info(url);
                 var ele = document.createElement("html");
                 ele.innerHTML += HTTPRequest(url);
-                if (!ele.querySelector(".media-list").querySelector(".alert-info")) {
+                if (!ele.getElementsByClassName("panel-body")[5].querySelector(".alert-info")) {
                     var list = ele.querySelector(".media-list").getElementsByClassName("item"),
                         lowest = list[0].getAttribute("data-listing-price"),
                         highest = list[list.length - 1].getAttribute("data-listing-price");
