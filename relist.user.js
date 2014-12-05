@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.7
+// @version             1.5.1.8
 // ==/UserScript==
 
 (function () {
@@ -443,11 +443,14 @@ try {
                               "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                               (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                               (hasPaint ? "&paint=" + colour : "");
-                console.info(url);
-                var ele = document.createElement("html");
+                var ele = document.createElement("html"),
+                    hasListings;
                 ele.innerHTML += HTTPRequest(url);
-                if (!isKS && !hasPaint && !ele.querySelector(".col-6").querySelector(".alert-info") ||
-                    !ele.querySelector(".media-list").querySelector(".alert-info")) {
+                if (!isKS && !hasPaint)
+                    hasListings = !ele.querySelector(".col-6").querySelector(".alert-info");
+                else
+                    hasListings = !ele.querySelector(".media-list").querySelector(".alert-info");
+                if (hasListings) {
                     var list = ele.querySelector(".media-list").getElementsByClassName("item"),
                         lowest = list[0].getAttribute("data-listing-price"),
                         highest = list[list.length - 1].getAttribute("data-listing-price");
