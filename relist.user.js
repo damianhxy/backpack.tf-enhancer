@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.9
+// @version             1.5.2.0
 // ==/UserScript==
 
 (function () {
@@ -43,8 +43,9 @@
         document.getElementById("#navbar").appendChild(button);
     }
 
-    function leftThread() {
+    function leftThread(e) {
         localStorage.setItem("windowClosed", true);
+        e.returnValue = "Confirm";
     }
 
     function HTTPRequest(URL) {
@@ -56,6 +57,15 @@
 
     function range(lo, hi) {
         return Math.floor(Math.random() * (hi - lo + 1)) + lo;
+    }
+
+    function removeData() {
+        ["threadRunning", "chgPg", "windowClosed"].forEach(function(e) {
+            localStorage.removeItem(e);
+        });
+        ["reset", "mainThread", "curItem", "nextPage"].forEach(function(e){
+            sessionStorage.removeItem(e);
+        });
     }
 
     function round(num) {
@@ -163,9 +173,7 @@ try {
                 }
             }
             else {
-                sessionStorage.removeItem("chgPg");
-                sessionStorage.removeItem("mainThread");
-                localStorage.removeItem("threadRunning");
+                removeData();
             }
         }
         stat.textContent = "Status: Loading";
@@ -246,9 +254,7 @@ try {
         if (JSON.parse(sessionStorage.getItem("reset"))) {
             stat.textContent = "Status: Removing Data";
             var paused = JSON.parse(sessionStorage.getItem("paused"));
-            localStorage.removeItem("threadRunning");
-            sessionStorage.clear();
-            sessionStorage.setItem("paused", paused);
+            removeData();
             stat.textContent = "Status: Removed Data";
             if (listings) {
                 if (document.querySelector(".pagination-filters").firstElementChild.className === "disabled")
@@ -266,27 +272,28 @@ try {
             return;
         }
         if (preventMulThreads && JSON.parse(sessionStorage.getItem("mainThread"))) {
-            window.addEventListener("mouseout", function () {
-                window.addEventListener("beforeunload", leftThread);
-            });
-            window.addEventListener("mouseover", function() {
-                window.removeEventListener("beforeunload", leftThread);
-            });
-            window.onbeforeunload = localStorage.setItem("chgPg", true);
+            if (listPage || (listings &&
+                document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")) {
+                window.addEventListener("mouseout", function (e) {
+                    var from = e.relatedTarget;
+                    if (!from || from.nodeName === "HTML") {
+                        window.addEventListener("beforeunload", leftThread);
+                    }
+                });
+                window.addEventListener("mouseover", function() {
+                    window.removeEventListener("beforeunload", leftThread);
+                });
+                window.addEventListener("beforeunload", function() {
+                    localStorage.setItem("chgPg", true);
+                });
+            }
         }
     }
 
-    else {
-        if (preventMulThreads && localStorage.getItem("chgPg")) {
-            if (sessionStorage.getItem("mainThread")) { //Main Thread, and left listings page
-                sessionStorage.removeItem("mainThread");
-                localStorage.removeItem("chgPg");
-                localStorage.removeItem("threadRunning");
-            }
-            else if (localStorage.getItem("windowClosed")) { //Not main thread, but main thread was closed
-                localStorage.removeItem("windowClosed");
-                localStorage.removeItem("chgPg");
-                localStorage.removeItem("threadRunning");
+    else { //Not on profiles, not on listings
+        if (preventMulThreads && localStorage.getItem("chgPg")) { //Happened during relisting
+            if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed")) {
+                removeData();
             }
         }
     }
@@ -299,6 +306,11 @@ try {
                 return e.startsWith("itmdata-");
             });
         if (preventMulThreads && localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
+            if (localStorage.getItem("windowClosed")) {
+                sessionStorage.setItem("reset", true);
+                location.reload();
+                return;
+            }
             console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
             stat.textContent = "Status: Terminated (Not Main Thread)";
             return;
@@ -340,6 +352,7 @@ try {
             if (last) {
                 stat.textContent = "Status: Finished";
                 localStorage.removeItem("threadRunning");
+                localStorage.removeItem("chgPg");
                 sessionStorage.removeItem("mainThread");
                 sessionStorage.removeItem("nextPage");
                 var data = document.createElement("small"),
@@ -452,13 +465,14 @@ try {
                     url = "http://backpack.tf/stats/" + qualityN + "/Fabricator/Tradable/Craftable/" +
                           itm.getAttribute("data-priceindex");
                 else if (title.contains("Kit"))
-                    url = "http://backpack.tf/stats/" + qualityN + "/Fabricator/Tradable/Non-Craftable/" +
+                    url = "http://backpack.tf/stats/" + qualityN + "/Kit/Tradable/Non-Craftable/" +
                           itm.getAttribute("data-priceindex");
                 else
                     url = "http://backpack.tf/classifieds/?item=" + (isAust ? name.slice(11) : name) +
                               "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                               (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                               (hasPaint ? "&paint=" + colour : "");
+                console.info(url);
                 var ele = document.createElement("html"),
                     hasListings;
                 ele.innerHTML += HTTPRequest(url);
@@ -484,7 +498,7 @@ try {
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
 }
 catch(e) {
-    alert("[An error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
     stat.textContent = "Status: Error";
+    alert("[An error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
 }
 })();
