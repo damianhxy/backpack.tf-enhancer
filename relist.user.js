@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.1.8
+// @version             1.5.1.9
 // ==/UserScript==
 
 (function () {
@@ -41,6 +41,10 @@
         button.appendChild(toggle);
         button.appendChild(text);
         document.getElementById("#navbar").appendChild(button);
+    }
+
+    function leftThread() {
+        localStorage.setItem("windowClosed", true);
     }
 
     function HTTPRequest(URL) {
@@ -134,7 +138,7 @@ try {
     }
 
     if (profile) {
-        if (preventMulThreads && sessionStorage.getItem("leftThread")) {
+        if (preventMulThreads && sessionStorage.getItem("mainThread") && localStorage.getItem("chgPg")) {
             var silent = JSON.parse(sessionStorage.getItem("silent"));
             stat.textContent = "Status: Interrupted";
             if (silent || prompt("Relisting was interrupted, was this intentional? (Y/N)") === "N") {
@@ -159,7 +163,7 @@ try {
                 }
             }
             else {
-                sessionStorage.removeItem("leftThread");
+                sessionStorage.removeItem("chgPg");
                 sessionStorage.removeItem("mainThread");
                 localStorage.removeItem("threadRunning");
             }
@@ -261,17 +265,29 @@ try {
             stat.textContent = "Status: Paused";
             return;
         }
-        if (preventMulThreads && JSON.parse(sessionStorage.getItem("mainThread")))
-            window.addEventListener("beforeunload", function() {
-                sessionStorage.setItem("leftThread", true);
+        if (preventMulThreads && JSON.parse(sessionStorage.getItem("mainThread"))) {
+            window.addEventListener("mouseout", function () {
+                window.addEventListener("beforeunload", leftThread);
             });
+            window.addEventListener("mouseover", function() {
+                window.removeEventListener("beforeunload", leftThread);
+            });
+            window.onbeforeunload = localStorage.setItem("chgPg", true);
+        }
     }
 
     else {
-        if (preventMulThreads && JSON.parse(sessionStorage.getItem("leftThread"))) {
-            sessionStorage.removeItem("leftThread");
-            sessionStorage.removeItem("mainThread");
-            localStorage.removeItem("threadRunning");
+        if (preventMulThreads && localStorage.getItem("chgPg")) {
+            if (sessionStorage.getItem("mainThread")) { //Main Thread, and left listings page
+                sessionStorage.removeItem("mainThread");
+                localStorage.removeItem("chgPg");
+                localStorage.removeItem("threadRunning");
+            }
+            else if (localStorage.getItem("windowClosed")) { //Not main thread, but main thread was closed
+                localStorage.removeItem("windowClosed");
+                localStorage.removeItem("chgPg");
+                localStorage.removeItem("threadRunning");
+            }
         }
     }
 
@@ -283,7 +299,7 @@ try {
                 return e.startsWith("itmdata-");
             });
         if (preventMulThreads && localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
-            console.info("Backpack.tf Script Terminated (Not Main Thread) " + GM_info.script.version);
+            console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
             stat.textContent = "Status: Terminated (Not Main Thread)";
             return;
         }
@@ -307,10 +323,6 @@ try {
             sessionStorage.setItem("curItem", ind);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
         }
-        else if (first && +sessionStorage.getItem("nextPage") > 2) {
-            stat.textContent = "Status: Jumping to next page";
-            location.assign(window.location.href + "&page=" + sessionStorage.getItem("nextPage"));
-        }
         else if (buttons.length) {
             stat.textContent = "Status: Saving IDs";
             Array.prototype.forEach.call(buttons, function(e) {
@@ -319,6 +331,10 @@ try {
             stat.textContent = "Status: Finished Saving IDs";
             sessionStorage.setItem("curItem", buttons[0].href.slice(35));
             location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
+        }
+        else if (first && +sessionStorage.getItem("nextPage") > 2) {
+            stat.textContent = "Status: Jumping to next page";
+            location.assign(window.location.href + "&page=" + sessionStorage.getItem("nextPage"));
         }
         else {
             if (last) {
