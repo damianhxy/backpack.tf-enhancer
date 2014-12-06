@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.0
+// @version             1.5.2.1
 // ==/UserScript==
 
 (function () {
@@ -43,9 +43,9 @@
         document.getElementById("#navbar").appendChild(button);
     }
 
-    function leftThread(e) {
+    function leftThread() {
         localStorage.setItem("windowClosed", true);
-        e.returnValue = "Confirm";
+        return false;
     }
 
     function HTTPRequest(URL) {
@@ -160,6 +160,7 @@ try {
                     else
                         stat.textContent = "Status: curItem invalid, removing";
                     sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
+                    document.querySelector(".fa-tag").click();
                 }
                 else {
                     if (!silent)
@@ -275,10 +276,8 @@ try {
             if (listPage || (listings &&
                 document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")) {
                 window.addEventListener("mouseout", function (e) {
-                    var from = e.relatedTarget;
-                    if (!from || from.nodeName === "HTML") {
+                    if (!e.relatedTarget)
                         window.addEventListener("beforeunload", leftThread);
-                    }
                 });
                 window.addEventListener("mouseover", function() {
                     window.removeEventListener("beforeunload", leftThread);
@@ -286,12 +285,18 @@ try {
                 window.addEventListener("beforeunload", function() {
                     localStorage.setItem("chgPg", true);
                 });
+                var prev = 0;
+                window.addEventListener("keydown", function(e) {
+                    if (e.which === 87 && prev === 224)
+                        window.addEventListener("beforeunload", leftThread);
+                    prev = e.which;
+                });
             }
         }
     }
 
-    else { //Not on profiles, not on listings
-        if (preventMulThreads && localStorage.getItem("chgPg")) { //Happened during relisting
+    else {
+        if (preventMulThreads && localStorage.getItem("chgPg")) {
             if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed")) {
                 removeData();
             }
@@ -328,6 +333,10 @@ try {
             }
             localStorage.setItem("threadRunning", true);
             sessionStorage.setItem("mainThread", true);
+        }
+        else if (document.querySelector("alert-warning")) {
+            stat.textContent = "Status: Max Listings Reached";
+            sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
         }
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
@@ -472,7 +481,6 @@ try {
                               "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
                               (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                               (hasPaint ? "&paint=" + colour : "");
-                console.info(url);
                 var ele = document.createElement("html"),
                     hasListings;
                 ele.innerHTML += HTTPRequest(url);
