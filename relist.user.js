@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.3
+// @version             1.5.2.4
 // ==/UserScript==
 
 (function () {
@@ -20,7 +20,6 @@
         randomMin = 3,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
-        preventMulThreads = 1,       //[boolean] prevent multiple threads?
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
@@ -60,10 +59,10 @@
     }
 
     function removeData() {
-        ["threadRunning", "chgPg", "windowClosed"].forEach(function(e) {
+        ["threadRunning", "windowClosed"].forEach(function(e) {
             localStorage.removeItem(e);
         });
-        ["reset", "mainThread", "curItem", "nextPage"].forEach(function(e){
+        ["reset", "mainThread", "curItem", "nextPage", "paused"].forEach(function(e){
             sessionStorage.removeItem(e);
         });
     }
@@ -154,7 +153,7 @@ try {
     }
 
     if (profile) {
-        if (preventMulThreads && sessionStorage.getItem("mainThread") && localStorage.getItem("chgPg")) {
+        if (sessionStorage.getItem("mainThread")) {
             var silent = JSON.parse(sessionStorage.getItem("silent"));
             stat.textContent = "Status: Interrupted";
             if (silent || prompt("Relisting was interrupted, was this intentional? (Y/N)") === "N") {
@@ -176,9 +175,8 @@ try {
                 stat.textContent = "Status: Returning";
                 document.querySelector(".fa-tag").click();
             }
-            else {
+            else
                 removeData();
-            }
         }
         stat.textContent = "Status: Loading";
         setTimeout(function() {
@@ -257,7 +255,6 @@ try {
         addButton("silent", "Silent", false);
         if (JSON.parse(sessionStorage.getItem("reset"))) {
             stat.textContent = "Status: Removing Data";
-            var paused = JSON.parse(sessionStorage.getItem("paused"));
             removeData();
             stat.textContent = "Status: Removed Data";
             if (listings) {
@@ -275,20 +272,10 @@ try {
             stat.textContent = "Status: Paused";
             return;
         }
-        if (preventMulThreads && JSON.parse(sessionStorage.getItem("mainThread"))) {
+        if (JSON.parse(sessionStorage.getItem("mainThread"))) {
             if (listPage || (listings &&
                 document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")) {
-                window.addEventListener("mouseout", function (e) {
-                    if (!e.relatedTarget)
-                        window.addEventListener("beforeunload", leftThread);
-                });
-                window.addEventListener("mouseover", function() {
-                    window.removeEventListener("beforeunload", leftThread);
-                });
-                window.addEventListener("beforeunload", function() {
-                    localStorage.setItem("chgPg", true);
-                });
-                var prev = 0;
+                var prev;
                 window.addEventListener("keydown", function(e) {
                     if (e.which === 87 && prev === 224)
                         window.addEventListener("beforeunload", leftThread);
@@ -298,12 +285,8 @@ try {
         }
     }
 
-    else {
-        if (preventMulThreads && localStorage.getItem("chgPg")) {
-            if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed")) {
-                removeData();
-            }
-        }
+    else if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed")) {
+        removeData();
     }
 
     if (listings) {
@@ -313,7 +296,7 @@ try {
             trades = Object.keys(sessionStorage).filter(function(e) {
                 return e.startsWith("itmdata-");
             });
-        if (preventMulThreads && localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
+        if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
             if (localStorage.getItem("windowClosed")) {
                 sessionStorage.setItem("reset", true);
                 location.reload();
@@ -323,9 +306,9 @@ try {
             stat.textContent = "Status: Terminated (Not Main Thread)";
             return;
         }
-        else if (preventMulThreads && !localStorage.getItem("threadRunning")) {
-            if (trades.length || +sessionStorage.getItem("nextPage") > 2) {
-                stat.textContent = "Status: Interrupted";
+        else if (!localStorage.getItem("threadRunning")) {
+            if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
+                stat.textContent = "Status: Unfresh Thread";
                 document.activeElement.blur();
                 if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N' ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
@@ -364,18 +347,16 @@ try {
             if (last) {
                 stat.textContent = "Status: Finished";
                 localStorage.removeItem("threadRunning");
-                localStorage.removeItem("chgPg");
                 sessionStorage.removeItem("mainThread");
                 sessionStorage.removeItem("nextPage");
                 var data = document.createElement("small"),
                     reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
-                data.style =  "color: orange; float: right;";
+                data.style = "color: orange; float: right;";
                 document.querySelector(".panel-heading").appendChild(data);
                 setInterval(showStatus, 1000);
             }
             else {
-                if (!first)
-                    sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + 1);
+                sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
                 stat.textContent = "Status: Moving to next page";
                 document.querySelector(".fa-angle-right").click();
             }
@@ -393,7 +374,16 @@ try {
                 var itm = document.querySelector(".item"),
                     price = +itm.getAttribute("data-price"),
                     name = itm.getAttribute("data-name"),
-                    title = itm.getAttribute("title") || "";
+                    title = itm.getAttribute("title") || "",
+                    quality = +itm.getAttribute("data-quality"),
+                    tradable = +itm.getAttribute("data-tradable"),
+                    craftable = +itm.getAttribute("data-craftable"),
+                    qualityN = itm.getAttribute("data-q-name"),
+                    isAust = itm.hasAttribute("data-australium"),
+                    isKS = title.contains("Killstreak"),
+                    hasPaint = itm.hasAttribute("data-paint-name"),
+                    colour,
+                    tier;
                 if (!price || title.contains("Killstreak")) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
@@ -413,19 +403,8 @@ try {
                 if (price * 100 % 1 >= 0.5)
                     price -= 0.005;
                 price = +price.toFixed(2);
-                if (price)
-                    document.getElementById("metal").value = price;
+                document.getElementById("metal").value = price || "";
                 document.getElementById("details").value = notes;
-                var quality = +itm.getAttribute("data-quality"),
-                    tradable = +itm.getAttribute("data-tradable"),
-                    craftable = +itm.getAttribute("data-craftable"),
-                    qualityN = itm.getAttribute("data-q-name"),
-                    isAust = itm.hasAttribute("data-australium"),
-                    isKS = title.contains("Killstreak"),
-                    hasPaint = itm.hasAttribute("data-paint-name"),
-                    colour,
-                    tier;
-
                 if (hasPaint) {
                     var paint = {
                         "A Color Similar to Slate": "3100495",
@@ -457,7 +436,7 @@ try {
                         "Waterlogged Lab Coat": "11049612",
                         "Ye Olde Rustic Colour": "8154199",
                         "Zepheniah's Greed": "4345659"
-                    },
+                    };
                     colour = paint[itm.getAttribute("data-paint-name")];
                 }
                 if (isKS) {
@@ -484,9 +463,11 @@ try {
                               (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                               (hasPaint ? "&paint=" + colour : "");
                 var ele = document.createElement("html"),
-                    hasListings;
+                    hasListings = false;
                 ele.innerHTML += HTTPRequest(url);
-                if ((!isKS || title.contains("Kit")) && !hasPaint)
+                if (title.contains("Kit"))
+                    heading.textContent += " (Listings for Kits & Fabs currently broken)";
+                else if ((!isKS || title.contains("Kit")) && !hasPaint)
                     hasListings = !ele.querySelector(".col-6").querySelector(".alert-info");
                 else
                     hasListings = !ele.querySelector(".media-list").querySelector(".alert-info");
@@ -496,16 +477,10 @@ try {
                         highest = list[list.length - 1].getAttribute("data-listing-price");
                     heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
                 }
-                else {
-                    if (!title.contains("Kit"))
-                        heading.textContent += " (No other listings found)";
-                    else
-                        heading.textContent += " (Listings for Kits & Fabs currently broken)";
-                }
                 if (isKS)
-                    heading.textContent += " [Killstreak Tier: " + tier + "]";
+                    heading.textContent += " [Killstreak Tier " + tier + "]";
                 else if (hasPaint)
-                    heading.textContent += " [Painted: " + itm.getAttribute("data-paint-name") + "]";
+                    heading.textContent += " [Painted " + itm.getAttribute("data-paint-name") + "]";
                 stat.textContent = "Status: Finished Loading";
         }
     }
