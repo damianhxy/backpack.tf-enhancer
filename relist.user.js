@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.2
+// @version             1.5.2.3
 // ==/UserScript==
 
 (function () {
@@ -97,7 +97,7 @@
             localStorage.removeItem("apikey");
             update();
         }
-        if (!localStorage.getItem("keyP") || !localStorage.getItem("budP") ||
+        if (!localStorage.getItem("refP") || !localStorage.getItem("keyP") || !localStorage.getItem("budP") ||
             (new Date() - (Date.parse(localStorage.getItem("lastupdt")) || 0) >= 864e5 * updateFreq)) {
             var data = JSON.parse(HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey));
             if (!data.response.success) {
@@ -109,15 +109,20 @@
                 else
                     alert("Error: " + data.response.message);
             }
-            var key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
+            var ref = data.response.items["Refined Metal"]["prices"][6]["Tradable"]["Craftable"][0],
+                key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
                 bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
+                r = (ref.value + (ref.value_high || ref.value)) / 2,
                 k = (key.value + (key.value_high || key.value)) / 2,
                 b = (bud.value + (bud.value_high || bud.value)) / 2,
-                kDiff = " (" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
-                bDiff = " (" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
+                rDiff = "(" + (k === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
+                kDiff = "(" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
+                bDiff = "(" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
+            localStorage.setItem("refP", r);
             localStorage.setItem("keyP", k);
             localStorage.setItem("budP", b);
-            alert("Prices updated, Keys: " + k + " Refined" + kDiff + ", Earbuds: " + b + " Keys" + bDiff);
+            alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
+                  ", Earbuds: " + b + " Keys " + bDiff);
             localStorage.setItem("lastupdt", new Date());
             location.reload();
             return;
@@ -135,6 +140,7 @@ try {
         profile = window.location.href.contains("profiles"),
         listings = document.getElementsByClassName("listing-remove").length && window.location.href.contains("steamid="),
         isSelf = document.querySelector(".dropdown-btn").href === window.location.href,
+        refP = +localStorage.getItem("refP"),
         keyP = +localStorage.getItem("keyP"),
         budP = +localStorage.getItem("budP");
     update();
@@ -160,18 +166,15 @@ try {
                     else
                         stat.textContent = "Status: curItem invalid, removing";
                     sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
-                    document.querySelector(".fa-tag").click();
                 }
                 else {
                     if (!silent)
-                        alert("Stopped at (" + sessionStorage.getItem("curItem") + "), but appears valid, please retry");
+                        alert("Stopped at (" + sessionStorage.getItem("curItem") + "), but appears valid, retrying");
                     else
                         stat.textContent = "Status: curItem valid, retrying";
                 }
-                if (silent) {
-                    stat.textContent = "Status: Returning";
-                    document.querySelector(".fa-tag").click();
-                }
+                stat.textContent = "Status: Returning";
+                document.querySelector(".fa-tag").click();
             }
             else {
                 removeData();
@@ -394,7 +397,7 @@ try {
                 if (!price || title.contains("Killstreak")) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
-                        price = +itm.getAttribute("data-market-p") / 19;
+                        price = +itm.getAttribute("data-market-p") / refP;
                 }
                 else if (itm.getAttribute("data-p-bptf").contains("–"))
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
@@ -413,7 +416,6 @@ try {
                 if (price)
                     document.getElementById("metal").value = price;
                 document.getElementById("details").value = notes;
-
                 var quality = +itm.getAttribute("data-quality"),
                     tradable = +itm.getAttribute("data-tradable"),
                     craftable = +itm.getAttribute("data-craftable"),
