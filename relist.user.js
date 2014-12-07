@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.1
+// @version             1.5.2.2
 // ==/UserScript==
 
 (function () {
@@ -394,7 +394,7 @@ try {
                 if (!price || title.contains("Killstreak")) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
-                        price = +itm.getAttribute("data-market-p") / 249 * keyP;
+                        price = +itm.getAttribute("data-market-p") / 19;
                 }
                 else if (itm.getAttribute("data-p-bptf").contains("–"))
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
@@ -484,7 +484,7 @@ try {
                 var ele = document.createElement("html"),
                     hasListings;
                 ele.innerHTML += HTTPRequest(url);
-                if (!isKS && !hasPaint)
+                if ((!isKS || title.contains("Kit")) && !hasPaint)
                     hasListings = !ele.querySelector(".col-6").querySelector(".alert-info");
                 else
                     hasListings = !ele.querySelector(".media-list").querySelector(".alert-info");
@@ -494,8 +494,12 @@ try {
                         highest = list[list.length - 1].getAttribute("data-listing-price");
                     heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
                 }
-                else
-                    heading.textContent += " (No other listings found)";
+                else {
+                    if (!title.contains("Kit"))
+                        heading.textContent += " (No other listings found)";
+                    else
+                        heading.textContent += " (Listings for Kits & Fabs currently broken)";
+                }
                 if (isKS)
                     heading.textContent += " [Killstreak Tier: " + tier + "]";
                 else if (hasPaint)
