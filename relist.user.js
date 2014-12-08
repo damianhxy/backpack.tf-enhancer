@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.8
+// @version             1.5.2.9
 // ==/UserScript==
 
 (function () {
@@ -242,12 +242,10 @@ try {
                                                " pull-left'></i>");
                     if (e.hasAttribute("data-listing-price")) {
                         var curP = +e.getAttribute("data-price"),
-                            listP = parsePrice(e.getAttribute("data-listing-price")),
-                            text = curP > listP ? "↑" : "↓";
+                            listP = parsePrice(e.getAttribute("data-listing-price"));
                         if (Math.abs(curP - listP >= threshold))
                             box.insertAdjacentHTML("beforeend", "<i class='fa fa-certificate fa-inverse fa-border" +
-                                                   " pull-left' style='color: red; background-color: white;'>" +
-                                                   text + "</i>")
+                                                   " pull-left' style='color: red; background-color: white;'></i>");
                     }
                 }
                 if (e.hasAttribute("data-part-1-name"))
@@ -500,6 +498,8 @@ try {
                         highest = list[list.length - 1].getAttribute("data-listing-price");
                     heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
                 }
+                else
+                    heading.textContent += " (No other listings found)";
                 if (isKS)
                     heading.textContent += " [Killstreak Tier " + tier + "]";
                 else if (hasPaint)
@@ -510,7 +510,7 @@ try {
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
 }
 catch(e) {
-    stat.textContent = "Status: Error";
+    stat.textContent = "Status: Fatal Error";
     alert("[An error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
 }
 })();
