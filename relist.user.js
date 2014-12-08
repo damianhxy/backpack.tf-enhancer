@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.5
+// @version             1.5.2.6
 // ==/UserScript==
 
 (function () {
@@ -20,6 +20,7 @@
         randomMin = 3,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
+        threshold = 0.33,            //[refined] threshold for paint indicator
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
@@ -47,6 +48,22 @@
         xmlhttp.open("GET", URL, false);
         xmlhttp.send();
         return xmlhttp.responseText;
+    }
+
+    function parsePrice(string) {
+        var arr = string.split(" "),
+            bud = 0,
+            key = 0,
+            ref = 0;
+        arr.forEach(function(e, i) {
+            if (e.contains("ref"))
+                ref = +arr[i-1];
+            else if (e.contains("key"))
+                key = +arr[i-1];
+            else if (e.contains("bud"))
+                bud = +arr[i-1];
+        });
+        return ref + key * keyP + bud * budP * keyP;
     }
 
     function range(lo, hi) {
@@ -223,10 +240,14 @@ try {
                     if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
                         box.insertAdjacentHTML("beforeend", "<i class='fa fa-paint-brush fa-inverse fa-border" +
                                                " pull-left'></i>");
-                    var paintPrice = e.getAttribute("data-paint-price").split(" ");
-                    if (paintPrice[1].contains("key") && +paintPrice[0] >= 1) {
-                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-certificate fa-inverse fa-border" +
-                                               " pull-left'></i>");
+                    if (e.hasAttribute("data-listing-price")) {
+                        var curP = +e.getAttribute("data-price"),
+                            listP = parsePrice(e.getAttribute("data-listing-price")),
+                            text = curP > listP ? "↑" : "↓";
+                        if (Math.abs(curP - listP >= threshold))
+                            box.insertAdjacentHTML("beforeend", "<i class='fa fa-certificate fa-inverse fa-border" +
+                                                   " pull-left' style='color: red; background-color: white;'>" +
+                                                   text + "</i>")
                     }
                 }
                 if (e.hasAttribute("data-part-1-name"))
