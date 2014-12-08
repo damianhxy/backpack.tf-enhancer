@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.7
+// @version             1.5.2.8
 // ==/UserScript==
 
 (function () {
@@ -298,10 +298,10 @@ try {
                 document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")) {
                 var prev;
                 window.addEventListener("keydown", function(e) {
-                    if (e.which === 87 && prev === 224)
+                    if (e.which === 87 && prev === 224 || e.which === 115 && prev === 18)
                         window.addEventListener("beforeunload", function () {
                             localStorage.setItem("windowClosed", true);
-                            return false;
+                            e.returnValue = true;
                         });
                     prev = e.which;
                 });
@@ -309,9 +309,8 @@ try {
         }
     }
 
-    else if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed")) {
+    else if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed"))
         removeData();
-    }
 
     if (listings) {
         var first = document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
