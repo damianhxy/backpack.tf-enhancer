@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.4
+// @version             1.5.2.5
 // ==/UserScript==
 
 (function () {
@@ -40,11 +40,6 @@
         button.appendChild(toggle);
         button.appendChild(text);
         document.getElementById("#navbar").appendChild(button);
-    }
-
-    function leftThread() {
-        localStorage.setItem("windowClosed", true);
-        return false;
     }
 
     function HTTPRequest(URL) {
@@ -228,6 +223,11 @@ try {
                     if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
                         box.insertAdjacentHTML("beforeend", "<i class='fa fa-paint-brush fa-inverse fa-border" +
                                                " pull-left'></i>");
+                    var paintPrice = e.getAttribute("data-paint-price").split(" ");
+                    if (paintPrice[1].contains("key") && +paintPrice[0] >= 1) {
+                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-certificate fa-inverse fa-border" +
+                                               " pull-left'></i>");
+                    }
                 }
                 if (e.hasAttribute("data-part-1-name"))
                     box.insertAdjacentHTML("beforeend", "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>");
@@ -278,7 +278,10 @@ try {
                 var prev;
                 window.addEventListener("keydown", function(e) {
                     if (e.which === 87 && prev === 224)
-                        window.addEventListener("beforeunload", leftThread);
+                        window.addEventListener("beforeunload", function () {
+                            localStorage.setItem("windowClosed", true);
+                            return false;
+                        });
                     prev = e.which;
                 });
             }
