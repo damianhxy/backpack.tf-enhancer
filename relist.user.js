@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.6
+// @version             1.5.2.7
 // ==/UserScript==
 
 (function () {
@@ -411,7 +411,7 @@ try {
                 if (!price || title.contains("Killstreak")) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
-                        price = +itm.getAttribute("data-market-p") / refP;
+                        price = +itm.getAttribute("data-market-p") / refP / 100;
                 }
                 else if (itm.getAttribute("data-p-bptf").contains("–"))
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
