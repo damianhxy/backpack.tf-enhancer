@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.2.9
+// @version             1.5.3.0
 // ==/UserScript==
 
 (function () {
@@ -57,11 +57,11 @@
             ref = 0;
         arr.forEach(function(e, i) {
             if (e.contains("ref"))
-                ref = +arr[i-1];
+                ref = +arr[i - 1];
             else if (e.contains("key"))
-                key = +arr[i-1];
+                key = +arr[i - 1];
             else if (e.contains("bud"))
-                bud = +arr[i-1];
+                bud = +arr[i - 1];
         });
         return ref + key * keyP + bud * budP * keyP;
     }
@@ -74,7 +74,7 @@
         ["threadRunning", "windowClosed"].forEach(function(e) {
             localStorage.removeItem(e);
         });
-        ["reset", "mainThread", "curItem", "nextPage", "paused"].forEach(function(e){
+        ["reset", "mainThread", "curItem", "nextPage", "paused"].forEach(function(e) {
             sessionStorage.removeItem(e);
         });
     }
@@ -93,8 +93,7 @@
             data.innerHTML = "Reloading classifieds in " + min + ":" + ("0" + sec).slice(-2);
             window.document.title = "Classifieds: " + min + ":" + ("0" + sec).slice(-2);
             reloadTime--;
-        }
-        else
+        } else
             document.querySelector(".fa-angle-double-left").click();
     }
 
@@ -116,8 +115,7 @@
                     alert("Invalid API key");
                     localStorage.removeItem("apikey");
                     update();
-                }
-                else
+                } else
                     alert("Error: " + data.response.message);
             }
             var ref = data.response.items["Refined Metal"]["prices"][6]["Tradable"]["Craftable"][0],
@@ -177,8 +175,7 @@ try {
                     else
                         stat.textContent = "Status: curItem invalid, removing";
                     sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
-                }
-                else {
+                } else {
                     if (!silent)
                         alert("Stopped at (" + sessionStorage.getItem("curItem") + "), but appears valid, retrying");
                     else
@@ -186,8 +183,7 @@ try {
                 }
                 stat.textContent = "Status: Returning";
                 document.querySelector(".fa-tag").click();
-            }
-            else
+            } else
                 removeData();
         }
         stat.textContent = "Status: Loading";
@@ -265,9 +261,7 @@ try {
             });
         }
         stat.textContent = "Status: Loaded";
-    }
-
-    else if (listings || listPage) {
+    } else if (listings || listPage) {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
         addButton("paused", "Paused", false);
         addButton("reset", "Reset", false);
@@ -281,8 +275,7 @@ try {
                     location.reload();
                 else
                     document.querySelector(".fa-angle-double-left").click();
-            }
-            else
+            } else
                 document.querySelector(".fa-tag").click();
             return;
         }
@@ -297,7 +290,7 @@ try {
                 var prev;
                 window.addEventListener("keydown", function(e) {
                     if (e.which === 87 && prev === 224 || e.which === 115 && prev === 18)
-                        window.addEventListener("beforeunload", function () {
+                        window.addEventListener("beforeunload", function() {
                             localStorage.setItem("windowClosed", true);
                             e.returnValue = true;
                         });
@@ -305,9 +298,7 @@ try {
                 });
             }
         }
-    }
-
-    else if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed"))
+    } else if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed"))
         removeData();
 
     if (listings) {
@@ -326,8 +317,7 @@ try {
             console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
             stat.textContent = "Status: Terminated (Not Main Thread)";
             return;
-        }
-        else if (!localStorage.getItem("threadRunning")) {
+        } else if (!localStorage.getItem("threadRunning")) {
             if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
                 stat.textContent = "Status: Unfresh Thread";
                 document.activeElement.blur();
@@ -340,8 +330,7 @@ try {
             }
             localStorage.setItem("threadRunning", true);
             sessionStorage.setItem("mainThread", true);
-        }
-        else if (document.querySelector("alert-warning")) {
+        } else if (document.querySelector("alert-warning")) {
             stat.textContent = "Status: Max Listings Reached";
             sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
         }
@@ -350,8 +339,7 @@ try {
             stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage") - 1);
             sessionStorage.setItem("curItem", ind);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
-        }
-        else if (buttons.length) {
+        } else if (buttons.length) {
             stat.textContent = "Status: Saving IDs";
             Array.prototype.forEach.call(buttons, function(e) {
                 sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
@@ -359,12 +347,10 @@ try {
             stat.textContent = "Status: Finished Saving IDs";
             sessionStorage.setItem("curItem", buttons[0].href.slice(35));
             location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
-        }
-        else if (first && +sessionStorage.getItem("nextPage") > 2) {
+        } else if (first && +sessionStorage.getItem("nextPage") > 2) {
             stat.textContent = "Status: Jumping to next page";
             location.assign(window.location.href + "&page=" + sessionStorage.getItem("nextPage"));
-        }
-        else {
+        } else {
             if (last) {
                 stat.textContent = "Status: Finished";
                 localStorage.removeItem("threadRunning");
@@ -375,15 +361,13 @@ try {
                 data.style = "color: orange; float: right;";
                 document.querySelector(".panel-heading").appendChild(data);
                 setInterval(showStatus, 1000);
-            }
-            else {
+            } else {
                 sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
                 stat.textContent = "Status: Moving to next page";
                 document.querySelector(".fa-angle-right").click();
             }
         }
-    }
-    else if (listPage) {
+    } else if (listPage) {
         switch (document.getElementById("item-overview-name").firstElementChild.textContent) {
             case "Relisting this item":
                 stat.textContent = "Status: Relisting " + window.location.href.slice(35);
@@ -409,8 +393,7 @@ try {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
                         price = +itm.getAttribute("data-market-p") / refP / 100;
-                }
-                else if (itm.getAttribute("data-p-bptf").contains("–"))
+                } else if (itm.getAttribute("data-p-bptf").contains("–"))
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
                 if (price >= keyP && !name.contains("Key")) {
                     if (price >= keyP * budP && !name.contains("Earbuds")) {
@@ -497,8 +480,7 @@ try {
                         lowest = list[0].getAttribute("data-listing-price"),
                         highest = list[list.length - 1].getAttribute("data-listing-price");
                     heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
-                }
-                else
+                } else
                     heading.textContent += " (No other listings found)";
                 if (isKS)
                     heading.textContent += " [Killstreak Tier " + tier + "]";
@@ -508,8 +490,7 @@ try {
         }
     }
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
-}
-catch(e) {
+} catch(e) {
     stat.textContent = "Status: Fatal Error";
     alert("[An error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
 }
