@@ -1,7 +1,7 @@
 // ==UserScript==
 // @copyright           2014, Damian Ho
 // @description         Helper script for Backpack.tf
-// @downloadURL         https://github.com/damianhxy/BP.TF-Auto-Relist/raw/master/relist.user.js
+// @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/4f5941c01384cea7b8d523b10a3823f48a5e20e0/relist.user.js
 // @grant               GM_xmlhttpRequest
 // @include             /^http:\/\/backpack\.tf.*/
 // @exclude             /^http:\/\/backpack\.tf\/api\/.*/
