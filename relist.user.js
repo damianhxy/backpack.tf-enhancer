@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.3.0
+// @version             1.5.3.1
 // ==/UserScript==
 
 (function () {
@@ -121,10 +121,10 @@
             var ref = data.response.items["Refined Metal"]["prices"][6]["Tradable"]["Craftable"][0],
                 key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
                 bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
-                r = (ref.value + (ref.value_high || ref.value)) / 2,
+                r = (ref.value + (ref.value_high || ref.value)) / 2 * 100,
                 k = (key.value + (key.value_high || key.value)) / 2,
                 b = (bud.value + (bud.value_high || bud.value)) / 2,
-                rDiff = "(" + (k === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
+                rDiff = "(" + (r === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
                 kDiff = "(" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
                 bDiff = "(" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
             localStorage.setItem("refP", r);
