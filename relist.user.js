@@ -5,7 +5,7 @@
 // @include             /^http:\/\/backpack\.tf.*/
 // @exclude             /^http:\/\/backpack\.tf\/api\/.*/
 // @name                Backpack.tf Enhancer
-// @namespace           localhost
+// @namespace           https://bitbucket.org/
 // @noframes
 // @run-at              document-end
 // @version             1.5.3.3
