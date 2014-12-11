@@ -9,7 +9,7 @@
 // @namespace           localhost
 // @noframes
 // @run-at              document-end
-// @version             1.5.3.1
+// @version             1.5.3.2
 // ==/UserScript==
 
 (function () {
@@ -368,7 +368,7 @@ try {
             }
         }
     } else if (listPage) {
-        switch (document.getElementById("item-overview-name").firstElementChild.textContent) {
+        switch (document.querySelector(".item-overview").children[1].textContent.trim()) {
             case "Relisting this item":
                 stat.textContent = "Status: Relisting " + window.location.href.slice(35);
                 sessionStorage.removeItem("itmdata-" + window.location.href.slice(35));
