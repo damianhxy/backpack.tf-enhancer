@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.3.6
+// @version             1.5.3.7
 // ==/UserScript==
 
 (function () {
@@ -90,18 +90,16 @@
         if (reloadTime) {
             var min = Math.floor(reloadTime / 60),
                 sec = reloadTime % 60;
-            data.innerHTML = "Reloading classifieds in " + min + ":" + ("0" + sec).slice(-2);
-            window.document.title = "Classifieds: " + min + ":" + ("0" + sec).slice(-2);
+            data.textContent = "Reloading classifieds in " + min + ":" + ("0" + sec).slice(-2);
+            document.title = "Classifieds: " + min + ":" + ("0" + sec).slice(-2);
             reloadTime--;
         } else
             document.querySelector(".fa-angle-double-left").click();
     }
 
     function update() {
-        if (document.getElementById("login")) {
-            console.info("Backpack.tf Script Paused (Signed Out). Version " + GM_info.script.version);
-            return;
-        }
+        if (document.getElementById("login"))
+            return console.info("Backpack.tf Script Paused (Signed Out). Version " + GM_info.script.version);
         if (!localStorage.getItem("apikey"))
             localStorage.setItem("apikey", prompt("API key not set, register yours from http://backpack.tf/api/"));
         if (localStorage.getItem("apikey").length !== 24) {
@@ -118,10 +116,8 @@
                     alert("Invalid API key");
                     localStorage.removeItem("apikey");
                     update();
-                } else {
-                    alert("Error: " + data.response.message);
-                    return;
-                }
+                } else
+                    return alert("Error: " + data.response.message);
             }
             var ref = data.response.items["Refined Metal"].prices[6].Tradable.Craftable[0],
                 key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
@@ -138,8 +134,7 @@
             alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
                   ", Earbuds: " + b + " Keys " + bDiff);
             localStorage.setItem("lastupdt", new Date());
-            location.reload();
-            return;
+            return location.reload();
         }
         var diff = 864e5 * updateFreq - (new Date() - Date.parse(localStorage.getItem("lastupdt"))),
             days = Math.floor(diff / 864e5),
@@ -150,10 +145,10 @@
 
 try {
     /******** SCRIPT GLOBALS ********/
-    var listPage = window.location.href.contains("/add"),
-        profile = window.location.href.contains("profiles"),
-        listings = document.getElementsByClassName("listing-remove").length && window.location.href.contains("steamid="),
-        isSelf = document.querySelector(".dropdown-btn").href === window.location.href,
+    var listPage = document.URL.contains("/add"),
+        profile = document.URL.contains("profiles"),
+        listings = document.getElementsByClassName("listing-remove").length && document.URL.contains("steamid="),
+        isSelf = document.querySelector(".dropdown-btn").href === document.URL,
         refP = +localStorage.getItem("refP"),
         keyP = +localStorage.getItem("keyP"),
         budP = +localStorage.getItem("budP");
@@ -184,8 +179,7 @@ try {
                         alert("[" + sessionStorage.getItem("curItem") + "] valid, retrying");
                 }
                 stat.textContent = "Status: Returning...";
-                document.querySelector(".fa-tag").click();
-                return;
+                return document.querySelector(".fa-tag").click();
             } else
                 removeData();
         }
@@ -277,17 +271,15 @@ try {
             stat.textContent = "Status: Removed Data";
             if (listings) {
                 if (document.querySelector(".pagination-filters").firstElementChild.className === "disabled")
-                    location.reload();
+                    return location.reload();
                 else
-                    document.querySelector(".fa-angle-double-left").click();
+                    return document.querySelector(".fa-angle-double-left").click();
             } else
-                document.querySelector(".fa-tag").click();
-            return;
+                return document.querySelector(".fa-tag").click();
         }
         if (JSON.parse(sessionStorage.getItem("paused"))) {
-            console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             stat.textContent = "Status: Paused";
-            return;
+            return console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
         }
         if (JSON.parse(sessionStorage.getItem("mainThread"))) {
             if (listPage || (listings &&
@@ -297,7 +289,6 @@ try {
                     if ((e.which === 87 && prev === 224) || (e.which === 115 && prev === 18))
                         window.addEventListener("beforeunload", function() {
                             localStorage.setItem("windowClosed", true);
-                            e.returnValue = true;
                         });
                     prev = e.which;
                 });
@@ -316,12 +307,10 @@ try {
         if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
             if (localStorage.getItem("windowClosed")) {
                 sessionStorage.setItem("reset", true);
-                location.reload();
-                return;
+                return location.reload();
             }
-            console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
             stat.textContent = "Status: Terminated";
-            return;
+            return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
         } else if (!localStorage.getItem("threadRunning")) {
             if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
                 stat.textContent = "Status: Unfresh Thread";
@@ -329,8 +318,7 @@ try {
                 if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N' ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
-                    location.reload();
-                    return;
+                    return location.reload();
                 }
             }
             localStorage.setItem("threadRunning", true);
@@ -353,7 +341,7 @@ try {
             location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
         } else if (first && +sessionStorage.getItem("nextPage") > 2) {
             stat.textContent = "Status: Jumping...";
-            location.assign(window.location.href + "&page=" + sessionStorage.getItem("nextPage"));
+            location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
         } else {
             if (last) {
                 stat.textContent = "Status: Finished Relisting";
@@ -375,7 +363,7 @@ try {
         switch (document.querySelector(".item-overview").children[1].textContent.trim()) {
             case "Relisting this item":
                 stat.textContent = "Status: Relisting...";
-                sessionStorage.removeItem("itmdata-" + window.location.href.slice(35));
+                sessionStorage.removeItem("itmdata-" + document.URL.slice(35));
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
@@ -389,8 +377,8 @@ try {
                     craftable = +itm.getAttribute("data-craftable"),
                     qualityN = itm.getAttribute("data-q-name"),
                     isAust = itm.hasAttribute("data-australium"),
-                    isKS = title.contains("Killstreak"),
                     hasPaint = itm.hasAttribute("data-paint-name"),
+                    isKS = title.contains("Killstreak"),
                     colour,
                     tier;
                 if (!price || title.contains("Killstreak")) {
@@ -496,6 +484,6 @@ try {
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
 } catch(e) {
     stat.textContent = "Status: Fatal Error";
-    alert("[An error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
+    alert("[A fatal error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
 }
 })();
