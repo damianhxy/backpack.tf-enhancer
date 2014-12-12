@@ -1,7 +1,6 @@
 // ==UserScript==
 // @copyright           2014, Damian Ho
 // @description         Helper script for Backpack.tf
-// @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/4f5941c01384cea7b8d523b10a3823f48a5e20e0/relist.user.js
 // @include             /^http:\/\/backpack\.tf.*/
 // @exclude             /^http:\/\/backpack\.tf\/api\/.*/
 // @name                Backpack.tf Enhancer
