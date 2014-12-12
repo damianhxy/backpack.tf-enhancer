@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/
 // @noframes
 // @run-at              document-end
-// @version             1.5.3.3
+// @version             1.5.3.4
 // ==/UserScript==
 
 (function () {
@@ -36,7 +36,7 @@
             activated = JSON.parse(localStorage.getItem(prop));
         else
             activated = JSON.parse(sessionStorage.getItem(prop));
-        button.style = "margin: 2px 2px; width: 125px;" + (!top ? " clear: both;" : "");
+        button.style = "margin: 2px; width: 125px;" + (top ? "" : " clear: both;");
         button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
         button.addEventListener("click", function() {
             window.stop();
@@ -168,7 +168,7 @@ try {
 
     if (profile || listings || listPage) {
         var stat = document.createElement("div");
-        stat.style = "margin-left: 5px;";
+        stat.style = "margin: 2px; width: 150px;";
         stat.className = "btn btn-info btn-sm pull-left";
         document.getElementById("#navbar").appendChild(stat);
         addButton("paused", "Paused", 0, 1, 1);
@@ -183,22 +183,18 @@ try {
                 ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"));
                 if (ele.querySelector(".avatar")) {
                     if (!silent)
-                        alert("Stopped at (" + sessionStorage.getItem("curItem") + "), and appears invalid, removing");
-                    else
-                        stat.textContent = "Status: curItem invalid, removing";
+                        alert("[" + sessionStorage.getItem("curItem") + "] invalid, removing");
                     sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
                 } else {
                     if (!silent)
-                        alert("Stopped at (" + sessionStorage.getItem("curItem") + "), but appears valid, retrying");
-                    else
-                        stat.textContent = "Status: curItem valid, retrying";
+                        alert("[" + sessionStorage.getItem("curItem") + "] valid, retrying");
                 }
-                stat.textContent = "Status: Returning";
+                stat.textContent = "Status: Returning...";
                 document.querySelector(".fa-tag").click();
+                return;
             } else
                 removeData();
         }
-        stat.textContent = "Status: Loading";
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                      document.getElementById("newlist").children.length - 1 + " ");
@@ -208,7 +204,6 @@ try {
             addButton("fastlist", "Fast Listing", 0);
             addButton("pricediff", "Show Change", 0);
             if (JSON.parse(sessionStorage.getItem("fastlist"))) {
-                stat.textContent = "Status: Adding Fast Listing";
                 Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
                     if (!e.getAttribute("data-name").contains("Metal")) {
                         var listed = e.hasAttribute("data-listing-price"),
@@ -234,7 +229,6 @@ try {
             }
         }
         if (JSON.parse(sessionStorage.getItem("annotate"))) {
-            stat.textContent = "Status: Annotating";
             Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
                 if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
                     if (+e.textContent.split("#")[1] <= 100)
@@ -285,7 +279,6 @@ try {
         addButton("reset", "Reset", 0);
         addButton("silent", "Silent", 0);
         if (JSON.parse(sessionStorage.getItem("reset"))) {
-            stat.textContent = "Status: Removing Data";
             removeData();
             stat.textContent = "Status: Removed Data";
             if (listings) {
@@ -333,7 +326,7 @@ try {
                 return;
             }
             console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
-            stat.textContent = "Status: Terminated (Not Main Thread)";
+            stat.textContent = "Status: Terminated";
             return;
         } else if (!localStorage.getItem("threadRunning")) {
             if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
@@ -349,28 +342,27 @@ try {
             localStorage.setItem("threadRunning", true);
             sessionStorage.setItem("mainThread", true);
         } else if (document.querySelector("alert-warning")) {
-            stat.textContent = "Status: Max Listings Reached";
+            stat.textContent = "Status: Infinite Loop";
             sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
         }
         if (trades.length) {
             var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
-            stat.textContent = "Status: Relisting page " + (sessionStorage.getItem("nextPage") - 1);
+            stat.textContent = "Status: Relisting Page " + (sessionStorage.getItem("nextPage") - 1);
             sessionStorage.setItem("curItem", ind);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
         } else if (buttons.length) {
-            stat.textContent = "Status: Saving IDs";
             Array.prototype.forEach.call(buttons, function(e) {
                 sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
             });
-            stat.textContent = "Status: Finished Saving IDs";
+            stat.textContent = "Status: Saved IDs";
             sessionStorage.setItem("curItem", buttons[0].href.slice(35));
             location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
         } else if (first && +sessionStorage.getItem("nextPage") > 2) {
-            stat.textContent = "Status: Jumping to next page";
+            stat.textContent = "Status: Jumping...";
             location.assign(window.location.href + "&page=" + sessionStorage.getItem("nextPage"));
         } else {
             if (last) {
-                stat.textContent = "Status: Finished";
+                stat.textContent = "Status: Finished Relisting";
                 localStorage.removeItem("threadRunning");
                 sessionStorage.removeItem("mainThread");
                 sessionStorage.removeItem("nextPage");
@@ -381,14 +373,14 @@ try {
                 setInterval(showStatus, 1000);
             } else {
                 sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
-                stat.textContent = "Status: Moving to next page";
+                stat.textContent = "Status: Moving...";
                 document.querySelector(".fa-angle-right").click();
             }
         }
     } else if (listPage) {
         switch (document.querySelector(".item-overview").children[1].textContent.trim()) {
             case "Relisting this item":
-                stat.textContent = "Status: Relisting " + window.location.href.slice(35);
+                stat.textContent = "Status: Relisting...";
                 sessionStorage.removeItem("itmdata-" + window.location.href.slice(35));
                 document.getElementById("button_save").click();
                 break;
@@ -488,7 +480,7 @@ try {
                     hasListings = false;
                 ele.innerHTML += HTTPRequest(url);
                 if (title.contains("Kit"))
-                    heading.textContent += " (Listings for Kits & Fabs currently broken)";
+                    heading.textContent += " (Listings for Kits & Fabricators currently broken)";
                 else if ((!isKS || title.contains("Kit")) && !hasPaint)
                     hasListings = !ele.querySelector(".col-6").querySelector(".alert-info");
                 else
