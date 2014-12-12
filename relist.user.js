@@ -2,13 +2,13 @@
 // @copyright           2014, Damian Ho
 // @description         Helper script for Backpack.tf
 // @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/master/relist.user.js
-// @include             /^http:\/\/backpack\.tf.*/
-// @exclude             /^http:\/\/backpack\.tf\/api\/.*/
+// @include             /^http:\/\/backpack\.tf.*$/
+// @exclude             /^http:\/\/backpack\.tf\/api\/.*$/
 // @name                Backpack.tf Enhancer
-// @namespace           https://bitbucket.org/
+// @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.3.5
+// @version             1.5.3.6
 // ==/UserScript==
 
 (function () {
@@ -23,27 +23,18 @@
         notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
     /******** END OF SETTINGS *******/
 
-    function addButton(prop, val, def, global, top) {
-        if (global)
-            localStorage.setItem(prop, localStorage.getItem(prop) || def);
-        else
-            sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
+    function addButton(prop, val, def, top) {
         var button = document.createElement("a"),
             toggle = document.createElement("i"),
             text = document.createTextNode(" " + val),
             activated;
-        if (global)
-            activated = JSON.parse(localStorage.getItem(prop));
-        else
-            activated = JSON.parse(sessionStorage.getItem(prop));
+        sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
+        activated = JSON.parse(sessionStorage.getItem(prop));
         button.style = "margin: 2px; width: 125px;" + (top ? "" : " clear: both;");
         button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
         button.addEventListener("click", function() {
             window.stop();
-            if (global)
-                localStorage.setItem(prop, !JSON.parse(localStorage.getItem(prop)));
-            else
-                sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
+            sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
             location.reload();
         });
         toggle.className = "fa fa-toggle-" + (activated ? "on" : "off");
@@ -80,10 +71,10 @@
     }
 
     function removeData() {
-        ["threadRunning", "windowClosed", "paused"].forEach(function(e) {
+        ["threadRunning", "windowClosed"].forEach(function(e) {
             localStorage.removeItem(e);
         });
-        ["reset", "mainThread", "curItem", "nextPage"].forEach(function(e) {
+        ["reset", "mainThread", "curItem", "nextPage", "paused"].forEach(function(e) {
             sessionStorage.removeItem(e);
         });
     }
@@ -120,18 +111,21 @@
         }
         if (!localStorage.getItem("refP") || !localStorage.getItem("keyP") || !localStorage.getItem("budP") ||
             (new Date() - (Date.parse(localStorage.getItem("lastupdt")) || 0) >= 864e5 * updateFreq)) {
-            var data = JSON.parse(HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.apikey));
+            var data = JSON.parse(HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" +
+                                  localStorage.getItem("apikey")));
             if (!data.response.success) {
                 if (data.response.message === "API key does not exist.") {
                     alert("Invalid API key");
                     localStorage.removeItem("apikey");
                     update();
-                } else
+                } else {
                     alert("Error: " + data.response.message);
+                    return;
+                }
             }
-            var ref = data.response.items["Refined Metal"]["prices"][6]["Tradable"]["Craftable"][0],
-                key = data.response.items["Mann Co. Supply Crate Key"]["prices"][6]["Tradable"]["Craftable"][0],
-                bud = data.response.items["Earbuds"]["prices"][6]["Tradable"]["Craftable"][0],
+            var ref = data.response.items["Refined Metal"].prices[6].Tradable.Craftable[0],
+                key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
+                bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
                 r = (ref.value + (ref.value_high || ref.value)) / 2 * 100,
                 k = (key.value + (key.value_high || key.value)) / 2,
                 b = (bud.value + (bud.value_high || bud.value)) / 2,
@@ -171,7 +165,7 @@ try {
         stat.style = "margin: 2px; width: 150px;";
         stat.className = "btn btn-info btn-sm pull-left";
         document.getElementById("#navbar").appendChild(stat);
-        addButton("paused", "Paused", 0, 1, 1);
+        addButton("paused", "Paused", false, true);
     }
 
     if (profile) {
@@ -199,10 +193,10 @@ try {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                      document.getElementById("newlist").children.length - 1 + " ");
         }, 1000);
-        addButton("annotate", "Annotate", 0);
+        addButton("annotate", "Annotate", false);
         if (isSelf) {
-            addButton("fastlist", "Fast Listing", 0);
-            addButton("pricediff", "Show Change", 0);
+            addButton("fastlist", "Fast Listing", false);
+            addButton("pricediff", "Show Change", false);
             if (JSON.parse(sessionStorage.getItem("fastlist"))) {
                 Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
                     if (!e.getAttribute("data-name").contains("Metal")) {
@@ -237,7 +231,7 @@ try {
                     e.style.display = "none";
                 }
             });
-            Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
+            Array.prototype.forEach.call(document.querySelectorAll(".item[data-tradable='1']"), function(e) {
                 var box = e.firstElementChild;
                 if (e.hasAttribute("data-paint-name")) {
                     if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
@@ -261,11 +255,11 @@ try {
             });
         }
         if (JSON.parse(sessionStorage.getItem("pricediff"))) {
-            Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
+            Array.prototype.forEach.call(document.querySelectorAll(".item[data-tradable='1']"), function(e) {
                 if (e.hasAttribute("data-listing-price") && +e.getAttribute("data-price")) {
                     var curP = +e.getAttribute("data-price"),
                         listP = parsePrice(e.getAttribute("data-listing-price")),
-                        change = Math.abs(curP - listP) >= threshold ? curP > listP ? "up" : "down" : 0;
+                        change = Math.abs(curP - listP) >= threshold ? curP > listP ? "up" : "down" : false;
                     if (Math.abs(curP - listP) >= threshold && JSON.parse(sessionStorage.getItem("pricediff")))
                         e.firstElementChild.insertAdjacentHTML("beforeend", "<i class='fa fa-level-" + change +
                                                                " fa-inverse fa-border pull-left'" +
@@ -276,8 +270,8 @@ try {
         stat.textContent = "Status: Loaded";
     } else if (listings || listPage) {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
-        addButton("reset", "Reset", 0);
-        addButton("silent", "Silent", 0);
+        addButton("reset", "Reset", false);
+        addButton("silent", "Silent", false);
         if (JSON.parse(sessionStorage.getItem("reset"))) {
             removeData();
             stat.textContent = "Status: Removed Data";
@@ -290,7 +284,7 @@ try {
                 document.querySelector(".fa-tag").click();
             return;
         }
-        if (JSON.parse(localStorage.getItem("paused"))) {
+        if (JSON.parse(sessionStorage.getItem("paused"))) {
             console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             stat.textContent = "Status: Paused";
             return;
@@ -300,7 +294,7 @@ try {
                 document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")) {
                 var prev;
                 window.addEventListener("keydown", function(e) {
-                    if (e.which === 87 && prev === 224 || e.which === 115 && prev === 18)
+                    if ((e.which === 87 && prev === 224) || (e.which === 115 && prev === 18))
                         window.addEventListener("beforeunload", function() {
                             localStorage.setItem("windowClosed", true);
                             e.returnValue = true;
@@ -352,7 +346,7 @@ try {
             location.assign("http://backpack.tf/classifieds/add/" + ind);
         } else if (buttons.length) {
             Array.prototype.forEach.call(buttons, function(e) {
-                sessionStorage.setItem("itmdata-" + e.href.slice(35), 0);
+                sessionStorage.setItem("itmdata-" + e.href.slice(35), false);
             });
             stat.textContent = "Status: Saved IDs";
             sessionStorage.setItem("curItem", buttons[0].href.slice(35));
@@ -487,7 +481,7 @@ try {
                     hasListings = !ele.querySelector(".media-list").querySelector(".alert-info");
                 if (hasListings) {
                     var list = ele.querySelector(".media-list").getElementsByClassName("item"),
-                        lowest = list[0].getAttribute("data-listing-price"),
+                        lowest = list.firstElementChild.getAttribute("data-listing-price"),
                         highest = list[list.length - 1].getAttribute("data-listing-price");
                     heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
                 } else
