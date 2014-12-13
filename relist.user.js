@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.3.7
+// @version             1.5.3.8
 // ==/UserScript==
 
 (function () {
@@ -93,8 +93,10 @@
             data.textContent = "Reloading classifieds in " + min + ":" + ("0" + sec).slice(-2);
             document.title = "Classifieds: " + min + ":" + ("0" + sec).slice(-2);
             reloadTime--;
-        } else
+        } else {
             document.querySelector(".fa-angle-double-left").click();
+            clearInterval(showStatus);
+        }
     }
 
     function update() {
@@ -147,7 +149,7 @@ try {
     /******** SCRIPT GLOBALS ********/
     var listPage = document.URL.contains("/add"),
         profile = document.URL.contains("profiles"),
-        listings = document.getElementsByClassName("listing-remove").length && document.URL.contains("steamid="),
+        listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
         isSelf = document.querySelector(".dropdown-btn").href === document.URL,
         refP = +localStorage.getItem("refP"),
         keyP = +localStorage.getItem("keyP"),
@@ -294,8 +296,10 @@ try {
                 });
             }
         }
-    } else if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed"))
+    } else if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed")) {
         removeData();
+        location.reload();
+    }
 
     if (listings) {
         var first = document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
@@ -469,7 +473,7 @@ try {
                     hasListings = !ele.querySelector(".media-list").querySelector(".alert-info");
                 if (hasListings) {
                     var list = ele.querySelector(".media-list").getElementsByClassName("item"),
-                        lowest = list.firstElementChild.getAttribute("data-listing-price"),
+                        lowest = list[0].getAttribute("data-listing-price"),
                         highest = list[list.length - 1].getAttribute("data-listing-price");
                     heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
                 } else
