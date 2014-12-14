@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.0
+// @version             1.5.4.1
 // ==/UserScript==
 
 (function () {
@@ -200,6 +200,9 @@ try {
             addButton("fastlist", "Fast Listing", false);
             addButton("pricediff", "Show Change", false);
             if (JSON.parse(sessionStorage.getItem("fastlist"))) {
+                Array.prototype.forEach.call(document.getElementsByClassName("killstreaker"), function(e) {
+                    e.style.display = "none";
+                });
                 Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
                     if (!e.getAttribute("data-name").contains("Metal")) {
                         var listed = e.hasAttribute("data-listing-price"),
@@ -210,16 +213,13 @@ try {
                             link.href = "http://backpack.tf/classifieds/add/" + e.getAttribute("data-id");
                             link.appendChild(createIcon(listed ? "refresh" : "plus-square",
                                                         "position: absolute; bottom: 2px; left: 2px;" +
-                                                        (canRelist ? "" : " background-color: red;")))
+                                                        (canRelist ? "" : " background-color: red;")));
                         e.firstElementChild.appendChild(link);
                     }
                     if (e.hasAttribute("data-gifted-name")) {
                         e.querySelector(".fa-gift").style.display = "none";
                         e.firstElementChild.appendChild(createIcon("gift"));
                     }
-                });
-                Array.prototype.forEach.call(document.getElementsByClassName("killstreaker"), function(e) {
-                    e.style.display = "none";
                 });
             }
         }
@@ -253,6 +253,10 @@ try {
             });
         }
         if (JSON.parse(sessionStorage.getItem("pricediff"))) {
+            Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
+                if (!e.parentNode.parentNode.hasAttribute("data-crate"))
+                    e.style.display = "none";
+            });
             Array.prototype.forEach.call(document.querySelectorAll(".item[data-tradable='1']"), function(e) {
                 if (e.hasAttribute("data-listing-price") && +e.getAttribute("data-price")) {
                     var curP = +e.getAttribute("data-price"),
@@ -378,8 +382,8 @@ try {
                     name = itm.getAttribute("data-name"),
                     title = itm.getAttribute("title") || "",
                     quality = +itm.getAttribute("data-quality"),
-                    tradable = +itm.getAttribute("data-tradable"),
-                    craftable = +itm.getAttribute("data-craftable"),
+                    trade = +itm.getAttribute("data-tradable"),
+                    craft = +itm.getAttribute("data-craftable"),
                     qualityN = itm.getAttribute("data-q-name"),
                     isAust = itm.hasAttribute("data-australium"),
                     hasPaint = itm.hasAttribute("data-paint-name"),
@@ -447,27 +451,24 @@ try {
                     else if (title.contains("Professional"))
                         tier = 3;
                 }
-                var url,
+                var url = "http://backpack.tf/stats/" + qualityN + "/",
                     heading = document.getElementsByClassName("panel-heading")[1];
                 if (!isKS && !hasPaint)
-                    url = "http://backpack.tf/stats/" + qualityN + "/" + name + "/" +
-                          (tradable ? "" : "Non-") + "Tradable" + "/" + (craftable ? "" : "Non-") + "Craftable";
+                    url += name + "/" + (trade ? "" : "Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
                 else if (title.contains("Fabricator"))
-                    url = "http://backpack.tf/stats/" + qualityN + "/Fabricator/Tradable/Craftable/" +
-                          itm.getAttribute("data-priceindex");
+                    url += "Fabricator/Tradable/Craftable/" + itm.getAttribute("data-priceindex");
                 else if (title.contains("Kit"))
-                    url = "http://backpack.tf/stats/" + qualityN + "/Kit/Tradable/Non-Craftable/" +
-                          itm.getAttribute("data-priceindex");
+                    url += "Kit/Tradable/Non-Craftable/" + itm.getAttribute("data-priceindex");
                 else
                     url = "http://backpack.tf/classifieds/?item=" + (isAust ? name.slice(11) : name) +
-                              "&quality=" + quality + "&tradable=" + tradable + "&craftable=" + craftable +
+                              "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
                               (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
                               (hasPaint ? "&paint=" + colour : "");
                 var ele = document.createElement("html"),
                     hasListings = false;
                 ele.innerHTML += HTTPRequest(url);
                 if (title.contains("Kit"))
-                    heading.textContent += " (Listings for Kits & Fabricators currently broken)";
+                    heading.textContent += " (Kits & Fabricators classifieds are currently broken)";
                 else if ((!isKS || title.contains("Kit")) && !hasPaint)
                     hasListings = !ele.querySelector(".col-6").querySelector(".alert-info");
                 else
@@ -483,12 +484,13 @@ try {
                     heading.textContent += " [Killstreak Tier " + tier + "]";
                 else if (hasPaint)
                     heading.textContent += " [Painted " + itm.getAttribute("data-paint-name") + "]";
-                stat.textContent = "Status: Finished Loading";
+                stat.textContent = "Status: Loaded";
         }
     }
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
 } catch(e) {
-    stat.textContent = "Status: Fatal Error";
+    if (profile || listings || listPage)
+        stat.textContent = "Status: Fatal Error";
     alert("[A fatal error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
 }
 })();
