@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.3.8
+// @version             1.5.3.9
 // ==/UserScript==
 
 (function () {
@@ -25,11 +25,9 @@
 
     function addButton(prop, val, def, top) {
         var button = document.createElement("a"),
-            toggle = document.createElement("i"),
             text = document.createTextNode(" " + val),
-            activated;
+            activated = JSON.parse(sessionStorage.getItem(prop));
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
-        activated = JSON.parse(sessionStorage.getItem(prop));
         button.style = "margin: 2px; width: 125px;" + (top ? "" : " clear: both;");
         button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
         button.addEventListener("click", function() {
@@ -37,10 +35,18 @@
             sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
             location.reload();
         });
-        toggle.className = "fa fa-toggle-" + (activated ? "on" : "off");
-        button.appendChild(toggle);
+        button.appendChild(createIcon("toggle-" + (activated ? "on" : "off"), "border: none;"));
         button.appendChild(text);
         document.getElementById("#navbar").appendChild(button);
+    }
+
+    function createIcon(cls, style, content) {
+        var icon = document.createElement("i");
+        icon.className = "fa fa-" + cls + " fa-inverse fa-border pull-left";
+        icon.style = style;
+        if (content)
+            icon.appendChild(document.createTextNode(content));
+        return icon;
     }
 
     function HTTPRequest(URL) {
@@ -197,20 +203,19 @@ try {
                 Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
                     if (!e.getAttribute("data-name").contains("Metal")) {
                         var listed = e.hasAttribute("data-listing-price"),
-                            style = listed ? "fa-refresh" : "fa-plus-square",
-                            ret = (e.getAttribute("data-listing-date") || "").split(" "),
-                            canRelist = !listed || +ret[0] >= 30 && ret[1].contains("minute") ||
-                                        +ret[0] && ret[1].contains("hour"),
-                            html = "<a href='http://backpack.tf/classifieds/add/" + e.getAttribute("data-id") +
-                                   "'>" + "<i class='fa " + style + " fa-inverse fa-border'" +
-                                   " style='position: absolute; bottom: 2px; left: 2px;" +
-                                   (canRelist ? "" : " background-color: red;") + "'></i></a>";
-                        e.firstElementChild.insertAdjacentHTML("beforeend", html);
+                            arr = (e.getAttribute("data-listing-date") || "").split(" "),
+                            canRelist = !listed || +arr[0] >= 30 && arr[1].contains("minute") ||
+                                        +arr[0] && arr[1].contains("hour"),
+                            link = document.createElement("a");
+                            link.href = "http://backpack.tf/classifieds/add/" + e.getAttribute("data-id");
+                            link.appendChild(createIcon(listed ? "refresh" : "plus-square",
+                                                        "position: absolute; bottom: 2px; left: 2px;" +
+                                                        (canRelist ? "" : " background-color: red;")))
+                        e.firstElementChild.appendChild(link);
                     }
                     if (e.hasAttribute("data-gifted-name")) {
                         e.querySelector(".fa-gift").style.display = "none";
-                        e.firstElementChild.insertAdjacentHTML("beforeend", "<i class='fa fa-gift fa-inverse" +
-                                                               " fa-border pull-left'></i>");
+                        e.firstElementChild.appendChild(createIcon("gift"));
                     }
                 });
                 Array.prototype.forEach.call(document.getElementsByClassName("killstreaker"), function(e) {
@@ -222,8 +227,7 @@ try {
             Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
                 if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
                     if (+e.textContent.split("#")[1] <= 100)
-                        e.insertAdjacentHTML("afterend", "<i class='fa fa-exclamation-triangle fa-inverse fa-border" +
-                                             " pull-left'>" + e.textContent + "</i>");
+                        e.parentNode.insertBefore(createIcon("exclamation-triangle", "", e.textContent), e.nextSibling);
                     e.style.display = "none";
                 }
             });
@@ -231,13 +235,12 @@ try {
                 var box = e.firstElementChild;
                 if (e.hasAttribute("data-paint-name")) {
                     if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
-                        box.insertAdjacentHTML("beforeend", "<i class='fa fa-paint-brush fa-inverse fa-border" +
-                                               " pull-left'></i>");
+                        box.appendChild(createIcon("paint-brush"));
                 }
                 if (e.hasAttribute("data-part-1-name"))
-                    box.insertAdjacentHTML("beforeend", "<i class='fa fa-cogs fa-inverse fa-border pull-left'></i>");
+                    box.appendChild(createIcon("cogs"));
                 if (e.hasAttribute("data-spell-1"))
-                    box.insertAdjacentHTML("beforeend", "<i class='fa fa-magic fa-inverse fa-border pull-left'></i>");
+                    box.appendChild(createIcon("magic"));
                 var title = e.getAttribute("data-default-name") || e.getAttribute("title");
                 if (title.contains("Killstreak")) {
                     var colour = "#cd7f32";
@@ -245,8 +248,7 @@ try {
                         colour = "#c0c0c0";
                     else if (title.contains("Professional"))
                         colour = "#ffd700";
-                    box.insertAdjacentHTML("beforeend", "<i class='fa fa-bomb fa-border pull-left'" +
-                                           " style='color: " + colour + "; background-color: white;'></i>");
+                    box.appendChild(createIcon("bomb", "color: " + colour + "; background-color: white;"));
                 }
             });
         }
@@ -255,11 +257,10 @@ try {
                 if (e.hasAttribute("data-listing-price") && +e.getAttribute("data-price")) {
                     var curP = +e.getAttribute("data-price"),
                         listP = parsePrice(e.getAttribute("data-listing-price")),
-                        change = Math.abs(curP - listP) >= threshold ? curP > listP ? "up" : "down" : false;
+                        change = Math.abs(curP - listP) >= threshold ? curP > listP ? "up" : "down" : "";
                     if (Math.abs(curP - listP) >= threshold && JSON.parse(sessionStorage.getItem("pricediff")))
-                        e.firstElementChild.insertAdjacentHTML("beforeend", "<i class='fa fa-level-" + change +
-                                                               " fa-inverse fa-border pull-left'" +
-                                                               " style='background-color: white; color: red;'></i>");
+                        e.firstElementChild.appendChild(createIcon("level-" + change,
+                                                                   "background-color: white; color: red"));
                 }
             });
         }
@@ -348,7 +349,7 @@ try {
             location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
         } else {
             if (last) {
-                stat.textContent = "Status: Finished Relisting";
+                stat.textContent = "Status: Done Relisting";
                 localStorage.removeItem("threadRunning");
                 sessionStorage.removeItem("mainThread");
                 sessionStorage.removeItem("nextPage");
