@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.3.9
+// @version             1.5.4.0
 // ==/UserScript==
 
 (function () {
@@ -24,10 +24,10 @@
     /******** END OF SETTINGS *******/
 
     function addButton(prop, val, def, top) {
+        sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
             text = document.createTextNode(" " + val),
             activated = JSON.parse(sessionStorage.getItem(prop));
-        sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         button.style = "margin: 2px; width: 125px;" + (top ? "" : " clear: both;");
         button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
         button.addEventListener("click", function() {
