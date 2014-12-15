@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.1
+// @version             1.5.4.2
 // ==/UserScript==
 
 (function () {
@@ -20,7 +20,7 @@
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
         threshold = 0.22,            //[refined] threshold for paint indicator
-        notes = localStorage.getItem("notes") || "Pure/25% item overpay, exact ↯ offers are automatically accepted.";
+        notes = localStorage.getItem("notes");
     /******** END OF SETTINGS *******/
 
     function addButton(prop, val, def, top) {
@@ -321,7 +321,7 @@ try {
             stat.textContent = "Status: Terminated";
             return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
         } else if (!localStorage.getItem("threadRunning")) {
-            if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
+            if (sessionStorage.getItem("mainThread") || trades.length || +sessionStorage.getItem("nextPage") !== 2) {
                 stat.textContent = "Status: Unfresh Thread";
                 document.activeElement.blur();
                 if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N' ||
