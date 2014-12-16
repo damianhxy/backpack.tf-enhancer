@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.2
+// @version             1.5.4.3
 // ==/UserScript==
 
 (function () {
@@ -393,7 +393,7 @@ try {
                 if (!price || title.contains("Killstreak")) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
-                        price = +itm.getAttribute("data-market-p") / refP / 100;
+                        price = +itm.getAttribute("data-market-p") / refP;
                 } else if (itm.getAttribute("data-p-bptf").contains("–"))
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
                 if (price >= keyP && !name.contains("Key")) {
@@ -467,9 +467,7 @@ try {
                 var ele = document.createElement("html"),
                     hasListings = false;
                 ele.innerHTML += HTTPRequest(url);
-                if (title.contains("Kit"))
-                    heading.textContent += " (Kits & Fabricators classifieds are currently broken)";
-                else if ((!isKS || title.contains("Kit")) && !hasPaint)
+                if ((!isKS || title.contains("Kit")) && !hasPaint)
                     hasListings = !ele.querySelector(".col-6").querySelector(".alert-info");
                 else
                     hasListings = !ele.querySelector(".media-list").querySelector(".alert-info");
