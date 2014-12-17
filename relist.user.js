@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.3
+// @version             1.5.4.4
 // ==/UserScript==
 
 (function () {
@@ -289,19 +289,20 @@ try {
             return console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
         }
         if (JSON.parse(sessionStorage.getItem("mainThread"))) {
-            if (listPage || (listings &&
-                document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")) {
-                var prev;
+            if (listPage || listings &&
+                document.querySelector(".pagination-filters").lastElementChild.className !== "disabled") {
+                var prev = 0;
                 window.addEventListener("keydown", function(e) {
                     if ((e.which === 87 && prev === 224) || (e.which === 115 && prev === 18))
-                        window.addEventListener("beforeunload", function() {
+                        window.onbeforeunload = function(e) {
                             localStorage.setItem("windowClosed", true);
-                        });
+                            e.preventDefault();
+                        }
                     prev = e.which;
                 });
             }
         }
-    } else if (sessionStorage.getItem("mainThread") || localStorage.getItem("windowClosed")) {
+    } else if (sessionStorage.getItem("mainThread")) {
         removeData();
         location.reload();
     }
@@ -316,6 +317,7 @@ try {
         if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
             if (localStorage.getItem("windowClosed")) {
                 sessionStorage.setItem("reset", true);
+                stat.textContent = "Resetting Threading";
                 return location.reload();
             }
             stat.textContent = "Status: Terminated";
