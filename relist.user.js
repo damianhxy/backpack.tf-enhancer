@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.5.1
+// @version             1.5.5.2
 // ==/UserScript==
 
 (function () {
@@ -77,9 +77,7 @@
     }
 
     function removeData() {
-        ["threadRunning", "windowClosed"].forEach(function(e) {
-            localStorage.removeItem(e);
-        });
+        localStorage.removeItem("threadRunning");
         ["reset", "mainThread", "curItem", "nextPage", "paused"].forEach(function(e) {
             sessionStorage.removeItem(e);
         });
@@ -280,13 +278,7 @@ try {
         if (JSON.parse(sessionStorage.getItem("reset"))) {
             removeData();
             stat.textContent = "Status: Removed Data";
-            if (listings) {
-                if (document.querySelector(".pagination-filters").firstElementChild.className === "disabled")
-                    return location.reload();
-                else
-                    return document.querySelector(".fa-angle-double-left").click();
-            } else
-                return document.querySelector(".fa-tag").click();
+            return document.querySelector(".fa-tag").click();
         }
         if (JSON.parse(sessionStorage.getItem("paused"))) {
             stat.textContent = "Status: Paused";
@@ -297,20 +289,16 @@ try {
                 document.querySelector(".pagination-filters").lastElementChild.className !== "disabled") {
                 var prev = 0;
                 window.addEventListener("keydown", function(e) {
-                    if ((e.which === 87 && prev === 224) || (e.which === 115 && prev === 18))
+                    if (e.which === 87 && prev === 224)
                         window.onbeforeunload = function(e) {
+                            localStorage.removeItem("threadRunning");
+                            sessionStorage.removeItem("mainThread");
                             e.preventDefault();
-                        };
-                        window.onunload = function() {
-                            localStorage.setItem("windowClosed", true);
                         };
                     prev = e.which;
                 });
             }
         }
-    } else if (sessionStorage.getItem("mainThread")) {
-        removeData();
-        location.reload();
     }
 
     if (listings) {
@@ -321,27 +309,16 @@ try {
                 return e.startsWith("itmdata-");
             });
         if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
-            if (localStorage.getItem("windowClosed")) {
-                sessionStorage.setItem("reset", true);
-                stat.textContent = "Status: Threading Reset";
-                return location.reload();
-            }
             stat.textContent = "Status: Terminated";
             return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
         } else if (!localStorage.getItem("threadRunning")) {
-            if (sessionStorage.getItem("mainThread") || trades.length || +sessionStorage.getItem("nextPage") !== 2) {
+            if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
                 stat.textContent = "Status: Unfresh Thread";
                 document.activeElement.blur();
                 if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N' ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
-                    if (listings) {
-                        if (first)
-                            return location.reload();
-                        else
-                            return document.querySelector(".fa-angle-double-left").click();
-                    } else
-                        return document.querySelector(".fa-tag").click();
+                    return document.querySelector(".fa-tag").click();
                 }
             }
             localStorage.setItem("threadRunning", true);
