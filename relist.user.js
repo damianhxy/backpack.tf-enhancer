@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.4
+// @version             1.5.4.5
 // ==/UserScript==
 
 (function () {
@@ -295,8 +295,10 @@ try {
                 window.addEventListener("keydown", function(e) {
                     if ((e.which === 87 && prev === 224) || (e.which === 115 && prev === 18))
                         window.onbeforeunload = function(e) {
-                            localStorage.setItem("windowClosed", true);
                             e.preventDefault();
+                        }
+                        window.onunload = function() {
+                            localStorage.setItem("windowClosed", true);
                         }
                     prev = e.which;
                 });
