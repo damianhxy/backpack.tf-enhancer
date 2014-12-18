@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.5.3
+// @version             1.5.5.4
 // ==/UserScript==
 
 (function () {
@@ -23,19 +23,19 @@
         notes = localStorage.getItem("notes");
     /******** END OF SETTINGS *******/
 
-    function addButton(prop, val, def, top) {
+    function addButton(prop, val, def, clr = false) {
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
             text = document.createTextNode(" " + val),
             activated = JSON.parse(sessionStorage.getItem(prop));
-        button.style = "margin: 2px; width: 125px;" + (top ? "" : " clear: both;");
-        button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
+        button.style = "margin: 2px; width: 125px;" + [" clear: both;", ""][+clr];
+        button.className = "btn btn-" + ["danger", "success"][+activated] + " btn-sm pull-right";
         button.addEventListener("click", function() {
             window.stop();
             sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
             location.reload();
         });
-        button.appendChild(createIcon("toggle-" + (activated ? "on" : "off"), "border: none;"));
+        button.appendChild(createIcon("toggle-" + ["off", "on"][+activated], "border: none;"));
         button.appendChild(text);
         document.getElementById("#navbar").appendChild(button);
     }
@@ -177,7 +177,7 @@ try {
         if (sessionStorage.getItem("mainThread")) {
             var silent = JSON.parse(sessionStorage.getItem("silent"));
             stat.textContent = "Status: Interrupted";
-            if (silent || confirm("Relisting was interrupted, click 'ok' if this was intentional")) {
+            if (silent || confirm("Relisting was interrupted, now diagnosing...")) {
                 var ele = document.createElement("html");
                 ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"));
                 if (ele.querySelector(".avatar")) {
@@ -188,7 +188,7 @@ try {
                     if (!silent)
                         alert("[" + sessionStorage.getItem("curItem") + "] valid, retrying");
                 }
-                stat.textContent = "Status: Returning...";
+                stat.textContent = "Status: Returning";
                 return document.querySelector(".fa-tag").click();
             } else
                 removeData();
@@ -232,11 +232,11 @@ try {
             Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
                 if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
                     if (+e.textContent.split("#")[1] <= 100)
-                        e.parentNode.insertBefore(createIcon("exclamation-triangle", "", e.textContent), e.nextSibling);
+                        e.parentNode.insertBefore(createIcon("exclamation-triangle", null, e.textContent), e.nextSibling);
                     e.style.display = "none";
                 }
             });
-            Array.prototype.forEach.call(document.querySelectorAll(".item[data-tradable='1']"), function(e) {
+            Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
                 var box = e.firstElementChild;
                 if (e.hasAttribute("data-paint-name")) {
                     if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
@@ -262,15 +262,14 @@ try {
                 if (!e.parentNode.parentNode.hasAttribute("data-crate"))
                     e.style.display = "none";
             });
-            Array.prototype.forEach.call(document.querySelectorAll(".item[data-tradable='1']"), function(e) {
+            Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
                 if (e.hasAttribute("data-listing-price") && +e.getAttribute("data-price")) {
                     var curP = +e.getAttribute("data-price"),
                         listP = parsePrice(e.getAttribute("data-listing-price")),
-                        changed = Math.abs(curP - listP) >= threshold,
-                        dir = changed ? curP > listP ? "up" : "down" : "";
-                    if (changed)
-                        e.firstElementChild.appendChild(createIcon("level-" + dir,
-                                                                   "background-color: white; color: red"));
+                        chg = Math.abs(curP - listP) >= threshold;
+                    if (chg)
+                        e.firstElementChild.appendChild(createIcon("level-" + chg ? curP > listP ? "up" : "down" : null,
+                                                                   "background-color: white; color: red;"));
                 }
             });
         }
@@ -281,7 +280,7 @@ try {
         addButton("silent", "Silent", false);
         if (JSON.parse(sessionStorage.getItem("reset"))) {
             removeData();
-            stat.textContent = "Status: Removed Data";
+            stat.textContent = "Status: Data Removed";
             return document.querySelector(".fa-tag").click();
         }
         if (JSON.parse(sessionStorage.getItem("paused"))) {
@@ -292,7 +291,7 @@ try {
             if (listPage || listings &&
                 document.querySelector(".pagination-filters").lastElementChild.className !== "disabled") {
                 var prev = 0;
-                window.addEventListener("keydown", function(e) {
+                window.addEventListener("keydown", function() {
                     if (e.which === 87 && (prev === 224 || prev === 17))
                         window.onbeforeunload = function(e) {
                             localStorage.removeItem("threadRunning");
@@ -317,14 +316,14 @@ try {
             if (sessionStorage.getItem("mainThread") || trades.length || +sessionStorage.getItem("nextPage") !== 2) {
                 stat.textContent = "Status: Unfresh Thread";
                 document.activeElement.blur();
-                if (confirm("Relisting was interrupted, click 'ok' to continue?") ||
+                if (confirm("Relisting was interrupted, now resetting...") ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
                     return document.querySelector(".fa-tag").click();
                 }
             }
-            localStorage.setItem("threadRunning", true);
-            sessionStorage.setItem("mainThread", true);
+            localStorage.setItem("threadRunning", null);
+            sessionStorage.setItem("mainThread", null);
         } else if (document.querySelector("alert-warning")) {
             stat.textContent = "Status: Infinite Loop";
             sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
