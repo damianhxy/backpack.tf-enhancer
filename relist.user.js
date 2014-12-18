@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.9
+// @version             1.5.5.0
 // ==/UserScript==
 
 (function () {
@@ -475,7 +475,7 @@ try {
                 else
                     url = "http://backpack.tf/classifieds/?item=" + (isAust ? title.slice(11) : title) +
                               "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
-                              "&australium=" (isAust ? "1" : "0") + (isKS ? "&killstreak_tier=" + tier: "") +
+                              "&australium=" + (isAust ? "1" : "0") + (isKS ? "&killstreak_tier=" + tier: "") +
                               (hasPaint ? "&paint=" + colour : "");
                 var ele = document.createElement("html"),
                     hasListings;
