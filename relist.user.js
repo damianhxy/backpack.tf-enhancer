@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.5.2
+// @version             1.5.5.3
 // ==/UserScript==
 
 (function () {
@@ -80,6 +80,10 @@
         localStorage.removeItem("threadRunning");
         ["reset", "mainThread", "curItem", "nextPage", "paused"].forEach(function(e) {
             sessionStorage.removeItem(e);
+        });
+        Object.keys(sessionStorage).forEach(function(e) {
+            if (e.startsWith("itmdata-"))
+                sessionStorage.removeItem(e);
         });
     }
 
@@ -173,7 +177,7 @@ try {
         if (sessionStorage.getItem("mainThread")) {
             var silent = JSON.parse(sessionStorage.getItem("silent"));
             stat.textContent = "Status: Interrupted";
-            if (silent || prompt("Relisting was interrupted, was this intentional? (Y/N)") === "N") {
+            if (silent || confirm("Relisting was interrupted, click 'ok' if this was intentional")) {
                 var ele = document.createElement("html");
                 ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"));
                 if (ele.querySelector(".avatar")) {
@@ -289,11 +293,9 @@ try {
                 document.querySelector(".pagination-filters").lastElementChild.className !== "disabled") {
                 var prev = 0;
                 window.addEventListener("keydown", function(e) {
-                    if (e.which === 87 && prev === 224)
+                    if (e.which === 87 && (prev === 224 || prev === 17))
                         window.onbeforeunload = function(e) {
                             localStorage.removeItem("threadRunning");
-                            sessionStorage.removeItem("mainThread");
-                            e.preventDefault();
                         };
                     prev = e.which;
                 });
@@ -312,10 +314,10 @@ try {
             stat.textContent = "Status: Terminated";
             return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
         } else if (!localStorage.getItem("threadRunning")) {
-            if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
+            if (sessionStorage.getItem("mainThread") || trades.length || +sessionStorage.getItem("nextPage") !== 2) {
                 stat.textContent = "Status: Unfresh Thread";
                 document.activeElement.blur();
-                if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N' ||
+                if (confirm("Relisting was interrupted, click 'ok' to continue?") ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
                     return document.querySelector(".fa-tag").click();
@@ -336,10 +338,10 @@ try {
             Array.prototype.forEach.call(buttons, function(e) {
                 sessionStorage.setItem("itmdata-" + e.href.slice(35), false);
             });
-            stat.textContent = "Status: Saved IDs";
+            stat.textContent = "Status: IDs Saved";
             sessionStorage.setItem("curItem", buttons[0].href.slice(35));
             location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
-        } else if (first && +sessionStorage.getItem("nextPage") > 2) {
+        } else if (first) {
             stat.textContent = "Status: Jumping...";
             location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
         } else {
@@ -378,8 +380,8 @@ try {
                     isAust = itm.hasAttribute("data-australium"),
                     hasPaint = itm.hasAttribute("data-paint-name"),
                     isKS = title.contains("Killstreak"),
-                    colour,
-                    tier;
+                    colour = 0,
+                    tier = 0;
                 if (!price || title.contains("Killstreak")) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (itm.hasAttribute("data-market-p"))
@@ -450,10 +452,10 @@ try {
                 else if (title.contains("Kit"))
                     url += "Kit/Tradable/Non-Craftable/" + itm.getAttribute("data-priceindex");
                 else
-                    url = "http://backpack.tf/classifieds/?item=" + (isAust ? title.slice(11) : title) +
+                    url = "http://backpack.tf/classifieds/?item=" + title.slice(isAust * 11) +
                               "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
-                              "&australium=" + (isAust ? "1" : "0") + (isKS ? "&killstreak_tier=" + tier: "") +
-                              (hasPaint ? "&paint=" + colour : "");
+                              "&australium=" + +isAust + "&killstreak_tier=" + isKS * tier +
+                              "&paint=" + colour;
                 var ele = document.createElement("html"),
                     hasListings;
                 ele.innerHTML += HTTPRequest(url);
