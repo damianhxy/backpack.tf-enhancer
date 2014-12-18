@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.5
+// @version             1.5.4.6
 // ==/UserScript==
 
 (function () {
@@ -224,6 +224,9 @@ try {
             }
         }
         if (JSON.parse(sessionStorage.getItem("annotate"))) {
+            Array.prototype.forEach.call(document.getElementsByClassName("killstreaker"), function(e) {
+                e.style.display = "none";
+            });
             Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
                 if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
                     if (+e.textContent.split("#")[1] <= 100)
