@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.7
+// @version             1.5.4.8
 // ==/UserScript==
 
 (function () {
@@ -300,10 +300,10 @@ try {
                     if ((e.which === 87 && prev === 224) || (e.which === 115 && prev === 18))
                         window.onbeforeunload = function(e) {
                             e.preventDefault();
-                        }
+                        };
                         window.onunload = function() {
                             localStorage.setItem("windowClosed", true);
-                        }
+                        };
                     prev = e.which;
                 });
             }
@@ -323,7 +323,7 @@ try {
         if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
             if (localStorage.getItem("windowClosed")) {
                 sessionStorage.setItem("reset", true);
-                stat.textContent = "Resetting Threading";
+                stat.textContent = "Status: Threading Reset";
                 return location.reload();
             }
             stat.textContent = "Status: Terminated";
@@ -335,7 +335,13 @@ try {
                 if (prompt("Looks like relisting was interrupted, continue? (Y/N)") === 'N' ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
-                    return location.reload();
+                    if (listings) {
+                        if (first)
+                            return location.reload();
+                        else
+                            return document.querySelector(".fa-angle-double-left").click();
+                    } else
+                        return document.querySelector(".fa-tag").click();
                 }
             }
             localStorage.setItem("threadRunning", true);
@@ -345,9 +351,9 @@ try {
             sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
         }
         if (trades.length) {
-            var ind = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
+            var id = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             stat.textContent = "Status: Relisting Page " + (sessionStorage.getItem("nextPage") - 1);
-            sessionStorage.setItem("curItem", ind);
+            sessionStorage.setItem("curItem", id);
             location.assign("http://backpack.tf/classifieds/add/" + ind);
         } else if (buttons.length) {
             Array.prototype.forEach.call(buttons, function(e) {
