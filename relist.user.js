@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.8
+// @version             1.5.4.9
 // ==/UserScript==
 
 (function () {
@@ -393,8 +393,7 @@ try {
                 stat.textContent = "Status: Filling Fields";
                 var itm = document.querySelector(".item"),
                     price = +itm.getAttribute("data-price"),
-                    name = itm.getAttribute("data-name"),
-                    title = itm.getAttribute("title") || "",
+                    title = itm.getAttribute("data-default-name") || itm.getAttribute("title"),
                     quality = +itm.getAttribute("data-quality"),
                     trade = +itm.getAttribute("data-tradable"),
                     craft = +itm.getAttribute("data-craftable"),
@@ -410,8 +409,8 @@ try {
                         price = +itm.getAttribute("data-market-p") / refP;
                 } else if (itm.getAttribute("data-p-bptf").contains("–"))
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
-                if (price >= keyP && !name.contains("Key")) {
-                    if (price >= keyP * budP && !name.contains("Earbuds")) {
+                if (price >= keyP && !title.contains("Key")) {
+                    if (price >= keyP * budP && !title.contains("Earbuds")) {
                         document.getElementById("earbuds").value = Math.floor(price / (keyP * budP));
                         price %= keyP * budP;
                     }
@@ -419,7 +418,7 @@ try {
                     price %= keyP;
                 }
                 price = round(price);
-                if (price * 100 % 1 >= 0.5)
+                if (price % 1 >= 0.5)
                     price -= 0.005;
                 price = +price.toFixed(2);
                 document.getElementById("metal").value = price || "";
@@ -468,18 +467,18 @@ try {
                 var url = "http://backpack.tf/stats/" + qualityN + "/",
                     heading = document.getElementsByClassName("panel-heading")[1];
                 if (!isKS && !hasPaint)
-                    url += name + "/" + (trade ? "" : "Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
+                    url += title + "/" + (trade ? "" : "Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
                 else if (title.contains("Fabricator"))
                     url += "Fabricator/Tradable/Craftable/" + itm.getAttribute("data-priceindex");
                 else if (title.contains("Kit"))
                     url += "Kit/Tradable/Non-Craftable/" + itm.getAttribute("data-priceindex");
                 else
-                    url = "http://backpack.tf/classifieds/?item=" + (isAust ? name.slice(11) : name) +
+                    url = "http://backpack.tf/classifieds/?item=" + (isAust ? title.slice(11) : title) +
                               "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
-                              (isAust ? "&australium=1" : "") + (isKS ? "&killstreak_tier=" + tier: "") +
+                              "&australium=" (isAust ? "1" : "0") + (isKS ? "&killstreak_tier=" + tier: "") +
                               (hasPaint ? "&paint=" + colour : "");
                 var ele = document.createElement("html"),
-                    hasListings = false;
+                    hasListings;
                 ele.innerHTML += HTTPRequest(url);
                 if ((!isKS || title.contains("Kit")) && !hasPaint)
                     hasListings = !ele.querySelector(".col-6").querySelector(".alert-info");
