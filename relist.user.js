@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.4.6
+// @version             1.5.4.7
 // ==/UserScript==
 
 (function () {
@@ -264,9 +264,10 @@ try {
                 if (e.hasAttribute("data-listing-price") && +e.getAttribute("data-price")) {
                     var curP = +e.getAttribute("data-price"),
                         listP = parsePrice(e.getAttribute("data-listing-price")),
-                        change = Math.abs(curP - listP) >= threshold ? curP > listP ? "up" : "down" : "";
-                    if (Math.abs(curP - listP) >= threshold && JSON.parse(sessionStorage.getItem("pricediff")))
-                        e.firstElementChild.appendChild(createIcon("level-" + change,
+                        changed = Math.abs(curP - listP) >= threshold,
+                        dir = changed ? curP > listP ? "up" : "down" : "";
+                    if (changed)
+                        e.firstElementChild.appendChild(createIcon("level-" + dir,
                                                                    "background-color: white; color: red"));
                 }
             });
