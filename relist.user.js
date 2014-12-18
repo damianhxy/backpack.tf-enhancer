@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.5.0
+// @version             1.5.5.1
 // ==/UserScript==
 
 (function () {
@@ -354,7 +354,7 @@ try {
             var id = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
             stat.textContent = "Status: Relisting Page " + (sessionStorage.getItem("nextPage") - 1);
             sessionStorage.setItem("curItem", id);
-            location.assign("http://backpack.tf/classifieds/add/" + ind);
+            location.assign("http://backpack.tf/classifieds/add/" + id);
         } else if (buttons.length) {
             Array.prototype.forEach.call(buttons, function(e) {
                 sessionStorage.setItem("itmdata-" + e.href.slice(35), false);
