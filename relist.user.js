@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.5.5
+// @version             1.5.5.6
 // ==/UserScript==
 
 (function () {
@@ -291,9 +291,9 @@ try {
             if (listPage || listings &&
                 document.querySelector(".pagination-filters").lastElementChild.className !== "disabled") {
                 var prev = 0;
-                window.addEventListener("keydown", function() {
+                window.addEventListener("keydown", function(e) {
                     if (e.which === 87 && (prev === 224 || prev === 17))
-                        window.onbeforeunload = function(e) {
+                        window.onbeforeunload = function() {
                             localStorage.removeItem("threadRunning");
                         };
                     prev = e.which;
