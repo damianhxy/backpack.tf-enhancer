@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.5.7
+// @version             1.5.5.8
 // ==/UserScript==
 
 (function () {
@@ -129,7 +129,7 @@
                 } else
                     return alert("Error: " + data.response.message);
             }
-            var ref = data.response.items["Refined Metal"].prices[6].Tradable.Craftable[0],
+            var ref = data.response.raw_usd_value * 100,
                 key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
                 bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
                 r = (ref.value + (ref.value_high || ref.value)) / 2 * 100,
