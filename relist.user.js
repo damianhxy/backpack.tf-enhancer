@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.5.8
+// @version             1.5.5.9
 // ==/UserScript==
 
 (function () {
@@ -132,16 +132,16 @@
             var ref = data.response.raw_usd_value * 100,
                 key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
                 bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
-                r = (ref.value + (ref.value_high || ref.value)) / 2 * 100,
                 k = (key.value + (key.value_high || key.value)) / 2,
                 b = (bud.value + (bud.value_high || bud.value)) / 2,
-                rDiff = "(" + (r === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
+                rDiff = "(" + (ref === refP ? "=" : (ref < refP ? "↓" : "↑")) + ")",
                 kDiff = "(" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
                 bDiff = "(" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
-            localStorage.setItem("refP", r);
+            console.log(data.response.raw_usd_value + " : " + data.response.raw_usd_value * 100);
+            localStorage.setItem("refP", ref);
             localStorage.setItem("keyP", k);
             localStorage.setItem("budP", b);
-            alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
+            alert("Prices updated, Refined: " + ref + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
                   ", Earbuds: " + b + " Keys " + bDiff);
             localStorage.setItem("lastupdt", new Date());
             return location.reload();
