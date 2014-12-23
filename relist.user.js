@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.5.9
+// @version             1.5.6.0
 // ==/UserScript==
 
 (function () {
@@ -268,7 +268,7 @@ try {
                         listP = parsePrice(e.getAttribute("data-listing-price")),
                         chg = Math.abs(curP - listP) >= threshold;
                     if (chg)
-                        e.firstElementChild.appendChild(createIcon("level-" + chg ? curP > listP ? "up" : "down" : null,
+                        e.firstElementChild.appendChild(createIcon("level-" + (chg ? curP > listP ? "up" : "down" : null),
                                                                    "background-color: white; color: red;"));
                 }
             });
