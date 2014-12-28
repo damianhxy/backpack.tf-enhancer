@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.0
+// @version             1.5.6.1
 // ==/UserScript==
 
 (function () {
@@ -301,8 +301,11 @@ try {
     }
 
     if (listings) {
-        var first = document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
-            last = document.querySelector(".pagination-filters").lastElementChild.className === "disabled",
+        var multiPage = document.querySelector(".pagination-filters"),
+            first = !multiPage ||
+                    document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
+            last = !multiPage ||
+                   document.querySelector(".pagination-filters").lastElementChild.className === "disabled",
             buttons = document.getElementsByClassName("listing-relist"),
             trades = Object.keys(sessionStorage).filter(function(e) {
                 return e.startsWith("itmdata-");
