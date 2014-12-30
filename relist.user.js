@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.1
+// @version             1.5.6.2
 // ==/UserScript==
 
 (function () {
@@ -23,19 +23,19 @@
         notes = localStorage.getItem("notes");
     /******** END OF SETTINGS *******/
 
-    function addButton(prop, val, def, clr = false) {
+    function addButton(prop, val, def, clr) {
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
             text = document.createTextNode(" " + val),
             activated = JSON.parse(sessionStorage.getItem(prop));
-        button.style = "margin: 2px; width: 125px;" + [" clear: both;", ""][+clr];
-        button.className = "btn btn-" + ["danger", "success"][+activated] + " btn-sm pull-right";
+        button.style = "margin: 2px; width: 125px;" + (clr ? "" : " clear: both;");
+        button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
         button.addEventListener("click", function() {
             window.stop();
             sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
             location.reload();
         });
-        button.appendChild(createIcon("toggle-" + ["off", "on"][+activated], "border: none;"));
+        button.appendChild(createIcon("toggle-" + (activated ? "on" : "off"), "border: none;"));
         button.appendChild(text);
         document.getElementById("#navbar").appendChild(button);
     }
@@ -184,19 +184,13 @@ try {
                     if (!silent)
                         alert("[" + sessionStorage.getItem("curItem") + "] invalid, removing");
                     sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
-                } else {
-                    if (!silent)
-                        alert("[" + sessionStorage.getItem("curItem") + "] valid, retrying");
-                }
+                } else if (!silent)
+                    alert("[" + sessionStorage.getItem("curItem") + "] valid, retrying");
                 stat.textContent = "Status: Returning";
                 return document.querySelector(".fa-tag").click();
             } else
                 removeData();
         }
-        setTimeout(function() {
-            document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                     document.getElementById("newlist").children.length - 1 + " ");
-        }, 1000);
         addButton("annotate", "Annotate", false);
         if (isSelf) {
             addButton("fastlist", "Fast Listing", false);
@@ -226,6 +220,10 @@ try {
             }
         }
         if (JSON.parse(sessionStorage.getItem("annotate"))) {
+            setTimeout(function() {
+                document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
+                         document.getElementById("newlist").children.length - 1 + " ");
+            }, 1000);
             Array.prototype.forEach.call(document.getElementsByClassName("killstreaker"), function(e) {
                 e.style.display = "none";
             });
@@ -237,7 +235,8 @@ try {
                 }
             });
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
-                var box = e.firstElementChild;
+                var box = e.firstElementChild,
+                    title = e.getAttribute("data-default-name") || e.getAttribute("title");
                 if (e.hasAttribute("data-paint-name")) {
                     if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
                         box.appendChild(createIcon("paint-brush"));
@@ -246,7 +245,6 @@ try {
                     box.appendChild(createIcon("cogs"));
                 if (e.hasAttribute("data-spell-1"))
                     box.appendChild(createIcon("magic"));
-                var title = e.getAttribute("data-default-name") || e.getAttribute("title");
                 if (title.contains("Killstreak")) {
                     var colour = "#cd7f32";
                     if (title.contains("Specialized"))
@@ -265,10 +263,9 @@ try {
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
                 if (e.hasAttribute("data-listing-price") && +e.getAttribute("data-price")) {
                     var curP = +e.getAttribute("data-price"),
-                        listP = parsePrice(e.getAttribute("data-listing-price")),
-                        chg = Math.abs(curP - listP) >= threshold;
-                    if (chg)
-                        e.firstElementChild.appendChild(createIcon("level-" + (chg ? curP > listP ? "up" : "down" : null),
+                        listP = parsePrice(e.getAttribute("data-listing-price"));
+                    if (Math.abs(curP - listP) >= threshold)
+                        e.firstElementChild.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"),
                                                                    "background-color: white; color: red;"));
                 }
             });
@@ -301,11 +298,9 @@ try {
     }
 
     if (listings) {
-        var multiPage = document.querySelector(".pagination-filters"),
-            first = !multiPage ||
-                    document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
-            last = !multiPage ||
-                   document.querySelector(".pagination-filters").lastElementChild.className === "disabled",
+        var singlePg = !document.querySelector(".pagination-filters"),
+            first = singlePg || document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
+            last = singlePg || document.querySelector(".pagination-filters").lastElementChild.className === "disabled",
             buttons = document.getElementsByClassName("listing-relist"),
             trades = Object.keys(sessionStorage).filter(function(e) {
                 return e.startsWith("itmdata-");
@@ -315,8 +310,8 @@ try {
             return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
         } else if (!localStorage.getItem("threadRunning")) {
             if (sessionStorage.getItem("mainThread") || trades.length || +sessionStorage.getItem("nextPage") !== 2) {
-                stat.textContent = "Status: Unfresh Thread";
                 document.activeElement.blur();
+                stat.textContent = "Status: Unfresh Thread";
                 if (confirm("Relisting was interrupted, now resetting...") ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
