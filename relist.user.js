@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.2
+// @version             1.5.6.3
 // ==/UserScript==
 
 (function () {
@@ -110,6 +110,8 @@
     function update() {
         if (document.getElementById("login"))
             return console.info("Backpack.tf Script Paused (Signed Out). Version " + GM_info.script.version);
+        if (sessionStorage.getItem("mainThread"))
+            return console.info("Suppressed price updating");
         if (!localStorage.getItem("apikey"))
             localStorage.setItem("apikey", prompt("API key not set, register yours from http://backpack.tf/api/"));
         if (localStorage.getItem("apikey").length !== 24) {
