@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.4
+// @version             1.5.6.5
 // ==/UserScript==
 
 (function () {
@@ -322,8 +322,11 @@ try {
             }
             localStorage.setItem("threadRunning", null);
             sessionStorage.setItem("mainThread", null);
-        } else if (document.querySelector("alert-warning")) {
-            stat.textContent = "Status: Infinite Loop";
+        } else if (document.querySelector(".alert-warning")) {
+            stat.textContent = "Status: Listings Full";
+            sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
+        } else if (document.querySelector(".alert-danger")) {
+            stat.textContent = "Status: Item Sold";
             sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
         }
         if (trades.length) {
