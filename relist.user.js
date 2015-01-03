@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.3
+// @version             1.5.6.4
 // ==/UserScript==
 
 (function () {
@@ -382,7 +382,7 @@ try {
                     tier = 0;
                 if (!price || title.contains("Killstreak")) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
-                    if (itm.hasAttribute("data-market-p"))
+                    if (itm.getAttribute("data-market-p") != -1)
                         price = +itm.getAttribute("data-market-p") / refP;
                 } else if (itm.getAttribute("data-p-bptf").contains("–"))
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
