@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.5
+// @version             1.5.6.6
 // ==/UserScript==
 
 (function () {
@@ -362,7 +362,7 @@ try {
             }
         }
     } else if (listPage) {
-        switch (document.querySelector(".item-overview").children[1].textContent.trim()) {
+        switch (document.querySelector(".item-panel").children[1].textContent.trim()) {
             case "Relisting this item":
                 stat.textContent = "Status: Relisting...";
                 sessionStorage.removeItem("itmdata-" + document.URL.slice(35));
