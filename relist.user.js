@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.6
+// @version             1.5.6.7
 // ==/UserScript==
 
 (function () {
@@ -201,7 +201,7 @@ try {
                 Array.prototype.forEach.call(document.getElementsByClassName("killstreaker"), function(e) {
                     e.style.display = "none";
                 });
-                Array.prototype.forEach.call(document.querySelectorAll(".item:not(.notrade):not(.spacer)"), function(e) {
+                Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
                     if (!e.getAttribute("data-name").contains("Metal")) {
                         var listed = e.hasAttribute("data-listing-price"),
                             arr = (e.getAttribute("data-listing-date") || "").split(" "),
@@ -287,8 +287,8 @@ try {
             return console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
         }
         if (JSON.parse(sessionStorage.getItem("mainThread"))) {
-            if (listPage || listings &&
-                document.querySelector(".pagination-filters").lastElementChild.className !== "disabled") {
+            if (listPage || (listings &&
+                document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")) {
                 var prev = 0;
                 window.addEventListener("keydown", function(e) {
                     if (e.which === 87 && (prev === 224 || prev === 17))
