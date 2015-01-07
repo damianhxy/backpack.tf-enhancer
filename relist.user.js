@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.7
+// @version             1.5.6.8
 // ==/UserScript==
 
 (function () {
@@ -40,6 +40,67 @@
         document.getElementById("#navbar").appendChild(button);
     }
 
+    function label(ele, annotate, fastlist, change) {
+        var toAppend = document.createDocumentFragment(),
+            attr = getAttr(ele);
+        if (ele.querySelector(".killstreaker") && (annotate || fastlist))
+            ele.querySelector(".killstreaker").style.display = "none";
+        if (annotate) {
+            var craft = ele.querySelector(".value"),
+                title = attr["data-default-name"] || attr["title"];
+            if (craft) {
+                if (!attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
+                    toAppend.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
+                craft.style.display = "none";
+            }
+            if (attr["data-paint-name"])
+                if (attr["data-paint-name"] !== attr["data-name"])
+                    toAppend.appendChild(createIcon("paint-brush"));
+            if (attr["data-part-1-name"])
+                toAppend.appendChild(createIcon("cogs"));
+            if (attr["data-spell-1"])
+                toAppend.appendChild(createIcon("magic"));
+            if (title.contains("Killstreak")) {
+                var colour = "#cd7f32";
+                if (title.contains("Specialized"))
+                    colour = "#c0c0c0";
+                else if (title.contains("Professional"))
+                    colour = "#ffd700";
+                toAppend.appendChild(createIcon("bomb", "color: " + colour + "; background-color: white;"));
+            }
+        }
+        if (fastlist) {
+            if (!attr["data-name"].contains("Metal")) {
+                var listed = attr["data-listing-price"],
+                    arr = (attr["data-listing-date"] || "").split(" "),
+                    canRelist = !listed || +arr[0] >= 30 && arr[1].contains("minute") ||
+                                +arr[0] && arr[1].contains("hour"),
+                    link = document.createElement("a");
+                link.href = "http://backpack.tf/classifieds/add/" + attr["data-id"];
+                link.appendChild(createIcon(listed ? "refresh" : "plus-square",
+                                            "position: absolute; bottom: 2px; left: 2px;" +
+                                            (canRelist ? "" : " background-color: red;")));
+                toAppend.appendChild(link);
+            }
+            if (attr["data-gifted-name"]) {
+                ele.querySelector(".fa-gift").style.display = "none";
+                toAppend.appendChild(createIcon("gift"));
+            }
+        }
+        if (change) {
+            if (ele.querySelector(".value") && !ele["data-crate"])
+                ele.querySelector(".value").style.display = "none";
+            if (attr["data-listing-price"] && attr["data-price"]) {
+                var curP = attr["data-price"],
+                    listP = parsePrice(attr["data-listing-price"]);
+                if (Math.abs(curP - listP) >= threshold)
+                    toAppend.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"),
+                                                    "background-color: white; color: red;"));
+            }
+        }
+        return toAppend;
+    }
+
     function createIcon(cls, style, content) {
         var icon = document.createElement("i");
         icon.className = "fa fa-" + cls + " fa-inverse fa-border pull-left";
@@ -47,6 +108,14 @@
         if (content)
             icon.appendChild(document.createTextNode(content));
         return icon;
+    }
+
+    function getAttr(ele) {
+        var attr = {};
+        Array.prototype.forEach.call(ele.attributes, function(e) {
+            attr[e.name] = isNaN(e.value) ? e.value : +e.value;
+        });
+        return attr;
     }
 
     function HTTPRequest(URL) {
@@ -194,84 +263,20 @@ try {
                 removeData();
         }
         addButton("annotate", "Annotate", false);
-        if (isSelf) {
+        addButton("pricediff", "Show Change", false);
+        if (isSelf)
             addButton("fastlist", "Fast Listing", false);
-            addButton("pricediff", "Show Change", false);
-            if (JSON.parse(sessionStorage.getItem("fastlist"))) {
-                Array.prototype.forEach.call(document.getElementsByClassName("killstreaker"), function(e) {
-                    e.style.display = "none";
-                });
-                Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
-                    if (!e.getAttribute("data-name").contains("Metal")) {
-                        var listed = e.hasAttribute("data-listing-price"),
-                            arr = (e.getAttribute("data-listing-date") || "").split(" "),
-                            canRelist = !listed || +arr[0] >= 30 && arr[1].contains("minute") ||
-                                        +arr[0] && arr[1].contains("hour"),
-                            link = document.createElement("a");
-                            link.href = "http://backpack.tf/classifieds/add/" + e.getAttribute("data-id");
-                            link.appendChild(createIcon(listed ? "refresh" : "plus-square",
-                                                        "position: absolute; bottom: 2px; left: 2px;" +
-                                                        (canRelist ? "" : " background-color: red;")));
-                        e.firstElementChild.appendChild(link);
-                    }
-                    if (e.hasAttribute("data-gifted-name")) {
-                        e.querySelector(".fa-gift").style.display = "none";
-                        e.firstElementChild.appendChild(createIcon("gift"));
-                    }
-                });
-            }
-        }
-        if (JSON.parse(sessionStorage.getItem("annotate"))) {
-            setTimeout(function() {
-                document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                         document.getElementById("newlist").children.length - 1 + " ");
-            }, 1000);
-            Array.prototype.forEach.call(document.getElementsByClassName("killstreaker"), function(e) {
-                e.style.display = "none";
-            });
-            Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
-                if (!e.parentNode.parentNode.hasAttribute("data-crate")) {
-                    if (+e.textContent.split("#")[1] <= 100)
-                        e.parentNode.insertBefore(createIcon("exclamation-triangle", null, e.textContent), e.nextSibling);
-                    e.style.display = "none";
-                }
-            });
-            Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
-                var box = e.firstElementChild,
-                    title = e.getAttribute("data-default-name") || e.getAttribute("title");
-                if (e.hasAttribute("data-paint-name")) {
-                    if (e.getAttribute("data-paint-name") !== e.getAttribute("data-name"))
-                        box.appendChild(createIcon("paint-brush"));
-                }
-                if (e.hasAttribute("data-part-1-name"))
-                    box.appendChild(createIcon("cogs"));
-                if (e.hasAttribute("data-spell-1"))
-                    box.appendChild(createIcon("magic"));
-                if (title.contains("Killstreak")) {
-                    var colour = "#cd7f32";
-                    if (title.contains("Specialized"))
-                        colour = "#c0c0c0";
-                    else if (title.contains("Professional"))
-                        colour = "#ffd700";
-                    box.appendChild(createIcon("bomb", "color: " + colour + "; background-color: white;"));
-                }
-            });
-        }
-        if (JSON.parse(sessionStorage.getItem("pricediff"))) {
-            Array.prototype.forEach.call(document.getElementsByClassName("value"), function(e) {
-                if (!e.parentNode.parentNode.hasAttribute("data-crate"))
-                    e.style.display = "none";
-            });
-            Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
-                if (e.hasAttribute("data-listing-price") && +e.getAttribute("data-price")) {
-                    var curP = +e.getAttribute("data-price"),
-                        listP = parsePrice(e.getAttribute("data-listing-price"));
-                    if (Math.abs(curP - listP) >= threshold)
-                        e.firstElementChild.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"),
-                                                                   "background-color: white; color: red;"));
-                }
-            });
-        }
+        setTimeout(function() {
+            document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
+                     document.getElementById("newlist").children.length - 1 + " ");
+        }, 1000);
+        Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
+            e.firstElementChild.appendChild(label(e,
+                                                  JSON.parse(sessionStorage.getItem("annotate")),
+                                                  JSON.parse(sessionStorage.getItem("fastlist")),
+                                                  JSON.parse(sessionStorage.getItem("pricediff"))
+                                                ));
+        });
         stat.textContent = "Status: Loaded";
     } else if (listings || listPage) {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
@@ -311,10 +316,10 @@ try {
             stat.textContent = "Status: Terminated";
             return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
         } else if (!localStorage.getItem("threadRunning")) {
-            if (sessionStorage.getItem("mainThread") || trades.length || +sessionStorage.getItem("nextPage") !== 2) {
+            if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
                 document.activeElement.blur();
                 stat.textContent = "Status: Unfresh Thread";
-                if (confirm("Relisting was interrupted, now resetting...") ||
+                if (confirm("Relisting was interrupted, resetting...") ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
                     return document.querySelector(".fa-tag").click();
@@ -322,11 +327,8 @@ try {
             }
             localStorage.setItem("threadRunning", null);
             sessionStorage.setItem("mainThread", null);
-        } else if (document.querySelector(".alert-warning")) {
-            stat.textContent = "Status: Listings Full";
-            sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
-        } else if (document.querySelector(".alert-danger")) {
-            stat.textContent = "Status: Item Sold";
+        } else if (document.querySelector("[class^='alert-']")) {
+            stat.textContent = "Status: Error Listing";
             sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
         }
         if (trades.length) {
@@ -346,7 +348,6 @@ try {
             location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
         } else {
             if (last) {
-                stat.textContent = "Status: Done Relisting";
                 localStorage.removeItem("threadRunning");
                 sessionStorage.removeItem("mainThread");
                 sessionStorage.removeItem("nextPage");
@@ -355,6 +356,7 @@ try {
                 data.style = "color: orange; float: right;";
                 document.querySelector(".panel-heading").appendChild(data);
                 setInterval(showStatus, 1000);
+                stat.textContent = "Status: Done Relisting";
             } else {
                 sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
                 stat.textContent = "Status: Moving...";
@@ -370,24 +372,24 @@ try {
                 break;
             case "Creating a new listing for this item":
                 stat.textContent = "Status: Filling Fields";
-                var itm = document.querySelector(".item"),
-                    price = +itm.getAttribute("data-price"),
-                    name = itm.getAttribute("data-name"),
-                    title = itm.getAttribute("data-default-name") || itm.getAttribute("title"),
-                    quality = +itm.getAttribute("data-quality"),
-                    trade = +itm.getAttribute("data-tradable"),
-                    craft = +itm.getAttribute("data-craftable"),
-                    qualityN = itm.getAttribute("data-q-name"),
-                    isAust = itm.hasAttribute("data-australium"),
-                    hasPaint = itm.hasAttribute("data-paint-name"),
+                var attr = getAttr(document.querySelector(".item")),
+                    price = attr["data-price"],
+                    name = attr["data-name"],
+                    title = attr["data-default-name"] || attr["title"],
+                    quality = attr["data-quality"],
+                    trade = attr["data-tradable"],
+                    craft = attr["data-craftable"],
+                    qualityN = attr["data-q-name"],
+                    isAust = attr["data-australium"],
+                    hasPaint = attr["data-paint-name"],
                     isKS = title.contains("Killstreak"),
-                    colour = 0,
-                    tier = 0;
-                if (!price || title.contains("Killstreak")) {
+                    colour,
+                    tier;
+                if (!price || isKS) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
-                    if (itm.getAttribute("data-market-p") != -1)
-                        price = +itm.getAttribute("data-market-p") / refP;
-                } else if (itm.getAttribute("data-p-bptf").contains("–"))
+                    if (attr["data-market-p"] != -1)
+                        price = attr["data-market-p"] / refP;
+                } else if (attr["data-p-bptf"].contains("–"))
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
                 if (price >= keyP && !name.contains("Key")) {
                     if (price >= keyP * budP && !name.contains("Earbuds")) {
@@ -435,7 +437,7 @@ try {
                         "Ye Olde Rustic Colour": "8154199",
                         "Zepheniah's Greed": "4345659"
                     };
-                    colour = paint[itm.getAttribute("data-paint-name")];
+                    colour = paint[attr["data-paint-name"]];
                 }
                 if (isKS) {
                     tier = 1;
@@ -449,9 +451,9 @@ try {
                 if (!isKS && !hasPaint)
                     url += name + "/" + (trade ? "" : "Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
                 else if (title.contains("Fabricator"))
-                    url += "Fabricator/Tradable/Craftable/" + itm.getAttribute("data-priceindex");
+                    url += "Fabricator/Tradable/Craftable/" + attr["data-priceindex"];
                 else if (title.contains("Kit"))
-                    url += "Kit/Tradable/Non-Craftable/" + itm.getAttribute("data-priceindex");
+                    url += "Kit/Tradable/Non-Craftable/" + attr["data-priceindex"];
                 else
                     url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
                               "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
@@ -460,7 +462,7 @@ try {
                 var ele = document.createElement("html"),
                     hasListings;
                 ele.innerHTML += HTTPRequest(url);
-                if ((!isKS || title.contains("Kit")) && !hasPaint)
+                if (!hasPaint && (!isKS || title.contains("Kit")))
                     hasListings = !ele.querySelector(".col-6").querySelector(".alert-info");
                 else
                     hasListings = !ele.querySelector(".media-list").querySelector(".alert-info");
@@ -474,7 +476,7 @@ try {
                 if (isKS)
                     heading.textContent += " [Killstreak Tier " + tier + "]";
                 else if (hasPaint)
-                    heading.textContent += " [Painted " + itm.getAttribute("data-paint-name") + "]";
+                    heading.textContent += " [Painted " + attr["data-paint-name"] + "]";
                 stat.textContent = "Status: Loaded";
         }
     }
