@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.8
+// @version             1.5.6.9
 // ==/UserScript==
 
 (function () {
@@ -40,8 +40,17 @@
         document.getElementById("#navbar").appendChild(button);
     }
 
+    function createIcon(cls, style, content) {
+        var icon = document.createElement("i");
+        icon.className = "fa fa-" + cls + " fa-inverse fa-border pull-left";
+        icon.style = style;
+        if (content)
+            icon.appendChild(document.createTextNode(content));
+        return icon;
+    }
+
     function label(ele, annotate, fastlist, change) {
-        var toAppend = document.createDocumentFragment(),
+        var frag = document.createDocumentFragment(),
             attr = getAttr(ele);
         if (ele.querySelector(".killstreaker") && (annotate || fastlist))
             ele.querySelector(".killstreaker").style.display = "none";
@@ -50,23 +59,23 @@
                 title = attr["data-default-name"] || attr["title"];
             if (craft) {
                 if (!attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
-                    toAppend.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
+                    frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
                 craft.style.display = "none";
             }
             if (attr["data-paint-name"])
                 if (attr["data-paint-name"] !== attr["data-name"])
-                    toAppend.appendChild(createIcon("paint-brush"));
+                    frag.appendChild(createIcon("paint-brush"));
             if (attr["data-part-1-name"])
-                toAppend.appendChild(createIcon("cogs"));
+                frag.appendChild(createIcon("cogs"));
             if (attr["data-spell-1"])
-                toAppend.appendChild(createIcon("magic"));
+                frag.appendChild(createIcon("magic"));
             if (title.contains("Killstreak")) {
                 var colour = "#cd7f32";
                 if (title.contains("Specialized"))
                     colour = "#c0c0c0";
                 else if (title.contains("Professional"))
                     colour = "#ffd700";
-                toAppend.appendChild(createIcon("bomb", "color: " + colour + "; background-color: white;"));
+                frag.appendChild(createIcon("bomb", "color: " + colour + "; background-color: white;"));
             }
         }
         if (fastlist) {
@@ -80,11 +89,11 @@
                 link.appendChild(createIcon(listed ? "refresh" : "plus-square",
                                             "position: absolute; bottom: 2px; left: 2px;" +
                                             (canRelist ? "" : " background-color: red;")));
-                toAppend.appendChild(link);
+                frag.appendChild(link);
             }
             if (attr["data-gifted-name"]) {
                 ele.querySelector(".fa-gift").style.display = "none";
-                toAppend.appendChild(createIcon("gift"));
+                frag.appendChild(createIcon("gift"));
             }
         }
         if (change) {
@@ -94,20 +103,11 @@
                 var curP = attr["data-price"],
                     listP = parsePrice(attr["data-listing-price"]);
                 if (Math.abs(curP - listP) >= threshold)
-                    toAppend.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"),
+                    frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"),
                                                     "background-color: white; color: red;"));
             }
         }
-        return toAppend;
-    }
-
-    function createIcon(cls, style, content) {
-        var icon = document.createElement("i");
-        icon.className = "fa fa-" + cls + " fa-inverse fa-border pull-left";
-        icon.style = style;
-        if (content)
-            icon.appendChild(document.createTextNode(content));
-        return icon;
+        ele.firstElementChild.appendChild(frag);
     }
 
     function getAttr(ele) {
@@ -125,8 +125,8 @@
         return xmlhttp.responseText;
     }
 
-    function parsePrice(string) {
-        var arr = string.split(" "),
+    function parsePrice(str) {
+        var arr = str.split(" "),
             bud = 0,
             key = 0,
             ref = 0;
@@ -200,19 +200,19 @@
                 } else
                     return alert("Error: " + data.response.message);
             }
-            var ref = data.response.raw_usd_value * 100,
-                key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
+            var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
                 bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
+                r = data.response.raw_usd_value * 100,
                 k = (key.value + (key.value_high || key.value)) / 2,
                 b = (bud.value + (bud.value_high || bud.value)) / 2,
-                rDiff = "(" + (ref === refP ? "=" : (ref < refP ? "↓" : "↑")) + ")",
+                rDiff = "(" + (r === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
                 kDiff = "(" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
                 bDiff = "(" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
             console.log(data.response.raw_usd_value + " : " + data.response.raw_usd_value * 100);
-            localStorage.setItem("refP", ref);
+            localStorage.setItem("refP", r);
             localStorage.setItem("keyP", k);
             localStorage.setItem("budP", b);
-            alert("Prices updated, Refined: " + ref + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
+            alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
                   ", Earbuds: " + b + " Keys " + bDiff);
             localStorage.setItem("lastupdt", new Date());
             return location.reload();
@@ -237,17 +237,21 @@ try {
     /****** END SCRIPT GLOBALS ******/
 
     if (profile || listings || listPage) {
-        var stat = document.createElement("div");
-        stat.style = "margin: 2px; width: 150px;";
-        stat.className = "btn btn-info btn-sm pull-left";
-        document.getElementById("#navbar").appendChild(stat);
+        var info = document.createElement("div"),
+            stat = document.createTextNode("");
+        info.style = "margin: 2px; width: 150px;";
+        info.className = "btn btn-info btn-sm pull-left";
+        info.appendChild(createIcon("info-circle", "border: none;"));
+        info.appendChild(document.createTextNode("Status: "));
+        info.appendChild(stat);
+        document.getElementById("#navbar").appendChild(info);
         addButton("paused", "Paused", false, true);
     }
 
     if (profile) {
         if (sessionStorage.getItem("mainThread")) {
             var silent = JSON.parse(sessionStorage.getItem("silent"));
-            stat.textContent = "Status: Interrupted";
+            stat.textContent = "Interrupted";
             if (silent || confirm("Relisting was interrupted, now diagnosing...")) {
                 var ele = document.createElement("html");
                 ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"));
@@ -257,7 +261,7 @@ try {
                     sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
                 } else if (!silent)
                     alert("[" + sessionStorage.getItem("curItem") + "] valid, retrying");
-                stat.textContent = "Status: Returning";
+                stat.textContent = "Returning";
                 return document.querySelector(".fa-tag").click();
             } else
                 removeData();
@@ -271,24 +275,22 @@ try {
                      document.getElementById("newlist").children.length - 1 + " ");
         }, 1000);
         Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
-            e.firstElementChild.appendChild(label(e,
-                                                  JSON.parse(sessionStorage.getItem("annotate")),
-                                                  JSON.parse(sessionStorage.getItem("fastlist")),
-                                                  JSON.parse(sessionStorage.getItem("pricediff"))
-                                                ));
+            label(e, JSON.parse(sessionStorage.getItem("annotate")),
+                  JSON.parse(sessionStorage.getItem("fastlist")),
+                  JSON.parse(sessionStorage.getItem("pricediff")));
         });
-        stat.textContent = "Status: Loaded";
+        stat.textContent = "Loaded";
     } else if (listings || listPage) {
         sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
         addButton("reset", "Reset", false);
         addButton("silent", "Silent", false);
         if (JSON.parse(sessionStorage.getItem("reset"))) {
             removeData();
-            stat.textContent = "Status: Data Removed";
+            stat.textContent = "Data Removed";
             return document.querySelector(".fa-tag").click();
         }
         if (JSON.parse(sessionStorage.getItem("paused"))) {
-            stat.textContent = "Status: Paused";
+            stat.textContent = "Paused";
             return console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
         }
         if (JSON.parse(sessionStorage.getItem("mainThread"))) {
@@ -313,12 +315,11 @@ try {
                 return e.startsWith("itmdata-");
             });
         if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
-            stat.textContent = "Status: Terminated";
+            stat.textContent = "Terminated";
             return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
         } else if (!localStorage.getItem("threadRunning")) {
             if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
-                document.activeElement.blur();
-                stat.textContent = "Status: Unfresh Thread";
+                stat.textContent = "Unfresh Thread";
                 if (confirm("Relisting was interrupted, resetting...") ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
@@ -328,23 +329,23 @@ try {
             localStorage.setItem("threadRunning", null);
             sessionStorage.setItem("mainThread", null);
         } else if (document.querySelector("[class^='alert-']")) {
-            stat.textContent = "Status: Error Listing";
+            stat.textContent = "Error Listing";
             sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
         }
         if (trades.length) {
             var id = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
-            stat.textContent = "Status: Relisting Page " + (sessionStorage.getItem("nextPage") - 1);
+            stat.textContent = "Relisting Page " + (sessionStorage.getItem("nextPage") - 1);
             sessionStorage.setItem("curItem", id);
             location.assign("http://backpack.tf/classifieds/add/" + id);
         } else if (buttons.length) {
             Array.prototype.forEach.call(buttons, function(e) {
                 sessionStorage.setItem("itmdata-" + e.href.slice(35), false);
             });
-            stat.textContent = "Status: IDs Saved";
+            stat.textContent = "IDs Saved";
             sessionStorage.setItem("curItem", buttons[0].href.slice(35));
             location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
         } else if (first) {
-            stat.textContent = "Status: Jumping...";
+            stat.textContent = "Jumping...";
             location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
         } else {
             if (last) {
@@ -356,22 +357,22 @@ try {
                 data.style = "color: orange; float: right;";
                 document.querySelector(".panel-heading").appendChild(data);
                 setInterval(showStatus, 1000);
-                stat.textContent = "Status: Done Relisting";
+                stat.textContent = "Done Relisting";
             } else {
                 sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
-                stat.textContent = "Status: Moving...";
+                stat.textContent = "Moving...";
                 document.querySelector(".fa-angle-right").click();
             }
         }
     } else if (listPage) {
         switch (document.querySelector(".item-panel").children[1].textContent.trim()) {
             case "Relisting this item":
-                stat.textContent = "Status: Relisting...";
+                stat.textContent = "Relisting...";
                 sessionStorage.removeItem("itmdata-" + document.URL.slice(35));
                 document.getElementById("button_save").click();
                 break;
             case "Creating a new listing for this item":
-                stat.textContent = "Status: Filling Fields";
+                stat.textContent = "Filling Fields";
                 var attr = getAttr(document.querySelector(".item")),
                     price = attr["data-price"],
                     name = attr["data-name"],
@@ -467,7 +468,7 @@ try {
                 else
                     hasListings = !ele.querySelector(".media-list").querySelector(".alert-info");
                 if (hasListings) {
-                    var list = ele.querySelector(".media-list").getElementsByClassName("item"),
+                    var list = ele.querySelectorAll("[data-listing-date]"),
                         lowest = list[0].getAttribute("data-listing-price"),
                         highest = list[list.length - 1].getAttribute("data-listing-price");
                     heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
@@ -477,13 +478,13 @@ try {
                     heading.textContent += " [Killstreak Tier " + tier + "]";
                 else if (hasPaint)
                     heading.textContent += " [Painted " + attr["data-paint-name"] + "]";
-                stat.textContent = "Status: Loaded";
+                stat.textContent = "Loaded";
         }
     }
     console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
 } catch(e) {
     if (profile || listings || listPage)
-        stat.textContent = "Status: Fatal Error";
+        stat.textContent = "Fatal Error";
     alert("[A fatal error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
 }
 })();
