@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.6.9
+// @version             1.5.7.0
 // ==/UserScript==
 
 (function () {
@@ -47,6 +47,14 @@
         if (content)
             icon.appendChild(document.createTextNode(content));
         return icon;
+    }
+
+    function getAttr(ele) {
+        var attr = {};
+        Array.prototype.forEach.call(ele.attributes, function(e) {
+            attr[e.name] = isNaN(e.value) ? e.value : +e.value;
+        });
+        return attr;
     }
 
     function label(ele, annotate, fastlist, change) {
@@ -108,14 +116,6 @@
             }
         }
         ele.firstElementChild.appendChild(frag);
-    }
-
-    function getAttr(ele) {
-        var attr = {};
-        Array.prototype.forEach.call(ele.attributes, function(e) {
-            attr[e.name] = isNaN(e.value) ? e.value : +e.value;
-        });
-        return attr;
     }
 
     function HTTPRequest(URL) {
@@ -239,7 +239,7 @@ try {
     if (profile || listings || listPage) {
         var info = document.createElement("div"),
             stat = document.createTextNode("");
-        info.style = "margin: 2px; width: 150px;";
+        info.style = "margin: 2px; width: 150px; text-align: left;";
         info.className = "btn btn-info btn-sm pull-left";
         info.appendChild(createIcon("info-circle", "border: none;"));
         info.appendChild(document.createTextNode("Status: "));
@@ -319,7 +319,7 @@ try {
             return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
         } else if (!localStorage.getItem("threadRunning")) {
             if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
-                stat.textContent = "Unfresh Thread";
+                stat.textContent = "Interrupted";
                 if (confirm("Relisting was interrupted, resetting...") ||
                     JSON.parse(sessionStorage.getItem("silent"))) {
                     sessionStorage.setItem("reset", true);
@@ -334,7 +334,7 @@ try {
         }
         if (trades.length) {
             var id = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
-            stat.textContent = "Relisting Page " + (sessionStorage.getItem("nextPage") - 1);
+            stat.textContent = "Doing Page " + (sessionStorage.getItem("nextPage") - 1);
             sessionStorage.setItem("curItem", id);
             location.assign("http://backpack.tf/classifieds/add/" + id);
         } else if (buttons.length) {
@@ -357,7 +357,7 @@ try {
                 data.style = "color: orange; float: right;";
                 document.querySelector(".panel-heading").appendChild(data);
                 setInterval(showStatus, 1000);
-                stat.textContent = "Done Relisting";
+                stat.textContent = "Finished";
             } else {
                 sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
                 stat.textContent = "Moving...";
@@ -385,7 +385,7 @@ try {
                     hasPaint = attr["data-paint-name"],
                     isKS = title.contains("Killstreak"),
                     colour,
-                    tier;
+                    tier = 1;
                 if (!price || isKS) {
                     document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
                     if (attr["data-market-p"] != -1)
@@ -441,7 +441,6 @@ try {
                     colour = paint[attr["data-paint-name"]];
                 }
                 if (isKS) {
-                    tier = 1;
                     if (title.contains("Specialized"))
                         tier = 2;
                     else if (title.contains("Professional"))
@@ -477,7 +476,7 @@ try {
                 if (isKS)
                     heading.textContent += " [Killstreak Tier " + tier + "]";
                 else if (hasPaint)
-                    heading.textContent += " [Painted " + attr["data-paint-name"] + "]";
+                    heading.textContent += " [Painted with " + attr["data-paint-name"] + "]";
                 stat.textContent = "Loaded";
         }
     }
