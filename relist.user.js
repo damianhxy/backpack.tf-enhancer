@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.7.1
+// @version             1.5.7.2
 // ==/UserScript==
 
 (function () {
@@ -52,7 +52,7 @@
     function getAttr(ele) {
         var attr = {};
         Array.prototype.forEach.call(ele.attributes, function(e) {
-            attr[e.name] = isNaN(e.value) ? e.value : +e.value;
+            attr[e.name] = +e.value || e.value;
         });
         return attr;
     }
