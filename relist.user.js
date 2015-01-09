@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.7.2
+// @version             1.5.7.3
 // ==/UserScript==
 
 (function () {
@@ -157,10 +157,12 @@
     }
 
     function round(num) {
-        var val = +num;
-        if (num > 5 / 90)
-            val = Math.floor(val) + Math.round(val % 1 * 9) / 9;
-        return val;
+        if (num <= 5 / 90)
+            return num;
+        var rem = num % 1,
+            upper = Math.ceil(rem * 9) / 9,
+            lower = Math.floor(rem * 9) / 9;
+        return Math.floor(num) + (upper - rem > rem - lower ? upper : lower);
     }
 
     function showStatus() {
@@ -239,7 +241,7 @@ try {
     if (profile || listings || listPage) {
         var info = document.createElement("div"),
             stat = document.createTextNode("");
-        info.style = "margin: 2px; width: 150px; text-align: left;";
+        info.style = "margin: 2px; width: 150px;";
         info.className = "btn btn-info btn-sm pull-left";
         info.appendChild(createIcon("info-circle", "border: none;"));
         info.appendChild(document.createTextNode("Status: "));
@@ -456,9 +458,8 @@ try {
                     url += "Kit/Tradable/Non-Craftable/" + attr["data-priceindex"];
                 else
                     url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
-                              "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
-                              "&australium=" + +isAust + "&killstreak_tier=" + isKS * tier +
-                              "&paint=" + colour;
+                          "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
+                          "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
                 var ele = document.createElement("html"),
                     hasListings;
                 ele.innerHTML += HTTPRequest(url);
