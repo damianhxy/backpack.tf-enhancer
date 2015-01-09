@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.7.0
+// @version             1.5.7.1
 // ==/UserScript==
 
 (function () {
@@ -105,7 +105,7 @@
             }
         }
         if (change) {
-            if (ele.querySelector(".value") && !ele["data-crate"])
+            if (ele.querySelector(".value") && !attr["data-crate"])
                 ele.querySelector(".value").style.display = "none";
             if (attr["data-listing-price"] && attr["data-price"]) {
                 var curP = attr["data-price"],
