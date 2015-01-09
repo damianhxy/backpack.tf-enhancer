@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.7.3
+// @version             1.5.7.4
 // ==/UserScript==
 
 (function () {
@@ -231,7 +231,6 @@ try {
     var listPage = document.URL.contains("/add"),
         profile = document.URL.contains("profiles"),
         listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
-        isSelf = document.querySelector(".dropdown-btn").href === document.URL,
         refP = +localStorage.getItem("refP"),
         keyP = +localStorage.getItem("keyP"),
         budP = +localStorage.getItem("budP");
@@ -270,7 +269,7 @@ try {
         }
         addButton("annotate", "Annotate", false);
         addButton("pricediff", "Show Change", false);
-        if (isSelf)
+        if (document.querySelector(".dropdown-btn").href === document.URL)
             addButton("fastlist", "Fast Listing", false);
         setTimeout(function() {
             document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
