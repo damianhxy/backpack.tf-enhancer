@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.7.4
+// @version             1.5.7.5
 // ==/UserScript==
 
 (function () {
@@ -159,10 +159,7 @@
     function round(num) {
         if (num <= 5 / 90)
             return num;
-        var rem = num % 1,
-            upper = Math.ceil(rem * 9) / 9,
-            lower = Math.floor(rem * 9) / 9;
-        return Math.floor(num) + (upper - rem > rem - lower ? upper : lower);
+        return Math.floor(num) + Math.round(num % 1 * 9 + .05) / 9;
     }
 
     function showStatus() {
