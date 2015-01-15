@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.7.7
+// @version             1.5.7.8
 // ==/UserScript==
 
 (function () {
@@ -52,7 +52,7 @@
     function getAttr(ele) {
         var attr = {};
         Array.prototype.forEach.call(ele.attributes, function(e) {
-            attr[e.name] = +e.value || e.value;
+            attr[e.name] = isNaN(+e.value) ? e.value : +e.value;
         });
         return attr;
     }
@@ -104,16 +104,15 @@
                 frag.appendChild(createIcon("gift"));
             }
         }
-        if (change) {
+        if (change && attr["data-listing-price"]) {
             if (ele.querySelector(".value") && !attr["data-crate"])
                 ele.querySelector(".value").style.display = "none";
-            if (attr["data-listing-price"] && attr["data-price"]) {
-                var curP = attr["data-price"],
-                    listP = parsePrice(attr["data-listing-price"]);
-                if (Math.abs(curP - listP) >= threshold)
-                    frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"),
-                                                    "background-color: white; color: red;"));
-            }
+            var curP = attr["data-price"],
+                listP = parsePrice(attr["data-listing-price"]);
+            if (!attr["data-price"])
+                frag.appendChild(createIcon("question"))
+            else if (Math.abs(curP - listP) >= threshold)
+                frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down")));
         }
         ele.firstElementChild.appendChild(frag);
     }
