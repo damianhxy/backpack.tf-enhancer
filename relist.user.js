@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.8.0
+// @version             1.5.8.1
 // ==/UserScript==
 
 (function () {
@@ -111,7 +111,7 @@
                 listP = parsePrice(attr["data-listing-price"]),
                 diff = Math.abs(curP - listP);
             if (!attr["data-price"])
-                frag.appendChild(createIcon("question"))
+                frag.appendChild(createIcon("question"));
             else if (diff >= threshold) {
                 var colour = "green";
                 if (diff >= threshold * 2 && diff <= threshold * 4)
