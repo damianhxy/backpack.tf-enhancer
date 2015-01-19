@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.7.9
+// @version             1.5.8.0
 // ==/UserScript==
 
 (function () {
@@ -19,7 +19,7 @@
         randomMin = 3,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
-        threshold = 0.22,            //[refined] threshold for paint indicator
+        threshold = 0.22,            //[refined] threshold for price changes
         notes = localStorage.getItem("notes");
     /******** END OF SETTINGS *******/
 
@@ -481,7 +481,7 @@
                     if (isKS)
                         heading.textContent += " [Killstreak Tier " + tier + "]";
                     else if (hasPaint)
-                        heading.textContent += " [Painted with " + attr["data-paint-name"] + "]";
+                        heading.textContent += " [Painted " + attr["data-paint-name"] + "]";
                     stat.textContent = "Loaded";
             }
         }
