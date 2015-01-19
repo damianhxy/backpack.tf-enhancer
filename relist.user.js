@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.8.1
+// @version             1.5.8.2
 // ==/UserScript==
 
 (function () {
@@ -407,7 +407,7 @@
                         price %= keyP;
                     }
                     price = round(price);
-                    if (price % 1 >= 0.5)
+                    if (price * 10 % 1 >= 0.5)
                         price -= 0.005;
                     price = +price.toFixed(2);
                     document.getElementById("metal").value = price || "";
