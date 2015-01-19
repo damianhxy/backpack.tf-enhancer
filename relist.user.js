@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.7.8
+// @version             1.5.7.9
 // ==/UserScript==
 
 (function () {
@@ -108,11 +108,18 @@
             if (ele.querySelector(".value") && !attr["data-crate"])
                 ele.querySelector(".value").style.display = "none";
             var curP = attr["data-price"],
-                listP = parsePrice(attr["data-listing-price"]);
+                listP = parsePrice(attr["data-listing-price"]),
+                diff = Math.abs(curP - listP);
             if (!attr["data-price"])
                 frag.appendChild(createIcon("question"))
-            else if (Math.abs(curP - listP) >= threshold)
-                frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down")));
+            else if (diff >= threshold) {
+                var colour = "green";
+                if (diff >= threshold * 2 && diff <= threshold * 4)
+                    colour = "yellow";
+                else
+                    colour = "red";
+                frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"), "color: " + colour + ";"));
+            }
         }
         ele.firstElementChild.appendChild(frag);
     }
