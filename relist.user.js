@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.8.2
+// @version             1.5.8.3
 // ==/UserScript==
 
 (function () {
@@ -406,10 +406,7 @@
                         document.getElementById("keys").value = Math.floor(price / keyP);
                         price %= keyP;
                     }
-                    price = round(price);
-                    if (price * 10 % 1 >= 0.5)
-                        price -= 0.005;
-                    price = +price.toFixed(2);
+                    price = Math.floor(round(price) * 100) / 100;
                     document.getElementById("metal").value = price || "";
                     document.getElementById("details").value = notes;
                     if (hasPaint) {
