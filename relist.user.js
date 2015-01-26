@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.8.3
+// @version             1.5.8.5
 // ==/UserScript==
 
 (function () {
@@ -292,7 +292,7 @@
             addButton("silent", "Silent", false);
             if (JSON.parse(sessionStorage.getItem("reset"))) {
                 removeData();
-                stat.textContent = "Data Removed";
+                stat.textContent = "Resetted";
                 return document.querySelector(".fa-tag").click();
             }
             if (JSON.parse(sessionStorage.getItem("paused"))) {
@@ -335,23 +335,23 @@
                 localStorage.setItem("threadRunning", null);
                 sessionStorage.setItem("mainThread", null);
             } else if (document.querySelector("[class^='alert-']")) {
-                stat.textContent = "Error Listing";
+                stat.textContent = "Error";
                 sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
             }
             if (trades.length) {
                 var id = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
-                stat.textContent = "Doing Page " + (sessionStorage.getItem("nextPage") - 1);
+                stat.textContent = "Page " + (sessionStorage.getItem("nextPage") - 1);
                 sessionStorage.setItem("curItem", id);
                 location.assign("http://backpack.tf/classifieds/add/" + id);
             } else if (buttons.length) {
                 Array.prototype.forEach.call(buttons, function(e) {
                     sessionStorage.setItem("itmdata-" + e.href.slice(35), false);
                 });
-                stat.textContent = "IDs Saved";
+                stat.textContent = "Saved IDs";
                 sessionStorage.setItem("curItem", buttons[0].href.slice(35));
                 location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
             } else if (first) {
-                stat.textContent = "Jumping...";
+                stat.textContent = "Jumping";
                 location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
             } else {
                 if (last) {
@@ -366,19 +366,19 @@
                     stat.textContent = "Finished";
                 } else {
                     sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
-                    stat.textContent = "Moving...";
+                    stat.textContent = "Moving";
                     document.querySelector(".fa-angle-right").click();
                 }
             }
         } else if (listPage) {
             switch (document.querySelector(".item-panel").children[1].textContent.trim()) {
                 case "Relisting this item":
-                    stat.textContent = "Relisting...";
+                    stat.textContent = "Relisting";
                     sessionStorage.removeItem("itmdata-" + document.URL.slice(35));
                     document.getElementById("button_save").click();
                     break;
                 case "Creating a new listing for this item":
-                    stat.textContent = "Filling Fields";
+                    stat.textContent = "Filling";
                     var attr = getAttr(document.querySelector(".item")),
                         price = attr["data-price"],
                         name = attr["data-name"],
@@ -485,7 +485,7 @@
         console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
     } catch(e) {
         if (profile || listings || listPage)
-            stat.textContent = "Fatal Error";
+            stat.textContent = "Crashed";
         alert("[A fatal error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
     }
 })();
