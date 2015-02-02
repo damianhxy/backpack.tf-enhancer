@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.8.6
+// @version             1.5.8.7
 // ==/UserScript==
 
 (function () {
@@ -113,10 +113,10 @@
             if (!attr["data-price"])
                 frag.appendChild(createIcon("question"));
             else if (diff >= threshold) {
-                var colour = "green";
+                var colour = "lime";
                 if (diff >= threshold * 2 && diff <= threshold * 4)
                     colour = "yellow";
-                else
+                else if (diff > threshold * 4)
                     colour = "red";
                 frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"), "color: " + colour + ";"));
             }
