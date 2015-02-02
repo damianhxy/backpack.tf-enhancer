@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.8.7
+// @version             1.5.8.8
 // ==/UserScript==
 
 (function () {
@@ -298,17 +298,6 @@
             if (JSON.parse(sessionStorage.getItem("paused"))) {
                 stat.textContent = "Paused";
                 return console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
-            }
-            if (JSON.parse(sessionStorage.getItem("mainThread"))) {
-                if (listPage || (listings &&
-                    document.querySelector(".pagination-filters").lastElementChild.className !== "disabled")) {
-                    var prev = 0;
-                    window.addEventListener("keydown", function(e) {
-                        if (e.which === 87 && (prev === 224 || prev === 17))
-                            localStorage.removeItem("threadRunning");
-                        prev = e.which;
-                    });
-                }
             }
         }
 
