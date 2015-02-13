@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.8.8
+// @version             1.5.8.9
 // ==/UserScript==
 
 (function () {
@@ -204,13 +204,12 @@
         }
         var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
             bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
-            r = data.response.raw_usd_value * 100,
+            r = +(data.response.raw_usd_value * 100).toFixed(2),
             k = (key.value + (key.value_high || key.value)) / 2,
             b = (bud.value + (bud.value_high || bud.value)) / 2,
             rDiff = "(" + (r === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
             kDiff = "(" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
             bDiff = "(" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
-        console.log(data.response.raw_usd_value + " : " + data.response.raw_usd_value * 100);
         localStorage.setItem("refP", r);
         localStorage.setItem("keyP", k);
         localStorage.setItem("budP", b);
