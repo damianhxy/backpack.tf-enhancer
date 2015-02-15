@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.5
+// @version             1.5.9.6
 // ==/UserScript==
 
 (function () {
@@ -387,8 +387,7 @@
                         isAust = attr["data-australium"],
                         hasPaint = attr["data-paint-name"],
                         isKS = title.contains("Killstreak"),
-                        colour,
-                        tier = 1;
+                        data = JSON.parse(HTTPRequest("/pages/filter_meta"));
                     if (!price || isKS) {
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
                         if (attr["data-market-p"] != -1)
@@ -407,40 +406,15 @@
                     document.getElementById("metal").value = price || "";
                     document.getElementById("details").value = notes;
                     if (hasPaint) {
-                        var paint = {
-                            "A Color Similar to Slate": "3100495",
-                            "A Deep Commitment to Purple": "8208497",
-                            "A Distinctive Lack of Hue": "1315860",
-                            "A Mann's Mint": "12377523",
-                            "After Eight": "2960676",
-                            "Aged Moustache Grey": "8289918",
-                            "An Air of Debonair": "6637376",
-                            "An Extraordinary Abundance of Tinge": "15132390",
-                            "Australium Gold": "15185211",
-                            "Balaclavas Are Forever": "3874595",
-                            "Color No. 216-190-216": "14204632",
-                            "Cream Spirit": "12807213",
-                            "Dark Salmon Injustice": "15308410",
-                            "Drably Olive": "8421376",
-                            "Indubitably Green": "7511618",
-                            "Mann Co. Orange": "13595446",
-                            "Muskelmannbraun": "10843461",
-                            "Noble Hatter's Violet": "5322826",
-                            "Operator's Overalls": "4732984",
-                            "Peculiarly Drab Tincture": "12955537",
-                            "Pink as Hell": "16738740",
-                            "Radigan Conagher Brown": "6901050",
-                            "Team Spirit": "12073019",
-                            "The Bitter Taste of Defeat and Lime": "3329330",
-                            "The Color of a Gentlemann's Business Pants": "15787660",
-                            "The Value of Teamwork": "8400928",
-                            "Waterlogged Lab Coat": "11049612",
-                            "Ye Olde Rustic Colour": "8154199",
-                            "Zepheniah's Greed": "4345659"
-                        };
+                        var paint = {},
+                            colour;
+                        data.paint.forEach(function(e) {
+                            paint[e.name] = e.id;
+                        });
                         colour = paint[attr["data-paint-name"]];
                     }
                     if (isKS) {
+                        var tier = 1;
                         if (title.contains("Specialized"))
                             tier = 2;
                         else if (title.contains("Professional"))
@@ -449,7 +423,7 @@
                     var url = "http://backpack.tf/stats/" + qualityN + "/",
                         heading = document.getElementsByClassName("panel-heading")[1];
                     if (!isKS && !hasPaint)
-                        url += name + "/" + (trade ? "" : "Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
+                        url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
                     else if (title.contains("Fabricator"))
                         url += "Fabricator/Tradable/Craftable/" + attr["data-priceindex"];
                     else if (title.contains("Kit"))
@@ -462,18 +436,18 @@
                         hasListings;
                     ele.innerHTML += HTTPRequest(url);
                     if (!hasPaint && (!isKS || title.contains("Kit")))
-                        hasListings = !ele.querySelector(".col-6").querySelector(".alert-info");
+                        hasListings = !ele.querySelector(".col-6 .alert-info");
                     else
-                        hasListings = !ele.querySelector(".media-list").querySelector(".alert-info");
+                        hasListings = !ele.querySelector(".media-list .alert-info");
                     if (hasListings) {
                         var list = ele.querySelectorAll("[data-listing-date]"),
                             lowest = list[0].getAttribute("data-listing-price"),
                             highest = list[list.length - 1].getAttribute("data-listing-price");
                         heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
                     } else
-                        heading.textContent += " (No other listings found)";
+                        heading.textContent += " (No other listings)";
                     if (isKS)
-                        heading.textContent += " [Killstreak Tier " + tier + "]";
+                        heading.textContent += " [" + data.killstreak_tiers[tier].name + " Killstreak]";
                     else if (hasPaint)
                         heading.textContent += " [Painted " + attr["data-paint-name"] + "]";
                     stat.textContent = "Loaded";
