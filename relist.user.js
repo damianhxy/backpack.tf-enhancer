@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.3
+// @version             1.5.9.4
 // ==/UserScript==
 
 (function () {
@@ -330,14 +330,6 @@
                 stat.textContent = "Terminated";
                 return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
             } else if (!localStorage.getItem("threadRunning")) {
-                if (trades.length || +sessionStorage.getItem("nextPage") !== 2) {
-                    stat.textContent = "Interrupted";
-                    if (confirm("Relisting was interrupted, resetting...") ||
-                        JSON.parse(sessionStorage.getItem("silent"))) {
-                        sessionStorage.setItem("reset", true);
-                        return document.querySelector(".fa-tag").click();
-                    }
-                }
                 localStorage.setItem("threadRunning", null);
                 sessionStorage.setItem("mainThread", null);
             } else if (document.querySelector("[class^='alert-']")) {
