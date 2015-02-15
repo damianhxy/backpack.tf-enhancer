@@ -1,5 +1,5 @@
 // ==UserScript==
-// @copyright           2014, Damian Ho
+// @copyright           ©2014 - 2015, Damian Ho
 // @description         Helper script for Backpack.tf
 // @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/master/relist.user.js
 // @include             /^http:\/\/backpack\.tf.*$/
@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.0
+// @version             1.5.9.1
 // ==/UserScript==
 
 (function () {
@@ -270,6 +270,7 @@
             info.appendChild(stat);
             document.getElementById("#navbar").appendChild(info);
             addButton("paused", "Paused", false, true);
+            addButton("silent", "Silent", false);
         }
 
         if (profile) {
@@ -282,10 +283,10 @@
                                      sessionStorage.getItem("curItem"));
                     if (ele.querySelector(".avatar")) {
                         if (!silent)
-                            alert("[" + sessionStorage.getItem("curItem") + "] invalid, removing");
+                            alert("[" + sessionStorage.getItem("curItem") + "] is invalid");
                         sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
                     } else if (!silent)
-                        alert("[" + sessionStorage.getItem("curItem") + "] valid, retrying");
+                        alert("[" + sessionStorage.getItem("curItem") + "] is valid");
                     stat.textContent = "Returning";
                     return document.querySelector(".fa-tag").click();
                 } else
@@ -294,7 +295,7 @@
             addButton("annotate", "Annotate", false);
             addButton("pricediff", "Show Change", false);
             if (document.querySelector(".dropdown-btn").href === document.URL)
-                addButton("fastlist", "Fast Listing", false);
+                addButton("fastlist", "Direct Listing", false);
             setTimeout(function() {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                          document.getElementById("newlist").children.length - 1 + " ");
@@ -308,7 +309,6 @@
         } else if (listings || listPage) {
             sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
             addButton("reset", "Reset", false);
-            addButton("silent", "Silent", false);
             if (JSON.parse(sessionStorage.getItem("reset"))) {
                 removeData();
                 stat.textContent = "Resetted";
