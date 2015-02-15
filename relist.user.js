@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.8.9
+// @version             1.5.9.0
 // ==/UserScript==
 
 (function () {
@@ -60,19 +60,19 @@
     function label(ele, annotate, fastlist, change) {
         var frag = document.createDocumentFragment(),
             attr = getAttr(ele);
-        if (ele.querySelector(".killstreaker") && (annotate || fastlist))
-            ele.querySelector(".killstreaker").style.display = "none";
+        if (annotate || fastlist) {
+            if (ele.querySelector(".killstreaker"))
+                ele.querySelector(".killstreaker").style.display = "none";
+            if (ele.querySelector(".value") && !attr["data-crate"])
+                ele.querySelector(".value").style.display = "none";
+        }
         if (annotate) {
-            var craft = ele.querySelector(".value"),
-                title = attr["data-default-name"] || attr["title"];
-            if (craft) {
-                if (!attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
+            var title = attr["data-default-name"] || attr["title"];
+            if (ele.querySelector(".value") && !attr["data-crate"])
+                if (+craft.textContent.split("#")[1] <= 100)
                     frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
-                craft.style.display = "none";
-            }
-            if (attr["data-paint-name"])
-                if (attr["data-paint-name"] !== attr["data-name"])
-                    frag.appendChild(createIcon("paint-brush"));
+            if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
+                frag.appendChild(createIcon("paint-brush"));
             if (attr["data-part-1-name"])
                 frag.appendChild(createIcon("cogs"));
             if (attr["data-spell-1"])
@@ -98,6 +98,25 @@
                                             "position: absolute; bottom: 2px; left: 2px;" +
                                             (canRelist ? "" : " background-color: red;")));
                 frag.appendChild(link);
+                if (listed) {
+                    var btn = document.createElement("a"),
+                        rem = createIcon("close", "background-color: red;");
+                    btn.href = "javascript:void(0)";
+                    rem.addEventListener("click", function() {
+                        if (!confirm("Are you sure?")) return;
+                        var ID = "440_" + attr["data-id"],
+                            data = JSON.parse(HTTPRequest("/classified/remove/" + ID, "POST"));
+                        if (data.success) {
+                            var link = rem.parentNode.previousElementSibling.firstElementChild;
+                            rem.style.display = "none";
+                            link.style.backgroundColor = "";
+                            link.className = link.className.replace("refresh", "plus-square");
+                            rem.parentNode.nextElementSibling.display = "none";
+                        } else alert("Error: " + data.error);
+                    });
+                    btn.appendChild(rem);
+                    frag.appendChild(btn);
+                }
             }
             if (attr["data-gifted-name"]) {
                 ele.querySelector(".fa-gift").style.display = "none";
@@ -118,15 +137,16 @@
                     colour = "yellow";
                 else if (diff > threshold * 4)
                     colour = "red";
-                frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"), "color: " + colour + ";"));
+                frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"), "color: " + colour + ";" +
+                                            " background-color: white;"));
             }
         }
         ele.firstElementChild.appendChild(frag);
     }
 
-    function HTTPRequest(URL) {
+    function HTTPRequest(URL, method = "GET") {
         var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open("GET", URL, false);
+        xmlhttp.open(method, URL, false);
         xmlhttp.send();
         return xmlhttp.responseText;
     }
