@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.1
+// @version             1.5.9.2
 // ==/UserScript==
 
 (function () {
@@ -103,7 +103,7 @@
                         rem = createIcon("close", "background-color: red;");
                     btn.href = "javascript:void(0)";
                     rem.addEventListener("click", function() {
-                        if (!confirm("Are you sure?")) return;
+                        if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
                         var ID = "440_" + attr["data-id"],
                             data = JSON.parse(HTTPRequest("/classified/remove/" + ID, "POST"));
                         if (data.success) {
@@ -111,7 +111,8 @@
                             rem.style.display = "none";
                             link.style.backgroundColor = "";
                             link.className = link.className.replace("refresh", "plus-square");
-                            rem.parentNode.nextElementSibling.display = "none";
+                            rem.parentNode.nextElementSibling.style.display = "none";
+                            rem.parentNode.parentNode.nextElementSibling.firstElementChild.style.display = "none";
                         } else alert("Error: " + data.error);
                     });
                     btn.appendChild(rem);
@@ -144,9 +145,9 @@
         ele.firstElementChild.appendChild(frag);
     }
 
-    function HTTPRequest(URL, method = "GET") {
+    function HTTPRequest(URL, method) {
         var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open(method, URL, false);
+        xmlhttp.open(method || "GET", URL, false);
         xmlhttp.send();
         return xmlhttp.responseText;
     }
@@ -224,7 +225,7 @@
         }
         var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
             bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
-            r = +(data.response.raw_usd_value * 100).toFixed(2),
+            r = Math.floor(data.response.raw_usd_value * 100),
             k = (key.value + (key.value_high || key.value)) / 2,
             b = (bud.value + (bud.value_high || bud.value)) / 2,
             rDiff = "(" + (r === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
@@ -401,11 +402,11 @@
                         colour,
                         tier = 1;
                     if (!price || isKS) {
-                        document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Unpriced)");
+                        document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
                         if (attr["data-market-p"] != -1)
                             price = attr["data-market-p"] / refP;
                     } else if (attr["data-p-bptf"].contains("–"))
-                        document.querySelector(".col-2").firstElementChild.insertAdjacentHTML("beforeend", " (Ranged)");
+                        document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Ranged)");
                     if (price >= keyP && !name.contains("Key")) {
                         if (price >= keyP * budP && !name.contains("Earbuds")) {
                             document.getElementById("earbuds").value = Math.floor(price / (keyP * budP));
@@ -493,7 +494,7 @@
         console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
     } catch(e) {
         if (profile || listings || listPage)
-            stat.textContent = "Crashed";
+            stat.textContent = "Fatal Error";
         alert("[A fatal error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
     }
 })();
