@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.2
+// @version             1.5.9.3
 // ==/UserScript==
 
 (function () {
@@ -59,32 +59,13 @@
 
     function label(ele, annotate, fastlist, change) {
         var frag = document.createDocumentFragment(),
-            attr = getAttr(ele);
+            attr = getAttr(ele),
+            craft = ele.querySelector(".value");
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").style.display = "none";
-            if (ele.querySelector(".value") && !attr["data-crate"])
-                ele.querySelector(".value").style.display = "none";
-        }
-        if (annotate) {
-            var title = attr["data-default-name"] || attr["title"];
-            if (ele.querySelector(".value") && !attr["data-crate"])
-                if (+craft.textContent.split("#")[1] <= 100)
-                    frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
-            if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
-                frag.appendChild(createIcon("paint-brush"));
-            if (attr["data-part-1-name"])
-                frag.appendChild(createIcon("cogs"));
-            if (attr["data-spell-1"])
-                frag.appendChild(createIcon("magic"));
-            if (title.contains("Killstreak")) {
-                var colour = "#cd7f32";
-                if (title.contains("Specialized"))
-                    colour = "#c0c0c0";
-                else if (title.contains("Professional"))
-                    colour = "#ffd700";
-                frag.appendChild(createIcon("bomb", "color: " + colour + "; background-color: white;"));
-            }
+            if (craft && !attr["data-crate"])
+                craft.style.display = "none";
         }
         if (fastlist) {
             if (!attr["data-name"].contains("Metal")) {
@@ -95,7 +76,7 @@
                     link = document.createElement("a");
                 link.href = "http://backpack.tf/classifieds/add/" + attr["data-id"];
                 link.appendChild(createIcon(listed ? "refresh" : "plus-square",
-                                            "position: absolute; bottom: 2px; left: 2px;" +
+                                            "position: absolute; bottom: 0; left: 0;" +
                                             (canRelist ? "" : " background-color: red;")));
                 frag.appendChild(link);
                 if (listed) {
@@ -104,8 +85,7 @@
                     btn.href = "javascript:void(0)";
                     rem.addEventListener("click", function() {
                         if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
-                        var ID = "440_" + attr["data-id"],
-                            data = JSON.parse(HTTPRequest("/classified/remove/" + ID, "POST"));
+                        var data = JSON.parse(HTTPRequest("/classified/remove/440_" + attr["data-id"], "POST"));
                         if (data.success) {
                             var link = rem.parentNode.previousElementSibling.firstElementChild;
                             rem.style.display = "none";
@@ -140,6 +120,25 @@
                     colour = "red";
                 frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"), "color: " + colour + ";" +
                                             " background-color: white;"));
+            }
+        }
+        if (annotate) {
+            var title = attr["data-default-name"] || attr["title"];
+            if (craft && !attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
+                frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
+            if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
+                frag.appendChild(createIcon("paint-brush"));
+            if (attr["data-part-1-name"])
+                frag.appendChild(createIcon("cogs"));
+            if (attr["data-spell-1"])
+                frag.appendChild(createIcon("magic"));
+            if (title.contains("Killstreak")) {
+                var colour = "#cd7f32";
+                if (title.contains("Specialized"))
+                    colour = "#c0c0c0";
+                else if (title.contains("Professional"))
+                    colour = "#ffd700";
+                frag.appendChild(createIcon("bomb", "color: " + colour + "; background-color: white;"));
             }
         }
         ele.firstElementChild.appendChild(frag);
@@ -205,8 +204,6 @@
     function update() {
         if (document.getElementById("login"))
             return console.info("Backpack.tf Script Paused (Signed Out). Version " + GM_info.script.version);
-        if (sessionStorage.getItem("mainThread"))
-            return console.info("Suppressed price updating");
         if (!localStorage.getItem("apikey"))
             localStorage.setItem("apikey", prompt("API key not set, register yours from http://backpack.tf/api/"));
         if (localStorage.getItem("apikey").length !== 24) {
@@ -234,8 +231,9 @@
         localStorage.setItem("refP", r);
         localStorage.setItem("keyP", k);
         localStorage.setItem("budP", b);
-        alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
-              ", Earbuds: " + b + " Keys " + bDiff);
+        if (!sessionStorage.getItem("mainThread"))
+            alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
+                  ", Earbuds: " + b + " Keys " + bDiff);
         localStorage.setItem("lastupdt", new Date());
         return location.reload();
     }
@@ -278,24 +276,23 @@
             if (sessionStorage.getItem("mainThread")) {
                 var silent = JSON.parse(sessionStorage.getItem("silent"));
                 stat.textContent = "Interrupted";
-                if (silent || confirm("Relisting was interrupted, now diagnosing...")) {
+                if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     var ele = document.createElement("html");
                     ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" +
                                      sessionStorage.getItem("curItem"));
                     if (ele.querySelector(".avatar")) {
                         if (!silent)
-                            alert("[" + sessionStorage.getItem("curItem") + "] is invalid");
+                            alert("Listing for [" + sessionStorage.getItem("curItem") + "] is invalid");
                         sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
                     } else if (!silent)
-                        alert("[" + sessionStorage.getItem("curItem") + "] is valid");
+                        alert("Listing for [" + sessionStorage.getItem("curItem") + "] is valid");
                     stat.textContent = "Returning";
                     return document.querySelector(".fa-tag").click();
-                } else
-                    removeData();
+                }
             }
             addButton("annotate", "Annotate", false);
             addButton("pricediff", "Show Change", false);
-            if (document.querySelector(".dropdown-btn").href === document.URL)
+            if (document.URL.contains(document.querySelector(".dropdown-btn").href))
                 addButton("fastlist", "Direct Listing", false);
             setTimeout(function() {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
