@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.4
+// @version             1.5.9.5
 // ==/UserScript==
 
 (function () {
@@ -43,7 +43,7 @@
     function createIcon(cls, style, content) {
         var icon = document.createElement("i");
         icon.className = "fa fa-" + cls + " fa-inverse fa-border pull-left";
-        icon.style = style;
+        icon.style = "border-radius: 10px; " + style;
         if (content)
             icon.appendChild(document.createTextNode(content));
         return icon;
@@ -75,8 +75,7 @@
                                 +arr[0] && arr[1].contains("hour"),
                     link = document.createElement("a");
                 link.href = "http://backpack.tf/classifieds/add/" + attr["data-id"];
-                link.appendChild(createIcon(listed ? "refresh" : "plus-square",
-                                            "position: absolute; bottom: 0; left: 0;" +
+                link.appendChild(createIcon(listed ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
                                             (canRelist ? "" : " background-color: red;")));
                 frag.appendChild(link);
                 if (listed) {
@@ -90,7 +89,7 @@
                             var link = rem.parentNode.previousElementSibling.firstElementChild;
                             rem.style.display = "none";
                             link.style.backgroundColor = "";
-                            link.className = link.className.replace("refresh", "plus-square");
+                            link.className = link.className.replace("refresh", "plus");
                             rem.parentNode.nextElementSibling.style.display = "none";
                             rem.parentNode.parentNode.nextElementSibling.firstElementChild.style.display = "none";
                         } else alert("Error: " + data.error);
