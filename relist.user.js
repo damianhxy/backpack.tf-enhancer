@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.9
+// @version             1.6.0.0
 // ==/UserScript==
 
 (function () {
@@ -91,7 +91,7 @@
                                 rem.style.display = "none";
                                 link.style.backgroundColor = "";
                                 link.className = link.className.replace("refresh", "plus");
-                                rem.parentNode.nextElementSibling.style.display = "none";
+                                rem.parentNode.nextElementSibling.style.display = "none"
                                 rem.parentNode.parentNode.nextElementSibling.style.display = "none";
                             } else
                                 alert("Error: " + data.error);
@@ -148,15 +148,25 @@
     }
 
     function HTTPRequest(URL, method, callback) {
+        stat.textContent = "Requesting";
         var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open(method, URL, callback ? true : false);
-        if (callback)
-            xmlhttp.onload = function() {
-                callback(xmlhttp.responseText);
+        xmlhttp.open(method, URL, callback);
+        xmlhttp.onreadystatechange = function() {
+            stat.textContent = "Status [" + xmlhttp.readyState + ", " + xmlhttp.status + "]";
+            if (xmlhttp.readyState === 4 && xmlhttp.status !== 200)
+                return stat.textContent = "Req. Error: " + xmlhttp.status;
+        };
+        xmlhttp.onload = function() {
+            stat.textContent = "Received";
+            callback(xmlhttp.responseText);
+        };
+        if (callback) {
+            xmlhttp.timeout = 3e4;
+            xmlhttp.ontimeout = function() {
+                stat.textContent = "Timeout";
             };
+        }
         xmlhttp.send();
-        if (!callback)
-            return xmlhttp.responseText;
     }
 
     function parsePrice(str) {
@@ -199,10 +209,9 @@
     function showStatus() {
         if (reloadTime) {
             var min = Math.floor(reloadTime / 60),
-                sec = reloadTime % 60;
+                sec = reloadTime-- % 60;
             data.textContent = "Reloading classifieds in " + min + ":" + ("0" + sec).slice(-2);
             document.title = "Classifieds: " + min + ":" + ("0" + sec).slice(-2);
-            reloadTime--;
         } else {
             document.querySelector(".fa-angle-double-left").click();
             clearInterval(showStatus);
@@ -381,7 +390,7 @@
                 }
             }
         } else if (listPage) {
-            switch (document.querySelector(".item-panel").children[1].textContent.trim()) {
+            switch (document.querySelector(".item-panel > h2").textContent.trim()) {
                 case "Relisting this item":
                     stat.textContent = "Relisting";
                     sessionStorage.removeItem("itmdata-" + document.URL.slice(35));
@@ -455,7 +464,7 @@
                             var list = ele.querySelectorAll("[data-listing-date]"),
                                 lowest = list[0].getAttribute("data-listing-price"),
                                 highest = list[list.length - 1].getAttribute("data-listing-price");
-                            heading.textContent += " (" + lowest + " ~ " + highest + " from " + list.length + ")";
+                            heading.textContent += " (" + lowest + " ~ " + highest + " / " + list.length + " Listings)";
                         } else
                             heading.textContent += " (No other listings)";
                         if (isKS)
