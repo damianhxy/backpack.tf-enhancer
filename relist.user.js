@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.2
+// @version             1.6.0.3
 // ==/UserScript==
 
 (function () {
@@ -400,9 +400,9 @@
                         name = attr["data-name"],
                         title = attr["data-default-name"] || attr["title"],
                         quality = attr["data-quality"],
+                        qualityN = attr["data-q-name"],
                         trade = attr["data-tradable"],
                         craft = attr["data-craftable"],
-                        qualityN = attr["data-q-name"],
                         isAust = attr["data-australium"],
                         paint = attr["data-paint-name"],
                         isKS = title.contains("Killstreak"),
@@ -431,47 +431,47 @@
                         else if (title.contains("Professional"))
                             tier = 3;
                     }
-                    if (paint)
-                        HTTPRequest("/pages/filter_meta", "GET", function(e) {
-                            var data = JSON.parse(e);
+                    HTTPRequest("/pages/filter_meta", "GET", function(e) {
+                        var data = JSON.parse(e);
+                        if (paint)
                             Array.prototype.some.call(data.paint, function(e) {
                                 return e.name === paint ? colour = e.id : false;
                             });
-                            var url = "http://backpack.tf/stats/" + qualityN + "/";
-                            if (!isKS && !paint)
-                                url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
-                            else if (title.contains("Fabricator"))
-                                url += "Fabricator/Tradable/Craftable/" + attr["data-priceindex"];
-                            else if (title.contains("Kit"))
-                                url += "Kit/Tradable/Non-Craftable/" + attr["data-priceindex"];
+                        var url = "http://backpack.tf/stats/" + qualityN + "/";
+                        if (!isKS && !paint)
+                            url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
+                        else if (title.contains("Fabricator"))
+                            url += "Fabricator/Tradable/Craftable/" + attr["data-priceindex"];
+                        else if (title.contains("Kit"))
+                            url += "Kit/Tradable/Non-Craftable/" + attr["data-priceindex"];
+                        else
+                            url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
+                                  "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
+                                  "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
+                        HTTPRequest(url, "GET", function(e) {
+                            var ele = document.createElement("html"),
+                                hasListings,
+                                str = "";
+                            ele.innerHTML += e;
+                            if (!paint && (!isKS || title.contains("Kit")))
+                                hasListings = !ele.querySelector(".col-6 .alert-info");
                             else
-                                url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
-                                      "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
-                                      "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
-                            HTTPRequest(url, "GET", function(e) {
-                                var ele = document.createElement("html"),
-                                    hasListings,
-                                    str = "";
-                                ele.innerHTML += e;
-                                if (!paint && (!isKS || title.contains("Kit")))
-                                    hasListings = !ele.querySelector(".col-6 .alert-info");
-                                else
-                                    hasListings = !ele.querySelector(".media-list .alert-info");
-                                if (hasListings) {
-                                    var list = ele.querySelectorAll("[data-listing-date]"),
-                                        lowest = list[0].getAttribute("data-listing-price"),
-                                        highest = list[list.length - 1].getAttribute("data-listing-price");
-                                    str += " (" + lowest + " ~ " + highest + " / " + list.length + " Listings)";
-                                } else
-                                    str += " (No other listings)";
-                                if (isKS)
-                                    str += " [Tier " + tier + " Killstreak]";
-                                else if (paint)
-                                    str += " [Painted " + attr["data-paint-name"] + "]";
-                                document.getElementsByClassName("panel-heading")[1].textContent += str;
-                                stat.textContent = "Loaded";
-                            });
+                                hasListings = !ele.querySelector(".media-list .alert-info");
+                            if (hasListings) {
+                                var list = ele.querySelectorAll("[data-listing-price]"),
+                                    lowest = list[0].getAttribute("data-listing-price"),
+                                    highest = list[list.length - 1].getAttribute("data-listing-price");
+                                str += " (" + lowest + " ~ " + highest + " / " + list.length + " Listings)";
+                            } else
+                                str += " (No other listings)";
+                            if (isKS)
+                                str += " [" + data.killstreak_tiers[tier].name + " Killstreak]";
+                            else if (paint)
+                                str += " [Painted " + paint + "]";
+                            document.getElementsByClassName("panel-heading")[1].textContent += str;
+                            stat.textContent = "Loaded";
                         });
+                    });
             }
         }
         console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
