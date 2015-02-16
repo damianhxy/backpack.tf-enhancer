@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.8
+// @version             1.5.9.9
 // ==/UserScript==
 
 (function () {
@@ -43,7 +43,7 @@
     function createIcon(cls, style, content) {
         var icon = document.createElement("i");
         icon.className = "fa fa-" + cls + " fa-inverse fa-border pull-left";
-        icon.style = "border-radius: 10px; " + style;
+        icon.style = "border-radius: 50%; " + style;
         if (content)
             icon.appendChild(document.createTextNode(content));
         return icon;
@@ -84,15 +84,19 @@
                     btn.href = "javascript:void(0)";
                     rem.addEventListener("click", function() {
                         if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
-                        var data = JSON.parse(HTTPRequest("/classified/remove/440_" + attr["data-id"], "POST"));
-                        if (data.success) {
-                            var link = rem.parentNode.previousElementSibling.firstElementChild;
-                            rem.style.display = "none";
-                            link.style.backgroundColor = "";
-                            link.className = link.className.replace("refresh", "plus");
-                            rem.parentNode.nextElementSibling.style.display = "none";
-                            rem.parentNode.parentNode.nextElementSibling.style.display = "none";
-                        } else alert("Error: " + data.error);
+                        HTTPRequest("/classified/remove/440_" + attr["data-id"], "POST", function(e) {
+                            var data = JSON.parse(e);
+                            if (data.success) {
+                                var link = rem.parentNode.previousElementSibling.firstElementChild;
+                                rem.style.display = "none";
+                                link.style.backgroundColor = "";
+                                link.className = link.className.replace("refresh", "plus");
+                                rem.parentNode.nextElementSibling.style.display = "none";
+                                rem.parentNode.parentNode.nextElementSibling.style.display = "none";
+                            } else
+                                alert("Error: " + data.error);
+
+                        });
                     });
                     btn.appendChild(rem);
                     frag.appendChild(btn);
@@ -143,11 +147,16 @@
         ele.firstElementChild.appendChild(frag);
     }
 
-    function HTTPRequest(URL, method) {
+    function HTTPRequest(URL, method, callback) {
         var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open(method || "GET", URL, false);
+        xmlhttp.open(method, URL, callback ? true : false);
+        if (callback)
+            xmlhttp.onload = function() {
+                callback(xmlhttp.responseText);
+            };
         xmlhttp.send();
-        return xmlhttp.responseText;
+        if (!callback)
+            return xmlhttp.responseText;
     }
 
     function parsePrice(str) {
@@ -210,31 +219,33 @@
             localStorage.removeItem("apikey");
             update();
         }
-        var data = JSON.parse(HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.getItem("apikey")));
-        if (!data.response.success) {
-            if (data.response.message === "API key does not exist.") {
-                alert("Invalid API key");
-                localStorage.removeItem("apikey");
-                update();
-            } else
-                return alert("Error: " + data.response.message);
-        }
-        var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
-            bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
-            r = Math.floor(data.response.raw_usd_value * 100),
-            k = (key.value + (key.value_high || key.value)) / 2,
-            b = (bud.value + (bud.value_high || bud.value)) / 2,
-            rDiff = "(" + (r === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
-            kDiff = "(" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
-            bDiff = "(" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
-        localStorage.setItem("refP", r);
-        localStorage.setItem("keyP", k);
-        localStorage.setItem("budP", b);
-        if (!sessionStorage.getItem("mainThread"))
-            alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
-                  ", Earbuds: " + b + " Keys " + bDiff);
-        localStorage.setItem("lastupdt", new Date());
-        return location.reload();
+        HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.getItem("apikey"), "GET", function(e) {
+            var data = JSON.parse(e);
+            if (!data.response.success) {
+                if (data.response.message === "API key does not exist.") {
+                    alert("Invalid API key");
+                    localStorage.removeItem("apikey");
+                    update();
+                } else
+                    return alert("Error:\n" + data.response.message);
+            }
+            var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
+                bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
+                r = Math.floor(data.response.raw_usd_value * 100),
+                k = (key.value + (key.value_high || key.value)) / 2,
+                b = (bud.value + (bud.value_high || bud.value)) / 2,
+                rDiff = "(" + (r === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
+                kDiff = "(" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
+                bDiff = "(" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
+                localStorage.setItem("refP", r);
+                localStorage.setItem("keyP", k);
+                localStorage.setItem("budP", b);
+                if (!sessionStorage.getItem("mainThread"))
+                    alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
+                          ", Earbuds: " + b + " Keys " + bDiff);
+                localStorage.setItem("lastupdt", new Date());
+                return location.reload();
+        });
     }
 
     try {
@@ -242,13 +253,14 @@
         var listPage = document.URL.contains("/add"),
             profile = document.URL.contains("profiles"),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
-            refP = +localStorage.getItem("refP") || update(),
-            keyP = +localStorage.getItem("keyP") || update(),
-            budP = +localStorage.getItem("budP") || update(),
-            lastUpdt = new Date() - Date.parse(localStorage.getItem("lastupdt"));
+            refP = +localStorage.getItem("refP"),
+            keyP = +localStorage.getItem("keyP"),
+            budP = +localStorage.getItem("budP"),
+            lastUpdt = new Date() - Date.parse(localStorage.getItem("lastupdt")),
+            stat = document.createTextNode("");
         /****** END SCRIPT GLOBALS ******/
 
-        if (!lastUpdt || lastUpdt >= 864e5 * updateFreq)
+        if (!(lastUpdt && refP && keyP && budP && lastUpdt < 864e5 * updateFreq))
             update();
         else {
             var diff = 864e5 * updateFreq - lastUpdt,
@@ -259,8 +271,7 @@
         }
 
         if (profile || listings || listPage) {
-            var info = document.createElement("div"),
-                stat = document.createTextNode("");
+            var info = document.createElement("div");
             info.style = "margin: 2px; width: 150px;";
             info.className = "btn btn-info btn-sm pull-left";
             info.appendChild(createIcon("info-circle", "border: none;"));
@@ -276,17 +287,19 @@
                 var silent = JSON.parse(sessionStorage.getItem("silent"));
                 stat.textContent = "Interrupted";
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
-                    var ele = document.createElement("html");
-                    ele.innerHTML += HTTPRequest("http://backpack.tf/classifieds/add/" +
-                                     sessionStorage.getItem("curItem"));
-                    if (ele.querySelector(".avatar")) {
-                        if (!silent)
-                            alert("Listing for [" + sessionStorage.getItem("curItem") + "] is invalid");
-                        sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
-                    } else if (!silent)
-                        alert("Listing for [" + sessionStorage.getItem("curItem") + "] is valid");
-                    stat.textContent = "Returning";
-                    return document.querySelector(".fa-tag").click();
+                    HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"), "GET",
+                        function(e) {
+                            var ele = document.createElement("html");
+                            ele.innerHTML += e;
+                            if (ele.querySelector(".avatar")) {
+                                if (!silent)
+                                    alert("Listing for [" + sessionStorage.getItem("curItem") + "] is invalid");
+                                sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
+                            } else if (!silent)
+                                alert("Listing for [" + sessionStorage.getItem("curItem") + "] is valid");
+                            stat.textContent = "Returning";
+                            return document.querySelector(".fa-tag").click();
+                    });
                 }
             }
             addButton("annotate", "Annotate", false);
@@ -319,8 +332,8 @@
 
         if (listings) {
             var onePg = !document.querySelector(".pagination-filters"),
-                first = onePg || document.querySelector(".pagination-filters").firstElementChild.className === "disabled",
-                last = onePg || document.querySelector(".pagination-filters").lastElementChild.className === "disabled",
+                first = onePg || document.querySelector(".pagination-filters > li:first-child").className === "disabled",
+                last = onePg || document.querySelector(".pagination-filters > li:last-child").className === "disabled",
                 buttons = document.getElementsByClassName("listing-relist"),
                 trades = Object.keys(sessionStorage).filter(function(e) {
                     return e.startsWith("itmdata-");
@@ -374,7 +387,7 @@
                     sessionStorage.removeItem("itmdata-" + document.URL.slice(35));
                     document.getElementById("button_save").click();
                     break;
-                case "Creating a new listing for this item":
+                default:
                     stat.textContent = "Filling";
                     var attr = getAttr(document.querySelector(".item")),
                         price = attr["data-price"],
@@ -385,9 +398,10 @@
                         craft = attr["data-craftable"],
                         qualityN = attr["data-q-name"],
                         isAust = attr["data-australium"],
-                        hasPaint = attr["data-paint-name"],
+                        paint = attr["data-paint-name"],
                         isKS = title.contains("Killstreak"),
-                        data = JSON.parse(HTTPRequest("/pages/filter_meta"));
+                        tier = 1,
+                        colour;
                     if (!price || isKS) {
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
                         if (attr["data-market-p"] != -1)
@@ -405,16 +419,13 @@
                     price = Math.floor(round(price) * 100) / 100;
                     document.getElementById("metal").value = price || "";
                     document.getElementById("details").value = notes;
-                    if (hasPaint) {
-                        var paint = {},
-                            colour;
-                        data.paint.forEach(function(e) {
-                            paint[e.name] = e.id;
+                    if (paint) {
+                        var data = JSON.parse(HTTPRequest("/pages/filter_meta", "GET", null));
+                        Array.prototype.some.call(data.paint, function(e) {
+                            return e.name === paint ? colour = e.id : false;
                         });
-                        colour = paint[attr["data-paint-name"]];
                     }
                     if (isKS) {
-                        var tier = 1;
                         if (title.contains("Specialized"))
                             tier = 2;
                         else if (title.contains("Professional"))
@@ -422,7 +433,7 @@
                     }
                     var url = "http://backpack.tf/stats/" + qualityN + "/",
                         heading = document.getElementsByClassName("panel-heading")[1];
-                    if (!isKS && !hasPaint)
+                    if (!isKS && !paint)
                         url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
                     else if (title.contains("Fabricator"))
                         url += "Fabricator/Tradable/Craftable/" + attr["data-priceindex"];
@@ -432,30 +443,32 @@
                         url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
                               "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
                               "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
-                    var ele = document.createElement("html"),
-                        hasListings;
-                    ele.innerHTML += HTTPRequest(url);
-                    if (!hasPaint && (!isKS || title.contains("Kit")))
-                        hasListings = !ele.querySelector(".col-6 .alert-info");
-                    else
-                        hasListings = !ele.querySelector(".media-list .alert-info");
-                    if (hasListings) {
-                        var list = ele.querySelectorAll("[data-listing-date]"),
-                            lowest = list[0].getAttribute("data-listing-price"),
-                            highest = list[list.length - 1].getAttribute("data-listing-price");
-                        heading.textContent += " (" + lowest + " ~ " + highest + ", from " + list.length + " listings)";
-                    } else
-                        heading.textContent += " (No other listings)";
-                    if (isKS)
-                        heading.textContent += " [" + data.killstreak_tiers[tier].name + " Killstreak]";
-                    else if (hasPaint)
-                        heading.textContent += " [Painted " + attr["data-paint-name"] + "]";
-                    stat.textContent = "Loaded";
+                    HTTPRequest(url, "GET", function(e) {
+                        var ele = document.createElement("html"),
+                            hasListings;
+                        ele.innerHTML += e;
+                        if (!paint && (!isKS || title.contains("Kit")))
+                            hasListings = !ele.querySelector(".col-6 .alert-info");
+                        else
+                            hasListings = !ele.querySelector(".media-list .alert-info");
+                        if (hasListings) {
+                            var list = ele.querySelectorAll("[data-listing-date]"),
+                                lowest = list[0].getAttribute("data-listing-price"),
+                                highest = list[list.length - 1].getAttribute("data-listing-price");
+                            heading.textContent += " (" + lowest + " ~ " + highest + " from " + list.length + ")";
+                        } else
+                            heading.textContent += " (No other listings)";
+                        if (isKS)
+                            heading.textContent += " [Tier " + tier + " Killstreak]";
+                        else if (paint)
+                            heading.textContent += " [Painted " + attr["data-paint-name"] + "]";
+                        stat.textContent = "Loaded";
+                    });
             }
         }
         console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
     } catch(e) {
-        if (profile || listings || listPage)
+        if (stat)
             stat.textContent = "Fatal Error";
         alert("[A fatal error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
     }
