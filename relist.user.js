@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.3
+// @version             1.6.0.4
 // ==/UserScript==
 
 (function () {
@@ -295,7 +295,7 @@
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"), "GET",
                         function(e) {
-                            var ele = document.createElement("html");
+                            var ele = document.createDocumentFragment();
                             ele.innerHTML += e;
                             if (ele.querySelector(".avatar")) {
                                 if (!silent)
@@ -361,7 +361,7 @@
                 location.assign("http://backpack.tf/classifieds/add/" + id);
             } else if (buttons.length) {
                 Array.prototype.forEach.call(buttons, function(e) {
-                    sessionStorage.setItem("itmdata-" + e.href.slice(35), false);
+                    sessionStorage.setItem("itmdata-" + e.href.slice(35), null);
                 });
                 stat.textContent = "Saved IDs";
                 sessionStorage.setItem("curItem", buttons[0].href.slice(35));
@@ -378,7 +378,7 @@
                         reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
                     data.style = "color: orange; float: right;";
                     document.querySelector(".panel-heading").appendChild(data);
-                    setInterval(showStatus, 1000);
+                    setInterval(showStatus, 1e3);
                     stat.textContent = "Finished";
                 } else {
                     sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
@@ -449,7 +449,7 @@
                                   "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
                                   "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
                         HTTPRequest(url, "GET", function(e) {
-                            var ele = document.createElement("html"),
+                            var ele = document.createDocumentFragment(),
                                 hasListings,
                                 str = "";
                             ele.innerHTML += e;
