@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.0
+// @version             1.6.0.1
 // ==/UserScript==
 
 (function () {
@@ -91,7 +91,7 @@
                                 rem.style.display = "none";
                                 link.style.backgroundColor = "";
                                 link.className = link.className.replace("refresh", "plus");
-                                rem.parentNode.nextElementSibling.style.display = "none"
+                                rem.parentNode.nextElementSibling.style.display = "none";
                                 rem.parentNode.parentNode.nextElementSibling.style.display = "none";
                             } else
                                 alert("Error: " + data.error);
@@ -154,18 +154,15 @@
         xmlhttp.onreadystatechange = function() {
             stat.textContent = "Status [" + xmlhttp.readyState + ", " + xmlhttp.status + "]";
             if (xmlhttp.readyState === 4 && xmlhttp.status !== 200)
-                return stat.textContent = "Req. Error: " + xmlhttp.status;
+                stat.textContent = "Req. Error: " + xmlhttp.status;
         };
         xmlhttp.onload = function() {
             stat.textContent = "Received";
-            callback(xmlhttp.responseText);
+            if (callback)
+                callback(xmlhttp.responseText);
+            else
+                return xmlhttp.responseText;
         };
-        if (callback) {
-            xmlhttp.timeout = 3e4;
-            xmlhttp.ontimeout = function() {
-                stat.textContent = "Timeout";
-            };
-        }
         xmlhttp.send();
     }
 
