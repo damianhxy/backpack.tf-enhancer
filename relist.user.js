@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.1
+// @version             1.6.0.2
 // ==/UserScript==
 
 (function () {
@@ -152,7 +152,7 @@
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.open(method, URL, callback);
         xmlhttp.onreadystatechange = function() {
-            stat.textContent = "Status [" + xmlhttp.readyState + ", " + xmlhttp.status + "]";
+            stat.textContent = "[" + xmlhttp.readyState + ", " + xmlhttp.status + "]";
             if (xmlhttp.readyState === 4 && xmlhttp.status !== 200)
                 stat.textContent = "Req. Error: " + xmlhttp.status;
         };
@@ -410,7 +410,7 @@
                         colour;
                     if (!price || isKS) {
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
-                        if (attr["data-market-p"] != -1)
+                        if (attr["data-market-p"] !== -1)
                             price = attr["data-market-p"] / refP;
                     } else if (attr["data-p-bptf"].contains("–"))
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Ranged)");
@@ -425,51 +425,53 @@
                     price = Math.floor(round(price) * 100) / 100;
                     document.getElementById("metal").value = price || "";
                     document.getElementById("details").value = notes;
-                    if (paint) {
-                        var data = JSON.parse(HTTPRequest("/pages/filter_meta", "GET", null));
-                        Array.prototype.some.call(data.paint, function(e) {
-                            return e.name === paint ? colour = e.id : false;
-                        });
-                    }
                     if (isKS) {
                         if (title.contains("Specialized"))
                             tier = 2;
                         else if (title.contains("Professional"))
                             tier = 3;
                     }
-                    var url = "http://backpack.tf/stats/" + qualityN + "/",
-                        heading = document.getElementsByClassName("panel-heading")[1];
-                    if (!isKS && !paint)
-                        url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
-                    else if (title.contains("Fabricator"))
-                        url += "Fabricator/Tradable/Craftable/" + attr["data-priceindex"];
-                    else if (title.contains("Kit"))
-                        url += "Kit/Tradable/Non-Craftable/" + attr["data-priceindex"];
-                    else
-                        url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
-                              "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
-                              "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
-                    HTTPRequest(url, "GET", function(e) {
-                        var ele = document.createElement("html"),
-                            hasListings;
-                        ele.innerHTML += e;
-                        if (!paint && (!isKS || title.contains("Kit")))
-                            hasListings = !ele.querySelector(".col-6 .alert-info");
-                        else
-                            hasListings = !ele.querySelector(".media-list .alert-info");
-                        if (hasListings) {
-                            var list = ele.querySelectorAll("[data-listing-date]"),
-                                lowest = list[0].getAttribute("data-listing-price"),
-                                highest = list[list.length - 1].getAttribute("data-listing-price");
-                            heading.textContent += " (" + lowest + " ~ " + highest + " / " + list.length + " Listings)";
-                        } else
-                            heading.textContent += " (No other listings)";
-                        if (isKS)
-                            heading.textContent += " [Tier " + tier + " Killstreak]";
-                        else if (paint)
-                            heading.textContent += " [Painted " + attr["data-paint-name"] + "]";
-                        stat.textContent = "Loaded";
-                    });
+                    if (paint)
+                        HTTPRequest("/pages/filter_meta", "GET", function(e) {
+                            var data = JSON.parse(e);
+                            Array.prototype.some.call(data.paint, function(e) {
+                                return e.name === paint ? colour = e.id : false;
+                            });
+                            var url = "http://backpack.tf/stats/" + qualityN + "/";
+                            if (!isKS && !paint)
+                                url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
+                            else if (title.contains("Fabricator"))
+                                url += "Fabricator/Tradable/Craftable/" + attr["data-priceindex"];
+                            else if (title.contains("Kit"))
+                                url += "Kit/Tradable/Non-Craftable/" + attr["data-priceindex"];
+                            else
+                                url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
+                                      "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
+                                      "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
+                            HTTPRequest(url, "GET", function(e) {
+                                var ele = document.createElement("html"),
+                                    hasListings,
+                                    str = "";
+                                ele.innerHTML += e;
+                                if (!paint && (!isKS || title.contains("Kit")))
+                                    hasListings = !ele.querySelector(".col-6 .alert-info");
+                                else
+                                    hasListings = !ele.querySelector(".media-list .alert-info");
+                                if (hasListings) {
+                                    var list = ele.querySelectorAll("[data-listing-date]"),
+                                        lowest = list[0].getAttribute("data-listing-price"),
+                                        highest = list[list.length - 1].getAttribute("data-listing-price");
+                                    str += " (" + lowest + " ~ " + highest + " / " + list.length + " Listings)";
+                                } else
+                                    str += " (No other listings)";
+                                if (isKS)
+                                    str += " [Tier " + tier + " Killstreak]";
+                                else if (paint)
+                                    str += " [Painted " + attr["data-paint-name"] + "]";
+                                document.getElementsByClassName("panel-heading")[1].textContent += str;
+                                stat.textContent = "Loaded";
+                            });
+                        });
             }
         }
         console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
