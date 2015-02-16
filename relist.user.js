@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.6
+// @version             1.5.9.7
 // ==/UserScript==
 
 (function () {
@@ -67,7 +67,7 @@
             if (craft && !attr["data-crate"])
                 craft.style.display = "none";
         }
-        if (fastlist) {
+        if (fastlist && document.querySelector(".dropdown-btn").href === document.URL.replace("#", "")) {
             if (!attr["data-name"].contains("Metal")) {
                 var listed = attr["data-listing-price"],
                     arr = (attr["data-listing-date"] || "").split(" "),
@@ -291,7 +291,7 @@
             }
             addButton("annotate", "Annotate", false);
             addButton("pricediff", "Show Change", false);
-            if (document.URL.contains(document.querySelector(".dropdown-btn").href))
+            if (document.querySelector(".dropdown-btn").href === document.URL.replace("#", ""))
                 addButton("fastlist", "Direct Listing", false);
             setTimeout(function() {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
