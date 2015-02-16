@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.5.9.7
+// @version             1.5.9.8
 // ==/UserScript==
 
 (function () {
@@ -91,7 +91,7 @@
                             link.style.backgroundColor = "";
                             link.className = link.className.replace("refresh", "plus");
                             rem.parentNode.nextElementSibling.style.display = "none";
-                            rem.parentNode.parentNode.nextElementSibling.firstElementChild.style.display = "none";
+                            rem.parentNode.parentNode.nextElementSibling.style.display = "none";
                         } else alert("Error: " + data.error);
                     });
                     btn.appendChild(rem);
