@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.5
+// @version             1.6.0.6
 // ==/UserScript==
 
 (function () {
@@ -295,7 +295,7 @@
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"), "GET",
                         function(e) {
-                            var ele = document.createDocumentFragment();
+                            var ele = document.createElement("html");
                             ele.innerHTML += e;
                             if (ele.querySelector(".avatar")) {
                                 if (!silent)
