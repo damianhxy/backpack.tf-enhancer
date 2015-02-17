@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.7
+// @version             1.6.0.8
 // ==/UserScript==
 
 (function () {
@@ -70,12 +70,11 @@
         if (fastlist && document.querySelector(".dropdown-btn").href === document.URL.replace("#", "")) {
             if (!attr.get("data-name").contains("Metal")) {
                 var arr = (attr.get("data-listing-date") || "").split(" "),
-                    canRelist = !arr[0] || +arr[0] >= 30 && arr[1].contains("minute") ||
-                                +arr[0] && arr[1].contains("hour"),
+                    canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour"),
                     link = document.createElement("a");
                 link.href = "http://backpack.tf/classifieds/add/" + attr.get("data-id");
                 link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
-                                            (canRelist ? "" : " background-color: red;")));
+                                            (canRelist || !arr[0] ? "" : " background-color: red;")));
                 frag.appendChild(link);
                 if (arr[0]) {
                     var btn = document.createElement("a"),
@@ -112,14 +111,14 @@
             var curP = attr.get("data-price"),
                 listP = parsePrice(attr.get("data-listing-price")),
                 diff = Math.abs(curP - listP);
-            if (!curP)
-                frag.appendChild(createIcon("question"));
+            if (!curP || attr.get("title").contains("Killstreak"))
+                frag.appendChild(createIcon("question", "color: goldenrod; background-color: white;"));
             else if (diff >= threshold) {
                 var colour = "lime";
                 if (diff >= threshold * 2 && diff <= threshold * 4)
-                    colour = "yellow";
+                    colour = "goldenrod";
                 else if (diff > threshold * 4)
-                    colour = "red";
+                    colour = "crimson";
                 frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"), "color: " + colour + ";" +
                                             " background-color: white;"));
             }
@@ -311,7 +310,7 @@
             setTimeout(function() {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                          document.getElementById("newlist").children.length - 1 + " ");
-            }, 1000);
+            }, 1e3);
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
                       JSON.parse(sessionStorage.getItem("fastlist")),
