@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.8
+// @version             1.6.0.9
 // ==/UserScript==
 
 (function () {
@@ -84,16 +84,13 @@
                         if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
                         HTTPRequest("/classified/remove/440_" + attr.get("data-id"), "POST", function(e) {
                             var data = JSON.parse(e);
-                            if (data.success) {
+                            if (data.success || alert("Error: " + data.error)) {
                                 var link = rem.parentNode.previousElementSibling.firstElementChild;
                                 rem.style.display = "none";
                                 link.style.backgroundColor = "";
                                 link.className = link.className.replace("refresh", "plus");
-                                rem.parentNode.nextElementSibling.style.display = "none";
                                 rem.parentNode.parentNode.nextElementSibling.style.display = "none";
-                            } else
-                                alert("Error: " + data.error);
-
+                            }
                         });
                     });
                     btn.appendChild(rem);
@@ -226,7 +223,7 @@
                 if (data.response.message === "API key does not exist.") {
                     alert("Invalid API key");
                     localStorage.removeItem("apikey");
-                    update();
+                    return update();
                 } else
                     return alert("Error:\n" + data.response.message);
             }
@@ -261,9 +258,7 @@
             stat = document.createTextNode("");
         /****** END SCRIPT GLOBALS ******/
 
-        if (!(lastUpdt && refP && keyP && budP && lastUpdt < 864e5 * updateFreq))
-            update();
-        else {
+        if (lastUpdt && refP && keyP && budP && lastUpdt < 864e5 * updateFreq || update()) {
             var diff = 864e5 * updateFreq - lastUpdt,
                 days = Math.floor(diff / 864e5),
                 hours = Math.floor((diff % 864e5) / 36e5),
