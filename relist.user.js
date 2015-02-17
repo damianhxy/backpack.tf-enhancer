@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.4
+// @version             1.6.0.5
 // ==/UserScript==
 
 (function () {
@@ -449,7 +449,7 @@
                                   "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
                                   "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
                         HTTPRequest(url, "GET", function(e) {
-                            var ele = document.createDocumentFragment(),
+                            var ele = document.createElement("html"),
                                 hasListings,
                                 str = "";
                             ele.innerHTML += e;
