@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.6
+// @version             1.6.0.7
 // ==/UserScript==
 
 (function () {
@@ -50,9 +50,9 @@
     }
 
     function getAttr(ele) {
-        var attr = {};
+        var attr = new Map();
         Array.prototype.forEach.call(ele.attributes, function(e) {
-            attr[e.name] = isNaN(+e.value) ? e.value : +e.value;
+            attr.set(e.name, isNaN(+e.value) ? e.value : +e.value);
         });
         return attr;
     }
@@ -64,27 +64,26 @@
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").style.display = "none";
-            if (craft && !attr["data-crate"])
+            if (craft && !attr.has("data-crate"))
                 craft.style.display = "none";
         }
         if (fastlist && document.querySelector(".dropdown-btn").href === document.URL.replace("#", "")) {
-            if (!attr["data-name"].contains("Metal")) {
-                var listed = attr["data-listing-price"],
-                    arr = (attr["data-listing-date"] || "").split(" "),
-                    canRelist = !listed || +arr[0] >= 30 && arr[1].contains("minute") ||
+            if (!attr.get("data-name").contains("Metal")) {
+                var arr = (attr.get("data-listing-date") || "").split(" "),
+                    canRelist = !arr[0] || +arr[0] >= 30 && arr[1].contains("minute") ||
                                 +arr[0] && arr[1].contains("hour"),
                     link = document.createElement("a");
-                link.href = "http://backpack.tf/classifieds/add/" + attr["data-id"];
-                link.appendChild(createIcon(listed ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
+                link.href = "http://backpack.tf/classifieds/add/" + attr.get("data-id");
+                link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
                                             (canRelist ? "" : " background-color: red;")));
                 frag.appendChild(link);
-                if (listed) {
+                if (arr[0]) {
                     var btn = document.createElement("a"),
                         rem = createIcon("close", "background-color: red;");
                     btn.href = "javascript:void(0)";
                     rem.addEventListener("click", function() {
                         if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
-                        HTTPRequest("/classified/remove/440_" + attr["data-id"], "POST", function(e) {
+                        HTTPRequest("/classified/remove/440_" + attr.get("data-id"), "POST", function(e) {
                             var data = JSON.parse(e);
                             if (data.success) {
                                 var link = rem.parentNode.previousElementSibling.firstElementChild;
@@ -102,18 +101,18 @@
                     frag.appendChild(btn);
                 }
             }
-            if (attr["data-gifted-name"]) {
+            if (attr.has("data-gifted-name")) {
                 ele.querySelector(".fa-gift").style.display = "none";
                 frag.appendChild(createIcon("gift"));
             }
         }
-        if (change && attr["data-listing-price"]) {
-            if (ele.querySelector(".value") && !attr["data-crate"])
+        if (change && attr.has("data-listing-price")) {
+            if (ele.querySelector(".value") && !attr.has("data-crate"))
                 ele.querySelector(".value").style.display = "none";
-            var curP = attr["data-price"],
-                listP = parsePrice(attr["data-listing-price"]),
+            var curP = attr.get("data-price"),
+                listP = parsePrice(attr.get("data-listing-price")),
                 diff = Math.abs(curP - listP);
-            if (!attr["data-price"])
+            if (!curP)
                 frag.appendChild(createIcon("question"));
             else if (diff >= threshold) {
                 var colour = "lime";
@@ -126,14 +125,14 @@
             }
         }
         if (annotate) {
-            var title = attr["data-default-name"] || attr["title"];
-            if (craft && !attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
+            var title = attr.get("data-default-name") || attr.get("title");
+            if (craft && !attr.has("data-crate") && +craft.textContent.split("#")[1] <= 100)
                 frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
-            if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
+            if (attr.has("data-paint-name") && attr.get("data-paint-name") !== attr.get("data-name"))
                 frag.appendChild(createIcon("paint-brush"));
-            if (attr["data-part-1-name"])
+            if (attr.has("data-part-1-name"))
                 frag.appendChild(createIcon("cogs"));
-            if (attr["data-spell-1"])
+            if (attr.has("data-spell-1"))
                 frag.appendChild(createIcon("magic"));
             if (title.contains("Killstreak")) {
                 var colour = "#cd7f32";
@@ -148,7 +147,7 @@
     }
 
     function HTTPRequest(URL, method, callback) {
-        stat.textContent = "Requesting";
+        stat.textContent = "Sending";
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.open(method, URL, callback);
         xmlhttp.onreadystatechange = function() {
@@ -158,10 +157,7 @@
         };
         xmlhttp.onload = function() {
             stat.textContent = "Received";
-            if (callback)
-                callback(xmlhttp.responseText);
-            else
-                return xmlhttp.responseText;
+            return callback ? callback(xmlhttp.responseText) : xmlhttp.responseText;
         };
         xmlhttp.send();
     }
@@ -311,7 +307,7 @@
             addButton("annotate", "Annotate", false);
             addButton("pricediff", "Show Change", false);
             if (document.querySelector(".dropdown-btn").href === document.URL.replace("#", ""))
-                addButton("fastlist", "Direct Listing", false);
+                addButton("fastlist", "Quick Listing", false);
             setTimeout(function() {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                          document.getElementById("newlist").children.length - 1 + " ");
@@ -394,25 +390,25 @@
                     document.getElementById("button_save").click();
                     break;
                 default:
-                    stat.textContent = "Filling";
+                    stat.textContent = "Loading";
                     var attr = getAttr(document.querySelector(".item")),
-                        price = attr["data-price"],
-                        name = attr["data-name"],
-                        title = attr["data-default-name"] || attr["title"],
-                        quality = attr["data-quality"],
-                        qualityN = attr["data-q-name"],
-                        trade = attr["data-tradable"],
-                        craft = attr["data-craftable"],
-                        isAust = attr["data-australium"],
-                        paint = attr["data-paint-name"],
+                        price = attr.get("data-price"),
+                        name = attr.get("data-name"),
+                        title = attr.get("data-default-name") || attr.get("title"),
+                        quality = attr.get("data-quality"),
+                        qualityN = attr.get("data-q-name"),
+                        trade = attr.has("data-tradable"),
+                        craft = attr.has("data-craftable"),
+                        isAust = attr.has("data-australium"),
+                        paint = attr.get("data-paint-name"),
                         isKS = title.contains("Killstreak"),
                         tier = 1,
                         colour;
                     if (!price || isKS) {
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
-                        if (attr["data-market-p"] !== -1)
-                            price = attr["data-market-p"] / refP;
-                    } else if (attr["data-p-bptf"].contains("–"))
+                        if (attr.get("data-market-p") !== -1)
+                            price = attr.get("data-market-p") / refP;
+                    } else if (attr.get("data-p-bptf").contains("–"))
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Ranged)");
                     if (price >= keyP && !name.contains("Key")) {
                         if (price >= keyP * budP && !name.contains("Earbuds")) {
@@ -441,9 +437,9 @@
                         if (!isKS && !paint)
                             url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
                         else if (title.contains("Fabricator"))
-                            url += "Fabricator/Tradable/Craftable/" + attr["data-priceindex"];
+                            url += "Fabricator/Tradable/Craftable/" + attr.get("data-priceindex");
                         else if (title.contains("Kit"))
-                            url += "Kit/Tradable/Non-Craftable/" + attr["data-priceindex"];
+                            url += "Kit/Tradable/Non-Craftable/" + attr.get("data-priceindex");
                         else
                             url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
                                   "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
