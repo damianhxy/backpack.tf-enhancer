@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.0
+// @version             1.6.1.1
 // ==/UserScript==
 
 (function () {
@@ -129,11 +129,11 @@
             if (attr.has("data-spell-1"))
                 frag.appendChild(createIcon("magic"));
             if (title.contains("Killstreak")) {
-                var colour = "#cd7f32";
+                var colour = "darkgoldenrod";
                 if (title.contains("Specialized"))
-                    colour = "#c0c0c0";
+                    colour = "darkgray";
                 else if (title.contains("Professional"))
-                    colour = "#ffd700";
+                    colour = "gold";
                 frag.appendChild(createIcon("bomb", "color: " + colour + "; background-color: white;"));
             }
         }
@@ -393,6 +393,7 @@
                         craft = attr.has("data-craftable"),
                         isAust = attr.has("data-australium"),
                         paint = attr.get("data-paint-name"),
+                        pIndex = attr.get("data-priceindex"),
                         isKS = title.contains("Killstreak"),
                         tier = 1,
                         colour;
@@ -428,10 +429,12 @@
                         var url = "http://backpack.tf/stats/" + qualityN + "/";
                         if (!isKS && !paint)
                             url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
+                        if (qualityN === "Unusual")
+                            url += "/" + pIndex;
                         else if (title.contains("Fabricator"))
-                            url += "Fabricator/Tradable/Craftable/" + attr.get("data-priceindex");
+                            url += "Fabricator/Tradable/Craftable/" + pIndex;
                         else if (title.contains("Kit"))
-                            url += "Kit/Tradable/Non-Craftable/" + attr.get("data-priceindex");
+                            url += "Kit/Tradable/Non-Craftable/" + pIndex;
                         else
                             url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
                                   "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
