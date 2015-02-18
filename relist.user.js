@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.2
+// @version             1.6.1.3
 // ==/UserScript==
 
 (function () {
@@ -391,7 +391,7 @@
         } else if (listPage) {
             switch (document.querySelector(".item-panel > h2").textContent.trim()) {
                 case "Relisting this item":
-                    displayText("Relisting " + sessionStorage.getItem("curItem"), true);
+                    displayText("Relisting Item", true);
                     sessionStorage.removeItem("itmdata-" + document.URL.slice(35));
                     document.getElementById("button_save").click();
                     break;
