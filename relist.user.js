@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.1
+// @version             1.6.1.2
 // ==/UserScript==
 
 (function () {
@@ -46,6 +46,19 @@
         if (content)
             icon.appendChild(document.createTextNode(content));
         return icon;
+    }
+
+    function displayText(msg, spinner) {
+        if (msg)
+            stat.textContent = msg;
+        if (spinner !== undefined) {
+            if (spinner) {
+                icon.className = icon.className.replace("info-circle", "refresh");
+                icon.className += " fa-spin";
+            }
+            else
+                icon.className = icon.className.replace("refresh", "info-circle").replace(" fa-spin", "");
+        }
     }
 
     function getAttr(ele) {
@@ -114,8 +127,8 @@
                     colour = "goldenrod";
                 else if (diff > threshold * 4)
                     colour = "crimson";
-                frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"), "color: " + colour + ";" +
-                                            " background-color: white;"));
+                frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"), "color: " + colour +
+                                            "; background-color: white;"));
             }
         }
         if (annotate) {
@@ -141,16 +154,16 @@
     }
 
     function HTTPRequest(URL, method, callback) {
-        stat.textContent = "Sending";
+        displayText("Sending", true);
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.open(method, URL, callback);
         xmlhttp.onreadystatechange = function() {
-            stat.textContent = "[" + xmlhttp.readyState + ", " + xmlhttp.status + "]";
+            displayText("[" + xmlhttp.readyState + ", " + xmlhttp.status + "]");
             if (xmlhttp.readyState === 4 && xmlhttp.status !== 200)
-                stat.textContent = "Req. Error: " + xmlhttp.status;
+                displayText("Request Error", false);
         };
         xmlhttp.onload = function() {
-            stat.textContent = "Received";
+            displayText("Received", false);
             return callback ? callback(xmlhttp.responseText) : xmlhttp.responseText;
         };
         xmlhttp.send();
@@ -253,7 +266,8 @@
             keyP = +localStorage.getItem("keyP"),
             budP = +localStorage.getItem("budP"),
             lastUpdt = new Date() - Date.parse(localStorage.getItem("lastupdt")),
-            stat = document.createTextNode("");
+            icon = createIcon("info-circle", "border: none");
+            stat = document.createTextNode("Loading");
         /****** END SCRIPT GLOBALS ******/
 
         if (lastUpdt && refP && keyP && budP && lastUpdt < 864e5 * updateFreq || update()) {
@@ -268,8 +282,7 @@
             var info = document.createElement("div");
             info.style = "margin: 2px; width: 150px;";
             info.className = "btn btn-info btn-sm pull-left";
-            info.appendChild(createIcon("info-circle", "border: none;"));
-            info.appendChild(document.createTextNode("Status: "));
+            info.appendChild(icon);
             info.appendChild(stat);
             document.getElementById("#navbar").appendChild(info);
             addButton("paused", "Paused", false, true);
@@ -279,8 +292,9 @@
         if (profile) {
             if (sessionStorage.getItem("mainThread")) {
                 var silent = JSON.parse(sessionStorage.getItem("silent"));
-                stat.textContent = "Interrupted";
+                displayText("Interrupted");
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
+                    displayText(null, true);
                     HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"), "GET",
                         function(e) {
                             var ele = document.createElement("html");
@@ -291,7 +305,7 @@
                                 sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
                             } else if (!silent)
                                 alert("Listing for [" + sessionStorage.getItem("curItem") + "] is valid");
-                            stat.textContent = "Returning";
+                            displayText("Returning", false);
                             return document.querySelector(".fa-tag").click();
                     });
                 }
@@ -309,17 +323,17 @@
                       JSON.parse(sessionStorage.getItem("fastlist")),
                       JSON.parse(sessionStorage.getItem("pricediff")));
             });
-            stat.textContent = "Loaded";
+            displayText("Loaded");
         } else if (listings || listPage) {
             sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
             addButton("reset", "Reset", false);
             if (JSON.parse(sessionStorage.getItem("reset"))) {
                 removeData();
-                stat.textContent = "Resetted";
+                displayText("Resetted");
                 return document.querySelector(".fa-tag").click();
             }
             if (JSON.parse(sessionStorage.getItem("paused"))) {
-                stat.textContent = "Paused";
+                displayText("Paused");
                 return console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
             }
         }
@@ -333,29 +347,29 @@
                     return e.startsWith("itmdata-");
                 });
             if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
-                stat.textContent = "Terminated";
+                displayText("Terminated");
                 return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
             } else if (!localStorage.getItem("threadRunning")) {
                 localStorage.setItem("threadRunning", null);
                 sessionStorage.setItem("mainThread", null);
             } else if (document.querySelector("[class^='alert-']")) {
-                stat.textContent = "Error";
+                displayText("Terminated");
                 sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
             }
             if (trades.length) {
                 var id = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
-                stat.textContent = "Page " + (sessionStorage.getItem("nextPage") - 1);
+                displayText("Relisting Page " + (sessionStorage.getItem("nextPage") - 1), true);
                 sessionStorage.setItem("curItem", id);
                 location.assign("http://backpack.tf/classifieds/add/" + id);
             } else if (buttons.length) {
                 Array.prototype.forEach.call(buttons, function(e) {
                     sessionStorage.setItem("itmdata-" + e.href.slice(35), null);
                 });
-                stat.textContent = "Saved IDs";
+                displayText("Saved IDs", true);
                 sessionStorage.setItem("curItem", buttons[0].href.slice(35));
                 location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
             } else if (first) {
-                stat.textContent = "Jumping";
+                displayText("Jumping to " + sessionStorage.getItem("nextPage"), true);
                 location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
             } else {
                 if (last) {
@@ -367,22 +381,22 @@
                     data.style = "color: orange; float: right;";
                     document.querySelector(".panel-heading").appendChild(data);
                     setInterval(showStatus, 1000);
-                    stat.textContent = "Finished";
+                    displayText("Finished");
                 } else {
                     sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
-                    stat.textContent = "Moving";
+                    displayText("Moving");
                     document.querySelector(".fa-angle-right").click();
                 }
             }
         } else if (listPage) {
             switch (document.querySelector(".item-panel > h2").textContent.trim()) {
                 case "Relisting this item":
-                    stat.textContent = "Relisting";
+                    displayText("Relisting " + sessionStorage.getItem("curItem"), true);
                     sessionStorage.removeItem("itmdata-" + document.URL.slice(35));
                     document.getElementById("button_save").click();
                     break;
                 default:
-                    stat.textContent = "Loading";
+                    displayText("Loading", true);
                     var attr = getAttr(document.querySelector(".item")),
                         price = attr.get("data-price"),
                         name = attr.get("data-name"),
@@ -460,7 +474,7 @@
                             else if (paint)
                                 str += " [Painted " + paint + "]";
                             document.getElementsByClassName("panel-heading")[1].textContent += str;
-                            stat.textContent = "Loaded";
+                            displayText("Loaded", false);
                         });
                     });
             }
@@ -468,7 +482,7 @@
         console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
     } catch(e) {
         if (stat)
-            stat.textContent = "Fatal Error";
+            displayText("Fatal Error");
         alert("[A fatal error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
     }
 })();
