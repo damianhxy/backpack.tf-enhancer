@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.0.9
+// @version             1.6.1.0
 // ==/UserScript==
 
 (function () {
@@ -26,7 +26,6 @@
     function addButton(prop, val, def, clr) {
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
-            text = document.createTextNode(" " + val),
             activated = JSON.parse(sessionStorage.getItem(prop));
         button.style = "margin: 2px; width: 125px;" + (clr ? "" : " clear: both;");
         button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
@@ -36,14 +35,14 @@
             location.reload();
         });
         button.appendChild(createIcon("toggle-" + (activated ? "on" : "off"), "border: none;"));
-        button.appendChild(text);
+        button.appendChild(document.createTextNode(val));
         document.getElementById("#navbar").appendChild(button);
     }
 
     function createIcon(cls, style, content) {
         var icon = document.createElement("i");
         icon.className = "fa fa-" + cls + " fa-inverse fa-border pull-left";
-        icon.style = "border-radius: 50%; " + style;
+        icon.style = "border-radius: 50%;" + (style ? " " + style : "");
         if (content)
             icon.appendChild(document.createTextNode(content));
         return icon;
@@ -59,13 +58,12 @@
 
     function label(ele, annotate, fastlist, change) {
         var frag = document.createDocumentFragment(),
-            attr = getAttr(ele),
-            craft = ele.querySelector(".value");
+            attr = getAttr(ele);
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").style.display = "none";
-            if (craft && !attr.has("data-crate"))
-                craft.style.display = "none";
+            if (ele.querySelector(".value") && !attr.has("data-crate"))
+                ele.querySelector(".value").style.display = "none";
         }
         if (fastlist && document.querySelector(".dropdown-btn").href === document.URL.replace("#", "")) {
             if (!attr.get("data-name").contains("Metal")) {
@@ -305,7 +303,7 @@
             setTimeout(function() {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                          document.getElementById("newlist").children.length - 1 + " ");
-            }, 1e3);
+            }, 1000);
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
                       JSON.parse(sessionStorage.getItem("fastlist")),
@@ -368,7 +366,7 @@
                         reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
                     data.style = "color: orange; float: right;";
                     document.querySelector(".panel-heading").appendChild(data);
-                    setInterval(showStatus, 1e3);
+                    setInterval(showStatus, 1000);
                     stat.textContent = "Finished";
                 } else {
                     sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
