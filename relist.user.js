@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.7
+// @version             1.6.1.8
 // ==/UserScript==
 
 (function () {
@@ -18,8 +18,7 @@
         randomMin = 3,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
-        threshold = 0.22,            //[refined] threshold for price changes
-        notes = localStorage.getItem("notes");
+        threshold = 0.22;            //[refined] threshold for price changes
     /******** END OF SETTINGS *******/
 
     function addButton(prop, val, def, clr) {
@@ -85,25 +84,29 @@
                 link.href = "http://backpack.tf/classifieds/add/" + attr["data-id"];
                 link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
                                             (canRelist || !arr[0] ? "" : " background-color: red;")));
+                if (!canRelist && arr[0])
+                    link.style.display = "none";
                 frag.appendChild(link);
                 if (arr[0]) {
-                    var btn = document.createElement("a"),
-                        rem = createIcon("close", "background-color: red;");
+                    var btn = document.createElement("a");
+                    btn.appendChild(createIcon("close", "background-color: red;"));
                     btn.href = "javascript:void(0)";
-                    rem.addEventListener("click", function() {
+                    btn.addEventListener("click", function() {
                         if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
                         HTTPRequest("/classified/remove/440_" + attr["data-id"], "POST", function(e) {
                             var data = JSON.parse(e);
-                            if (data.success || alert("Error: " + data.error)) {
-                                var link = rem.parentNode.previousElementSibling.firstElementChild;
-                                rem.style.display = "none";
-                                link.style.backgroundColor = "";
+                            if (data.success) {
+                                var link = btn.previousElementSibling.firstElementChild;
+                                btn.style.display = btn.parentNode.nextElementSibling.style.display = "none";
+                                link.parentNode.style.display = link.style.backgroundColor = "";
                                 link.className = link.className.replace("refresh", "plus");
-                                rem.parentNode.parentNode.nextElementSibling.style.display = "none";
+                                displayText("Removed");
+                            } else {
+                                alert("Error: " + data.error)
+                                displayText("Error Removing");
                             }
                         });
                     });
-                    btn.appendChild(rem);
                     frag.appendChild(btn);
                 }
             }
@@ -262,7 +265,8 @@
             budP = +localStorage.getItem("budP"),
             lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0),
             icon = createIcon("info-circle", "border: none"),
-            stat = document.createTextNode("Loading");
+            stat = document.createTextNode("Loading"),
+            notes = localStorage.getItem("notes");
         /****** END SCRIPT GLOBALS ******/
 
         if (refP && keyP && budP && lastUpdt < 864e5 * updateFreq || update()) {
@@ -350,10 +354,8 @@
             } else if (!localStorage.getItem("threadRunning")) {
                 localStorage.setItem("threadRunning", null);
                 sessionStorage.setItem("mainThread", null);
-            } else if (document.querySelector("[class^='alert-']")) {
+            } else if (document.querySelector("[class^='alert-']"))
                 displayText("Terminated");
-                sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
-            }
             if (items.length) {
                 displayText("Relisting Page " + (sessionStorage.getItem("nextPage") - 1), true);
                 sessionStorage.setItem("curItem", last = items.pop());
