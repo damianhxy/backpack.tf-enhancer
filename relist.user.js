@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.4
+// @version             1.6.1.5
 // ==/UserScript==
 
 (function () {
@@ -464,9 +464,9 @@
                             else
                                 hasListings = !ele.querySelector(".media-list .alert-info");
                             if (hasListings) {
-                                var list = ele.querySelectorAll("[data-listing-price]");
-                                var lowest = list[0].getAttribute("data-listing-price");
-                                var highest = list[list.length - 1].getAttribute("data-listing-price");
+                                var list = ele.querySelectorAll("[data-listing-price]"),
+                                    lowest = list[0].getAttribute("data-listing-price"),
+                                    highest = list[list.length - 1].getAttribute("data-listing-price");
                                 str += " (" + lowest + " ~ " + highest + " / " + list.length + " Listings)";
                             } else
                                 str += " (No other listings)";
