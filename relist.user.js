@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.8
+// @version             1.6.1.9
 // ==/UserScript==
 
 (function () {
@@ -155,7 +155,7 @@
         ele.firstElementChild.appendChild(frag);
     }
 
-    function HTTPRequest(URL, method, callback) {
+    function HTTPRequest(method, URL, callback) {
         displayText("Sending", true);
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.open(method, URL, callback);
@@ -226,7 +226,7 @@
             localStorage.removeItem("apikey");
             update();
         }
-        HTTPRequest("http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.getItem("apikey"), "GET", function(e) {
+        HTTPRequest("GET", "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.getItem("apikey"), function(e) {
             var data = JSON.parse(e);
             if (!data.response.success) {
                 if (data.response.message === "API key does not exist.") {
@@ -295,8 +295,7 @@
                 displayText("Interrupted");
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     displayText(null, true);
-                    HTTPRequest("http://backpack.tf/classifieds/add/" + cur, "GET",
-                        function(e) {
+                    HTTPRequest("GET", "http://backpack.tf/classifieds/add/" + cur, function(e) {
                             var ele = document.createElement("html");
                             ele.innerHTML += e;
                             if (ele.querySelector(".avatar")) {
@@ -434,7 +433,7 @@
                         else if (title.contains("Professional"))
                             tier = 3;
                     }
-                    HTTPRequest("/pages/filter_meta", "GET", function(e) {
+                    HTTPRequest("GET", "/pages/filter_meta", function(e) {
                         var data = JSON.parse(e);
                         if (paint)
                             Array.prototype.some.call(data.paint, function(e) {
@@ -454,7 +453,7 @@
                             url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
                                   "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
                                   "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
-                        HTTPRequest(url, "GET", function(e) {
+                        HTTPRequest("GET", url, function(e) {
                             var ele = document.createElement("html"),
                                 hasListings,
                                 str = "";
