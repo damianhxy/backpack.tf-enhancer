@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.6
+// @version             1.6.1.7
 // ==/UserScript==
 
 (function () {
@@ -62,9 +62,9 @@
     }
 
     function getAttr(ele) {
-        var attr = new Map();
+        var attr = {};
         Array.prototype.forEach.call(ele.attributes, function(e) {
-            attr.set(e.name, isNaN(+e.value) ? e.value : +e.value);
+            attr[e.name] = isNaN(+e.value) ? e.value : e.value;
         });
         return attr;
     }
@@ -75,15 +75,15 @@
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").style.display = "none";
-            if (ele.querySelector(".value") && !attr.has("data-crate"))
+            if (ele.querySelector(".value") && !attr["data-crate"])
                 ele.querySelector(".value").style.display = "none";
         }
         if (fastlist && document.querySelector(".dropdown-btn").href === document.URL.replace("#", "")) {
-            if (!attr.get("data-name").contains("Metal")) {
-                var arr = (attr.get("data-listing-date") || "").split(" "),
+            if (!attr["data-name"].contains("Metal")) {
+                var arr = (attr["data-listing-date"] || "").split(" "),
                     canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour"),
                     link = document.createElement("a");
-                link.href = "http://backpack.tf/classifieds/add/" + attr.get("data-id");
+                link.href = "http://backpack.tf/classifieds/add/" + attr["data-id"];
                 link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
                                             (canRelist || !arr[0] ? "" : " background-color: red;")));
                 frag.appendChild(link);
@@ -93,7 +93,7 @@
                     btn.href = "javascript:void(0)";
                     rem.addEventListener("click", function() {
                         if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
-                        HTTPRequest("/classified/remove/440_" + attr.get("data-id"), "POST", function(e) {
+                        HTTPRequest("/classified/remove/440_" + attr["data-id"], "POST", function(e) {
                             var data = JSON.parse(e);
                             if (data.success || alert("Error: " + data.error)) {
                                 var link = rem.parentNode.previousElementSibling.firstElementChild;
@@ -108,18 +108,18 @@
                     frag.appendChild(btn);
                 }
             }
-            if (attr.has("data-gifted-name")) {
+            if (attr["data-gifted-name"]) {
                 ele.querySelector(".fa-gift").style.display = "none";
                 frag.appendChild(createIcon("gift"));
             }
         }
-        if (change && attr.has("data-listing-price")) {
-            if (ele.querySelector(".value") && !attr.has("data-crate"))
+        if (change && attr["data-listing-price"]) {
+            if (ele.querySelector(".value") && !attr["data-crate"])
                 ele.querySelector(".value").style.display = "none";
-            var curP = attr.get("data-price"),
-                listP = parsePrice(attr.get("data-listing-price")),
+            var curP = attr["data-price"],
+                listP = parsePrice(attr["data-listing-price"]),
                 diff = Math.abs(curP - listP);
-            if (!curP || attr.get("title").contains("Killstreak"))
+            if (!curP || attr["title"].contains("Killstreak"))
                 frag.appendChild(createIcon("question", "color: goldenrod; background-color: white;"));
             else if (diff >= threshold) {
                 var colour = "lime";
@@ -132,14 +132,14 @@
             }
         }
         if (annotate) {
-            var title = attr.get("data-default-name") || attr.get("title");
-            if (craft && !attr.has("data-crate") && +craft.textContent.split("#")[1] <= 100)
+            var title = attr["data-default-name"] || attr["title"];
+            if (craft && !attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
                 frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
-            if (attr.has("data-paint-name") && attr.get("data-paint-name") !== attr.get("data-name"))
+            if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
                 frag.appendChild(createIcon("paint-brush"));
-            if (attr.has("data-part-1-name"))
+            if (attr["data-part-1-name"])
                 frag.appendChild(createIcon("cogs"));
-            if (attr.has("data-spell-1"))
+            if (attr["data-spell-1"])
                 frag.appendChild(createIcon("magic"));
             if (title.contains("Killstreak")) {
                 var colour = "darkgoldenrod";
@@ -191,19 +191,15 @@
 
     function removeData() {
         localStorage.removeItem("threadRunning");
-        ["reset", "mainThread", "curItem", "nextPage", "paused"].forEach(function(e) {
+        ["reset", "mainThread", "curItem", "nextPage", "paused", "toList"].forEach(function(e) {
             sessionStorage.removeItem(e);
-        });
-        Object.keys(sessionStorage).forEach(function(e) {
-            if (e.startsWith("itmdata-"))
-                sessionStorage.removeItem(e);
         });
     }
 
     function round(num) {
         if (num <= 5 / 90)
             return num;
-        return Math.floor(num) + Math.ceil(num % 1 * 9 - 1e-14) / 9;
+        return Math.floor(num) + Math.round(num % 1 * 9) / 9;
     }
 
     function showStatus() {
@@ -252,7 +248,7 @@
                 if (!sessionStorage.getItem("mainThread"))
                     alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
                           ", Earbuds: " + b + " Keys " + bDiff);
-                localStorage.setItem("lastupdt", new Date());
+                localStorage.setItem("lastupdt", Date.now());
                 return location.reload();
         });
     }
@@ -265,7 +261,7 @@
             refP = +localStorage.getItem("refP"),
             keyP = +localStorage.getItem("keyP"),
             budP = +localStorage.getItem("budP"),
-            lastUpdt = new Date() - Date.parse(localStorage.getItem("lastupdt")) || 0,
+            lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0),
             icon = createIcon("info-circle", "border: none"),
             stat = document.createTextNode("Loading");
         /****** END SCRIPT GLOBALS ******/
@@ -291,20 +287,24 @@
 
         if (profile) {
             if (sessionStorage.getItem("mainThread")) {
-                var silent = JSON.parse(sessionStorage.getItem("silent"));
+                var silent = JSON.parse(sessionStorage.getItem("silent")),
+                    cur = sessionStorage.getItem("curItem");
                 displayText("Interrupted");
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     displayText(null, true);
-                    HTTPRequest("http://backpack.tf/classifieds/add/" + sessionStorage.getItem("curItem"), "GET",
+                    HTTPRequest("http://backpack.tf/classifieds/add/" + cur, "GET",
                         function(e) {
                             var ele = document.createElement("html");
                             ele.innerHTML += e;
                             if (ele.querySelector(".avatar")) {
                                 if (!silent)
-                                    alert("Listing for [" + sessionStorage.getItem("curItem") + "] is invalid");
-                                sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
-                            } else if (!silent)
-                                alert("Listing for [" + sessionStorage.getItem("curItem") + "] is valid");
+                                    alert("Listing for [" + cur + "] is invalid");
+                            } else if (!silent) {
+                                alert("Listing for [" + cur + "] is valid");
+                                var listings = JSON.parse(sessionStorage.getItem("toList"));
+                                listings.push(cur);
+                                sessionStorage.setItem("toList", JSON.stringify(listings));
+                            }
                             displayText("Returning", false);
                             return document.querySelector(".fa-tag").click();
                     });
@@ -343,9 +343,7 @@
                 first = onePg || document.querySelector(".pagination-filters > li:first-child").className === "disabled",
                 last = onePg || document.querySelector(".pagination-filters > li:last-child").className === "disabled",
                 buttons = document.getElementsByClassName("listing-relist"),
-                trades = Object.keys(sessionStorage).filter(function(e) {
-                    return e.startsWith("itmdata-");
-                });
+                items = JSON.parse(sessionStorage.getItem("toList")) || [];
             if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
                 displayText("Terminated");
                 return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
@@ -356,18 +354,24 @@
                 displayText("Terminated");
                 sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
             }
-            if (trades.length) {
-                var id = trades[randomRelist ? range(0, trades.length - 1) : 0].slice(8);
+            if (items.length) {
+                var index = randomRelist ? range(0, items.length - 1) : 0,
+                    item = items[index];
                 displayText("Relisting Page " + (sessionStorage.getItem("nextPage") - 1), true);
-                sessionStorage.setItem("curItem", id);
-                location.assign("http://backpack.tf/classifieds/add/" + id);
+                sessionStorage.setItem("curItem", item);
+                items.splice(index, 1);
+                sessionStorage.setItem("toList", JSON.stringify(items));
+                location.assign("http://backpack.tf/classifieds/add/" + item);
             } else if (buttons.length) {
-                Array.prototype.forEach.call(buttons, function(e) {
-                    sessionStorage.setItem("itmdata-" + e.href.slice(35), null);
+                var items = [];
+                Array.prototype.forEach.call(buttons, function(e,) {
+                    items.push(e.href.slice(35));
                 });
+                items.shift();
+                sessionStorage.setItem("toList", JSON.stringify(items));
+                sessionStorage.setItem("curItem", items[0]);
                 displayText("Saved IDs", true);
-                sessionStorage.setItem("curItem", buttons[0].href.slice(35));
-                location.assign("http://backpack.tf/classifieds/add/" + buttons[0].href.slice(35));
+                location.assign("http://backpack.tf/classifieds/add/" + items[0]);
             } else if (first) {
                 displayText("Jumping to " + sessionStorage.getItem("nextPage"), true);
                 location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
@@ -392,30 +396,29 @@
             switch (document.querySelector(".item-panel > h2").textContent.trim()) {
                 case "Relisting this item":
                     displayText("Relisting Item", true);
-                    sessionStorage.removeItem("itmdata-" + document.URL.slice(35));
                     document.getElementById("button_save").click();
                     break;
                 default:
                     displayText("Loading");
                     var attr = getAttr(document.querySelector(".item")),
-                        price = attr.get("data-price"),
-                        name = attr.get("data-name"),
-                        title = attr.get("data-default-name") || attr.get("title"),
-                        quality = attr.get("data-quality"),
-                        qualityN = attr.get("data-q-name"),
-                        trade = attr.has("data-tradable"),
-                        craft = attr.has("data-craftable"),
-                        isAust = attr.has("data-australium"),
-                        paint = attr.get("data-paint-name"),
-                        pIndex = attr.get("data-priceindex"),
+                        price = attr["data-price"],
+                        name = attr["data-name"],
+                        title = attr["data-default-name"] || attr["title"],
+                        quality = attr["data-quality"],
+                        qualityN = attr["data-q-name"],
+                        trade = attr["data-tradable"],
+                        craft = attr["data-craftable"],
+                        isAust = attr["data-australium"],
+                        paint = attr["data-paint-name"],
+                        pIndex = attr["data-priceindex"],
                         isKS = title.contains("Killstreak"),
                         tier = 1,
                         colour = 0;
                     if (!price || isKS) {
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
-                        if (attr.get("data-market-p") !== -1)
-                            price = attr.get("data-market-p") / refP;
-                    } else if (attr.get("data-p-bptf").contains("–"))
+                        if (attr["data-market-p"] !== -1)
+                            price = attr["data-market-p"] / refP;
+                    } else if (attr["data-p-bptf"].contains("–"))
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Ranged)");
                     if (price >= keyP && !name.contains("Key")) {
                         if (price >= keyP * budP && !name.contains("Earbuds")) {
