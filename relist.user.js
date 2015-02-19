@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.3
+// @version             1.6.1.4
 // ==/UserScript==
 
 (function () {
@@ -396,7 +396,7 @@
                     document.getElementById("button_save").click();
                     break;
                 default:
-                    displayText("Loading", true);
+                    displayText("Loading");
                     var attr = getAttr(document.querySelector(".item")),
                         price = attr.get("data-price"),
                         name = attr.get("data-name"),
@@ -410,7 +410,7 @@
                         pIndex = attr.get("data-priceindex"),
                         isKS = title.contains("Killstreak"),
                         tier = 1,
-                        colour;
+                        colour = 0;
                     if (!price || isKS) {
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
                         if (attr.get("data-market-p") !== -1)
@@ -441,10 +441,11 @@
                                 return e.name === paint ? colour = e.id : false;
                             });
                         var url = "http://backpack.tf/stats/" + qualityN + "/";
-                        if (!isKS && !paint)
+                        if (!isKS && !paint) {
                             url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
-                        if (qualityN === "Unusual")
-                            url += "/" + pIndex;
+                            if (qualityN === "Unusual")
+                                url += "/" + pIndex;
+                        }
                         else if (title.contains("Fabricator"))
                             url += "Fabricator/Tradable/Craftable/" + pIndex;
                         else if (title.contains("Kit"))
@@ -463,9 +464,9 @@
                             else
                                 hasListings = !ele.querySelector(".media-list .alert-info");
                             if (hasListings) {
-                                var list = ele.querySelectorAll("[data-listing-price]"),
-                                    lowest = list[0].getAttribute("data-listing-price"),
-                                    highest = list[list.length - 1].getAttribute("data-listing-price");
+                                var list = ele.querySelectorAll("[data-listing-price]");
+                                var lowest = list[0].getAttribute("data-listing-price");
+                                var highest = list[list.length - 1].getAttribute("data-listing-price");
                                 str += " (" + lowest + " ~ " + highest + " / " + list.length + " Listings)";
                             } else
                                 str += " (No other listings)";
