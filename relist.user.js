@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.5
+// @version             1.6.1.6
 // ==/UserScript==
 
 (function () {
@@ -265,12 +265,12 @@
             refP = +localStorage.getItem("refP"),
             keyP = +localStorage.getItem("keyP"),
             budP = +localStorage.getItem("budP"),
-            lastUpdt = new Date() - Date.parse(localStorage.getItem("lastupdt")),
-            icon = createIcon("info-circle", "border: none");
+            lastUpdt = new Date() - Date.parse(localStorage.getItem("lastupdt")) || 0,
+            icon = createIcon("info-circle", "border: none"),
             stat = document.createTextNode("Loading");
         /****** END SCRIPT GLOBALS ******/
 
-        if (lastUpdt && refP && keyP && budP && lastUpdt < 864e5 * updateFreq || update()) {
+        if (refP && keyP && budP && lastUpdt < 864e5 * updateFreq || update()) {
             var diff = 864e5 * updateFreq - lastUpdt,
                 days = Math.floor(diff / 864e5),
                 hours = Math.floor((diff % 864e5) / 36e5),
