@@ -14,7 +14,6 @@
 (function () {
     /*********** SETTINGS ***********/
     var randomTime = 1,              //[boolean] random reload time?
-        randomRelist = 1,            //[boolean] random item relisted?
         defaultTime = 5,             //[minutes] default reload time
         randomMin = 3,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
@@ -339,11 +338,12 @@
         }
 
         if (listings) {
-            var onePg = !document.querySelector(".pagination-filters"),
-                first = onePg || document.querySelector(".pagination-filters > li:first-child").className === "disabled",
-                last = onePg || document.querySelector(".pagination-filters > li:last-child").className === "disabled",
+            var single = !document.querySelector(".pagination-filters"),
+                first = single || document.querySelector(".pagination-filters > li:first-child").className === "disabled",
+                last = single || document.querySelector(".pagination-filters > li:last-child").className === "disabled",
                 buttons = document.getElementsByClassName("listing-relist"),
-                items = JSON.parse(sessionStorage.getItem("toList")) || [];
+                items = JSON.parse(sessionStorage.getItem("toList")) || [],
+                last;
             if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
                 displayText("Terminated");
                 return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
@@ -355,23 +355,18 @@
                 sessionStorage.removeItem("itmdata-" + sessionStorage.getItem("curItem"));
             }
             if (items.length) {
-                var index = randomRelist ? range(0, items.length - 1) : 0,
-                    item = items[index];
                 displayText("Relisting Page " + (sessionStorage.getItem("nextPage") - 1), true);
-                sessionStorage.setItem("curItem", item);
-                items.splice(index, 1);
+                sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
-                location.assign("http://backpack.tf/classifieds/add/" + item);
+                location.assign("http://backpack.tf/classifieds/add/" + last);
             } else if (buttons.length) {
-                var items = [];
-                Array.prototype.forEach.call(buttons, function(e,) {
+                Array.prototype.forEach.call(buttons, function(e) {
                     items.push(e.href.slice(35));
                 });
-                items.shift();
+                sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
-                sessionStorage.setItem("curItem", items[0]);
                 displayText("Saved IDs", true);
-                location.assign("http://backpack.tf/classifieds/add/" + items[0]);
+                location.assign("http://backpack.tf/classifieds/add/" + last);
             } else if (first) {
                 displayText("Jumping to " + sessionStorage.getItem("nextPage"), true);
                 location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
