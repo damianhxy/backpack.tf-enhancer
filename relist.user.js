@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.1.9
+// @version             1.6.2.0
 // ==/UserScript==
 
 (function () {
@@ -62,7 +62,7 @@
     function getAttr(ele) {
         var attr = {};
         Array.prototype.forEach.call(ele.attributes, function(e) {
-            attr[e.name] = isNaN(+e.value) ? e.value : e.value;
+            attr[e.name] = isNaN(+e.value) ? e.value : +e.value;
         });
         return attr;
     }
@@ -93,7 +93,7 @@
                     btn.href = "javascript:void(0)";
                     btn.addEventListener("click", function() {
                         if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
-                        HTTPRequest("/classified/remove/440_" + attr["data-id"], "POST", function(e) {
+                        HTTPRequest("POST", "/classified/remove/440_" + attr["data-id"], function(e) {
                             var data = JSON.parse(e);
                             if (data.success) {
                                 var link = btn.previousElementSibling.firstElementChild;
@@ -102,7 +102,7 @@
                                 link.className = link.className.replace("refresh", "plus");
                                 displayText("Removed");
                             } else {
-                                alert("Error: " + data.error)
+                                alert("Error: " + data.error);
                                 displayText("Error Removing");
                             }
                         });
@@ -122,7 +122,7 @@
                 listP = parsePrice(attr["data-listing-price"]),
                 diff = Math.abs(curP - listP);
             if (!curP || attr["title"].contains("Killstreak"))
-                frag.appendChild(createIcon("question", "color: goldenrod; background-color: white;"));
+                frag.appendChild(createIcon("question", "color: blueviolet; background-color: white;"));
             else if (diff >= threshold) {
                 var colour = "lime";
                 if (diff >= threshold * 2 && diff <= threshold * 4)
@@ -343,7 +343,7 @@
         if (listings) {
             var single = !document.querySelector(".pagination-filters"),
                 first = single || document.querySelector(".pagination-filters > li:first-child").className === "disabled",
-                last = single || document.querySelector(".pagination-filters > li:last-child").className === "disabled",
+                end = single || document.querySelector(".pagination-filters > li:last-child").className === "disabled",
                 buttons = document.getElementsByClassName("listing-relist"),
                 items = JSON.parse(sessionStorage.getItem("toList")) || [],
                 last;
@@ -372,7 +372,7 @@
                 displayText("Jumping to " + sessionStorage.getItem("nextPage"), true);
                 location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
             } else {
-                if (last) {
+                if (end) {
                     localStorage.removeItem("threadRunning");
                     sessionStorage.removeItem("mainThread");
                     sessionStorage.removeItem("nextPage");
