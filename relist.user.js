@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.2.3
+// @version             1.6.2.4
 // ==/UserScript==
 
 (function () {
@@ -27,7 +27,7 @@
             activated = JSON.parse(sessionStorage.getItem(prop));
         button.style = "margin: 2px; width: 125px;" + (clr ? "" : " clear: both;");
         button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
-        button.addEventListener("click", function() {
+        button.addEventListener("click", () => {
             window.stop();
             sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
             location.reload();
@@ -70,9 +70,7 @@
 
     function getAttr(ele) {
         var attr = {};
-        Array.prototype.forEach.call(ele.attributes, function(e) {
-            attr[e.name] = isNaN(+e.value) ? e.value : +e.value;
-        });
+        Array.prototype.forEach.call(ele.attributes, e => attr[e.name] = isNaN(+e.value) ? e.value : +e.value);
         return attr;
     }
 
@@ -100,9 +98,9 @@
                     var btn = document.createElement("a");
                     btn.appendChild(createIcon("close", "background-color: red;"));
                     btn.href = "javascript:void(0)";
-                    btn.addEventListener("click", function() {
+                    btn.addEventListener("click", () => {
                         if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
-                        HTTPRequest("POST", "/classified/remove/440_" + attr["data-id"], function(e) {
+                        HTTPRequest("POST", "/classified/remove/440_" + attr["data-id"], e => {
                             var data = JSON.parse(e);
                             if (data.success) {
                                 var link = btn.previousElementSibling.firstElementChild;
@@ -185,7 +183,7 @@
             bud = 0,
             key = 0,
             ref = 0;
-        arr.forEach(function(e, i) {
+        arr.forEach((e, i) => {
             if (e.contains("ref"))
                 ref = +arr[i - 1];
             else if (e.contains("key"))
@@ -202,9 +200,7 @@
 
     function removeData() {
         localStorage.removeItem("threadRunning");
-        ["reset", "mainThread", "curItem", "nextPage", "paused", "toList"].forEach(function(e) {
-            sessionStorage.removeItem(e);
-        });
+        ["reset", "mainThread", "curItem", "nextPage", "paused", "toList"].forEach(e => sessionStorage.removeItem(e));
     }
 
     function round(num) {
@@ -236,7 +232,7 @@
             localStorage.removeItem("apikey");
             update();
         }
-        HTTPRequest("GET", "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.getItem("apikey"), function(e) {
+        HTTPRequest("GET", "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.getItem("apikey"), e => {
             var data = JSON.parse(e);
             if (!data.response.success) {
                 if (data.response.message === "API key does not exist.") {
@@ -305,7 +301,7 @@
                 displayText("Interrupted");
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     displayText(null, true);
-                    HTTPRequest("GET", "http://backpack.tf/classifieds/add/" + cur, function(e) {
+                    HTTPRequest("GET", "http://backpack.tf/classifieds/add/" + cur, e => {
                             var ele = document.createElement("html");
                             ele.innerHTML += e;
                             if (ele.querySelector(".avatar")) {
@@ -332,7 +328,7 @@
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                          document.getElementById("newlist").children.length - 1 + " ");
             });
-            Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
+            Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
                       JSON.parse(sessionStorage.getItem("fastlist")),
                       JSON.parse(sessionStorage.getItem("pricediff")));
@@ -373,9 +369,7 @@
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 location.assign("http://backpack.tf/classifieds/add/" + last);
             } else if (buttons.length) {
-                Array.prototype.forEach.call(buttons, function(e) {
-                    items.push(e.href.slice(35));
-                });
+                Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(35)));
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 displayText("Saved IDs", true);
@@ -445,12 +439,10 @@
                         else if (title.contains("Professional"))
                             tier = 3;
                     }
-                    HTTPRequest("GET", "/pages/filter_meta", function(e) {
+                    HTTPRequest("GET", "/pages/filter_meta", e => {
                         var data = JSON.parse(e);
                         if (paint)
-                            colour = data.paint.find(function(e) {
-                                return e.name === paint;
-                            }).id;
+                            colour = data.paint.find(e => e.name === paint).id;
                         var url = "http://backpack.tf/stats/" + qualityN + "/";
                         if (!isKS && !paint) {
                             url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
@@ -465,7 +457,7 @@
                             url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
                                   "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
                                   "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
-                        HTTPRequest("GET", url, function(e) {
+                        HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
                                 hasListings,
                                 str = "";
