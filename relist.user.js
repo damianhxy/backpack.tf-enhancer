@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.2.4
+// @version             1.6.2.5
 // ==/UserScript==
 
 (function () {
@@ -41,7 +41,7 @@
         if (predicate())
             callback();
         else
-            setTimeout(function() {
+            setTimeout(() => {
                 check(predicate, callback)
             }, 500);
     }
@@ -166,12 +166,12 @@
         displayText("Sending", true);
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.open(method, URL, callback);
-        xmlhttp.onreadystatechange = function() {
+        xmlhttp.onreadystatechange = () => {
             displayText("[" + xmlhttp.readyState + ", " + xmlhttp.status + "]");
             if (xmlhttp.readyState === 4 && xmlhttp.status !== 200)
                 displayText("Request Error", false);
         };
-        xmlhttp.onload = function() {
+        xmlhttp.onload = () => {
             displayText("Received", false);
             return callback ? callback(xmlhttp.responseText) : xmlhttp.responseText;
         };
@@ -322,9 +322,9 @@
             addButton("pricediff", "Show Change", false);
             if (document.querySelector(".dropdown-btn").href === document.URL.replace("#", ""))
                 addButton("fastlist", "Quick Listing", false);
-            check(function() {
+            check(() => {
                 return document.getElementsByClassName("pagenum").length;
-            }, function() {
+            }, () => {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                          document.getElementById("newlist").children.length - 1 + " ");
             });
