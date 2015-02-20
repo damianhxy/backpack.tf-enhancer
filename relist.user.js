@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.2.2
+// @version             1.6.2.3
 // ==/UserScript==
 
 (function () {
@@ -35,6 +35,15 @@
         button.appendChild(createIcon("toggle-" + (activated ? "on" : "off"), "border: none;"));
         button.appendChild(document.createTextNode(val));
         document.getElementById("#navbar").appendChild(button);
+    }
+
+    function check(predicate, callback) {
+        if (predicate())
+            callback();
+        else
+            setTimeout(function() {
+                check(predicate, callback)
+            }, 500);
     }
 
     function createIcon(cls, style, content) {
@@ -317,10 +326,12 @@
             addButton("pricediff", "Show Change", false);
             if (document.querySelector(".dropdown-btn").href === document.URL.replace("#", ""))
                 addButton("fastlist", "Quick Listing", false);
-            setTimeout(function() {
+            check(function() {
+                return document.getElementsByClassName("pagenum").length;
+            }, function() {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                          document.getElementById("newlist").children.length - 1 + " ");
-            }, 1000);
+            });
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), function(e) {
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
                       JSON.parse(sessionStorage.getItem("fastlist")),
