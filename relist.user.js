@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.2.1
+// @version             1.6.2.2
 // ==/UserScript==
 
 (function () {
@@ -437,9 +437,9 @@
                     HTTPRequest("GET", "/pages/filter_meta", function(e) {
                         var data = JSON.parse(e);
                         if (paint)
-                            Array.prototype.some.call(data.paint, function(e) {
-                                return e.name === paint ? colour = e.id : false;
-                            });
+                            colour = data.paint.find(function(e) {
+                                return e.name === paint;
+                            }).id;
                         var url = "http://backpack.tf/stats/" + qualityN + "/";
                         if (!isKS && !paint) {
                             url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
