@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.2.8
+// @version             1.6.2.9
 // ==/UserScript==
 
 (function () {
@@ -330,7 +330,7 @@
                 return document.getElementsByClassName("pagenum").length;
             }, () => {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                         document.getElementById("newlist").children.length - 1 + " ");
+                         document.getElementById("newlist").childElementCount - 1 + " ");
             });
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
