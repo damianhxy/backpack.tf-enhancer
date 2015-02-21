@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.2.7
+// @version             1.6.2.8
 // ==/UserScript==
 
 (function () {
@@ -26,7 +26,7 @@
         var button = document.createElement("a"),
             activated = JSON.parse(sessionStorage.getItem(prop));
         button.style = "margin: 2px; width: 125px;" + (clr ? "" : " clear: both;");
-        button.className = "btn btn-" + (activated ? "success" : "danger") + " btn-sm pull-right";
+        button.classList.add("btn", "btn-" + (activated ? "success" : "danger"), "btn-sm", "pull-right");
         button.addEventListener("click", () => {
             window.stop();
             sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
@@ -48,7 +48,7 @@
 
     function createIcon(cls, style, content) {
         var icon = document.createElement("i");
-        icon.className = "fa fa-" + cls + " fa-inverse fa-border pull-left";
+        icon.classList.add("fa", "fa-" + cls, "fa-inverse", "fa-border", "pull-left");
         icon.style = "border-radius: 50%;" + (style ? " " + style : "");
         if (content)
             icon.appendChild(document.createTextNode(content));
@@ -59,10 +59,9 @@
         if (msg)
             stat.textContent = msg;
         if (spinner !== undefined) {
-            var rep = ["info-circle", "refresh fa-spin "];
-            if (!spinner)
-                rep.push(rep.shift());
-            icon.className = icon.className.replace(...rep);
+            icon.classList.toggle("fa-info-circle", !spinner);
+            icon.classList.toggle("fa-refresh", spinner);
+            icon.classList.toggle("fa-spin", spinner);
         }
     }
 
@@ -104,7 +103,8 @@
                                 var link = btn.previousElementSibling.firstElementChild;
                                 btn.style.display = btn.parentNode.nextElementSibling.style.display = "none";
                                 link.parentNode.style.display = link.style.backgroundColor = "";
-                                link.className = link.className.replace("refresh", "plus");
+                                link.classList.remove("fa-refresh");
+                                link.classList.add("fa-plus");
                                 displayText("Removed");
                             } else {
                                 alert("Error: " + data.error);
@@ -284,7 +284,7 @@
         if (profile || listings || listPage) {
             var info = document.createElement("div");
             info.style = "margin: 2px; width: 150px;";
-            info.className = "btn btn-info btn-sm pull-left";
+            info.classList.add("btn", "btn-info", "btn-sm", "pull-left");
             info.appendChild(icon);
             info.appendChild(stat);
             info.addEventListener("click", () => {
