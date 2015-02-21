@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.2.5
+// @version             1.6.2.6
 // ==/UserScript==
 
 (function () {
@@ -42,7 +42,7 @@
             callback();
         else
             setTimeout(() => {
-                check(predicate, callback)
+                check(predicate, callback);
             }, 500);
     }
 
@@ -200,13 +200,13 @@
 
     function removeData() {
         localStorage.removeItem("threadRunning");
-        ["reset", "mainThread", "curItem", "nextPage", "paused", "toList"].forEach(e => sessionStorage.removeItem(e));
+        ["mainThread", "curItem", "nextPage", "paused", "toList"].forEach(e => sessionStorage.removeItem(e));
     }
 
     function round(num) {
         if (num <= 5 / 90)
             return num;
-        num += num * 10 % 1 / 90
+        num += num * 10 % 1 / 90;
         return Math.floor(num) + Math.round((num % 1 * 9).toFixed(2)) / 9;
     }
 
@@ -289,6 +289,12 @@
             info.className = "btn btn-info btn-sm pull-left";
             info.appendChild(icon);
             info.appendChild(stat);
+            info.addEventListener("click", () => {
+                if (!confirm("Are you sure?")) return;
+                removeData();
+                displayText("Resetted");
+                location.reload();
+            });
             document.getElementById("#navbar").appendChild(info);
             addButton("paused", "Paused", false, true);
             addButton("silent", "Silent", false);
@@ -336,12 +342,6 @@
             displayText("Loaded");
         } else if (listings || listPage) {
             sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
-            addButton("reset", "Reset", false);
-            if (JSON.parse(sessionStorage.getItem("reset"))) {
-                removeData();
-                displayText("Resetted");
-                return document.querySelector(".fa-tag").click();
-            }
             if (JSON.parse(sessionStorage.getItem("paused"))) {
                 displayText("Paused");
                 return console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
