@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.2.6
+// @version             1.6.2.7
 // ==/UserScript==
 
 (function () {
@@ -59,12 +59,10 @@
         if (msg)
             stat.textContent = msg;
         if (spinner !== undefined) {
-            if (spinner) {
-                icon.className = icon.className.replace("info-circle", "refresh");
-                icon.className += " fa-spin";
-            }
-            else
-                icon.className = icon.className.replace("refresh", "info-circle").replace(" fa-spin", "");
+            var rep = ["info-circle", "refresh fa-spin "];
+            if (!spinner)
+                rep.push(rep.shift());
+            icon.className = icon.className.replace(...rep);
         }
     }
 
