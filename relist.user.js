@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.2.9
+// @version             1.6.3.0
 // ==/UserScript==
 
 (function () {
@@ -25,14 +25,14 @@
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
             activated = JSON.parse(sessionStorage.getItem(prop));
-        button.style = "margin: 2px; width: 125px;" + (clr ? "" : " clear: both;");
-        button.classList.add("btn", "btn-" + (activated ? "success" : "danger"), "btn-sm", "pull-right");
+        button.style = `margin: 2px; width: 125px;${clr ? "" : " clear: both;"}`;
+        button.classList.add("btn", `btn-${activated ? "success" : "danger"}`, "btn-sm", "pull-right");
         button.addEventListener("click", () => {
             window.stop();
             sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
             location.reload();
         });
-        button.appendChild(createIcon("toggle-" + (activated ? "on" : "off"), "border: none;"));
+        button.appendChild(createIcon(`toggle-${activated ? "on" : "off"}`, "border: none;"));
         button.appendChild(document.createTextNode(val));
         document.getElementById("#navbar").appendChild(button);
     }
@@ -48,8 +48,8 @@
 
     function createIcon(cls, style, content) {
         var icon = document.createElement("i");
-        icon.classList.add("fa", "fa-" + cls, "fa-inverse", "fa-border", "pull-left");
-        icon.style = "border-radius: 50%;" + (style ? " " + style : "");
+        icon.classList.add("fa", `fa-${cls}`, "fa-inverse", "fa-border", "pull-left");
+        icon.style = `border-radius: 50%;${style ? " " + style : ""}`;
         if (content)
             icon.appendChild(document.createTextNode(content));
         return icon;
@@ -73,12 +73,13 @@
 
     function label(ele, annotate, fastlist, change) {
         var frag = document.createDocumentFragment(),
-            attr = getAttr(ele);
+            attr = getAttr(ele),
+            craft = ele.querySelector(".value");
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").style.display = "none";
-            if (ele.querySelector(".value") && !attr["data-crate"])
-                ele.querySelector(".value").style.display = "none";
+            if (craft && !attr["data-crate"])
+                craft.style.display = "none";
         }
         if (fastlist && document.querySelector(".dropdown-btn").href === document.URL.replace("#", "")) {
             if (!attr["data-name"].contains("Metal")) {
@@ -97,7 +98,7 @@
                     btn.href = "javascript:void(0)";
                     btn.addEventListener("click", () => {
                         if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
-                        HTTPRequest("POST", "/classified/remove/440_" + attr["data-id"], e => {
+                        HTTPRequest("POST", `/classified/remove/440_${attr["data-id"]}`, e => {
                             var data = JSON.parse(e);
                             if (data.success) {
                                 var link = btn.previousElementSibling.firstElementChild;
@@ -134,13 +135,13 @@
                     colour = "goldenrod";
                 else if (diff > threshold * 4)
                     colour = "crimson";
-                frag.appendChild(createIcon("level-" + (curP > listP ? "up" : "down"), "color: " + colour +
+                frag.appendChild(createIcon(`level-${curP > listP ? "up" : "down"}`, `color: ${colour}` +
                                             "; background-color: white;"));
             }
         }
         if (annotate) {
             var title = attr["data-default-name"] || attr["title"];
-            if (craft && !attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
+            if (craft.style.display === "none" && +craft.textContent.split("#")[1] <= 100)
                 frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
             if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
                 frag.appendChild(createIcon("paint-brush"));
@@ -154,7 +155,7 @@
                     colour = "darkgray";
                 else if (title.contains("Professional"))
                     colour = "gold";
-                frag.appendChild(createIcon("bomb", "color: " + colour + "; background-color: white;"));
+                frag.appendChild(createIcon("bomb", `color: ${colour}` + "; background-color: white;"));
             }
         }
         ele.firstElementChild.appendChild(frag);
@@ -165,7 +166,7 @@
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.open(method, URL, callback);
         xmlhttp.onreadystatechange = () => {
-            displayText("[" + xmlhttp.readyState + ", " + xmlhttp.status + "]");
+            displayText(`[${xmlhttp.readyState}, ${xmlhttp.status}]`);
             if (xmlhttp.readyState === 4 && xmlhttp.status !== 200)
                 displayText("Request Error", false);
         };
@@ -212,8 +213,8 @@
         if (reloadTime) {
             var min = Math.floor(reloadTime / 60),
                 sec = reloadTime-- % 60;
-            data.textContent = "Reloading classifieds in " + min + ":" + ("0" + sec).slice(-2);
-            document.title = "Classifieds: " + min + ":" + ("0" + sec).slice(-2);
+            data.textContent = `Reloading classifieds in ${min}:${("0" + sec).slice(-2)}`;
+            document.title = `Classifieds: ${min}:${("0" + sec).slice(-2)}`;
         } else {
             document.querySelector(".fa-angle-double-left").click();
             clearInterval(showStatus);
@@ -230,7 +231,7 @@
             localStorage.removeItem("apikey");
             update();
         }
-        HTTPRequest("GET", "http://backpack.tf/api/IGetPrices/v4/?key=" + localStorage.getItem("apikey"), e => {
+        HTTPRequest("GET", `http://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
             var data = JSON.parse(e);
             if (!data.response.success) {
                 if (data.response.message === "API key does not exist.") {
@@ -238,7 +239,7 @@
                     localStorage.removeItem("apikey");
                     return update();
                 } else
-                    return alert("Error:\n" + data.response.message);
+                    return alert(`Error:\n${data.response.message}`);
             }
             var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
                 bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
@@ -252,8 +253,8 @@
                 localStorage.setItem("keyP", k);
                 localStorage.setItem("budP", b);
                 if (!sessionStorage.getItem("mainThread"))
-                    alert("Prices updated, Refined: " + r + " Cents " + rDiff + ", Keys: " + k + " Refined " + kDiff +
-                          ", Earbuds: " + b + " Keys " + bDiff);
+                    alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}, Earbuds: ${b}` +
+                          ` Keys ${bDiff}`);
                 localStorage.setItem("lastupdt", Date.now());
                 return location.reload();
         });
@@ -278,15 +279,25 @@
                 days = Math.floor(diff / 864e5),
                 hours = Math.floor((diff % 864e5) / 36e5),
                 minutes = Math.floor((diff % 36e5) / 6e4);
-            console.info("Prices will update in " + days + " day(s), " + hours + " hour(s), and " + minutes + " min(s)");
+            console.info(`Prices will update in ${days} day(s), ${hours} hour(s) and ${minutes} min(s)`);
         }
 
         if (profile || listings || listPage) {
-            var info = document.createElement("div");
+            var info = document.createElement("div"),
+                wrap = document.createElement("span");
             info.style = "margin: 2px; width: 150px;";
             info.classList.add("btn", "btn-info", "btn-sm", "pull-left");
+            wrap.appendChild(stat);
             info.appendChild(icon);
-            info.appendChild(stat);
+            info.appendChild(wrap);
+            info.addEventListener("mouseenter", () => {
+                info.appendChild(document.createTextNode("Reset Data"));
+                wrap.style.display = "none";
+            });
+            info.addEventListener("mouseleave", () => {
+                info.lastChild.remove();
+                wrap.style.display = "";
+            });
             info.addEventListener("click", () => {
                 if (!confirm("Are you sure?")) return;
                 removeData();
@@ -305,14 +316,14 @@
                 displayText("Interrupted");
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     displayText(null, true);
-                    HTTPRequest("GET", "http://backpack.tf/classifieds/add/" + cur, e => {
+                    HTTPRequest("GET", `http://backpack.tf/classifieds/add/${cur}`, e => {
                             var ele = document.createElement("html");
                             ele.innerHTML += e;
                             if (ele.querySelector(".avatar")) {
                                 if (!silent)
-                                    alert("Listing for [" + cur + "] is invalid");
+                                    alert(`Listing for [${cur}] is invalid`);
                             } else if (!silent) {
-                                alert("Listing for [" + cur + "] is valid");
+                                alert(`Listing for [${cur}] is valid`);
                                 var listings = JSON.parse(sessionStorage.getItem("toList"));
                                 listings.push(cur);
                                 sessionStorage.setItem("toList", JSON.stringify(listings));
@@ -355,26 +366,26 @@
                 last;
             if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
                 displayText("Terminated");
-                return console.info("Backpack.tf Script Terminated (Not Main Thread). Version " + GM_info.script.version);
+                return console.info(`Backpack.tf Script Terminated (Not Main Thread). Version ${GM_info.script.version}`);
             } else if (!localStorage.getItem("threadRunning")) {
                 localStorage.setItem("threadRunning", null);
                 sessionStorage.setItem("mainThread", null);
             } else if (document.querySelector("[class^='alert-']"))
                 displayText("Terminated");
             if (items.length) {
-                displayText("Relisting Page " + (sessionStorage.getItem("nextPage") - 1), true);
+                displayText(`Relisting Page ${sessionStorage.getItem("nextPage") - 1}`, true);
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
-                location.assign("http://backpack.tf/classifieds/add/" + last);
+                location.assign(`http://backpack.tf/classifieds/add/${last}`);
             } else if (buttons.length) {
                 Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(35)));
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 displayText("Saved IDs", true);
-                location.assign("http://backpack.tf/classifieds/add/" + last);
+                location.assign(`http://backpack.tf/classifieds/add/${last}`);
             } else if (first) {
                 displayText("Jumping to " + sessionStorage.getItem("nextPage"), true);
-                location.assign(document.URL + "&page=" + sessionStorage.getItem("nextPage"));
+                location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
             } else {
                 if (end) {
                     localStorage.removeItem("threadRunning");
@@ -416,7 +427,7 @@
                         colour = 0;
                     if (!price || isKS) {
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
-                        if (attr["data-market-p"] !== -1)
+                        if (~ attr["data-market-p"])
                             price = attr["data-market-p"] / refP;
                     } else if (attr["data-p-bptf"].contains("–"))
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Ranged)");
@@ -443,18 +454,18 @@
                             colour = data.paint.find(e => e.name === paint).id;
                         var url = "http://backpack.tf/stats/" + qualityN + "/";
                         if (!isKS && !paint) {
-                            url += name + (trade ? "/" : "/Non-") + "Tradable/" + (craft ? "" : "Non-") + "Craftable";
+                            url += `${name}/${trade ? "" : "Non-"}Tradable/${craft ? "" : "Non-"}Craftable`;
                             if (qualityN === "Unusual")
-                                url += "/" + pIndex;
+                                url += `/${pIndex}`;
                         }
                         else if (title.contains("Fabricator"))
-                            url += "Fabricator/Tradable/Craftable/" + pIndex;
+                            url += `Fabricator/Tradable/Craftable/${pIndex}`;
                         else if (title.contains("Kit"))
-                            url += "Kit/Tradable/Non-Craftable/" + pIndex;
+                            url += `Kit/Tradable/Non-Craftable/${pIndex}`;
                         else
-                            url = "http://backpack.tf/classifieds/?item=" + name.slice(isAust * 11) +
-                                  "&quality=" + quality + "&tradable=" + trade + "&craftable=" + craft +
-                                  "&australium=" + isAust + "&killstreak_tier=" + isKS * tier + "&paint=" + colour;
+                            url = `http://backpack.tf/classifieds/?item=${name.slice(isAust * 11)}&quality=` +
+                                  `${quality}&tradable=${trade}&craftable=${craft}&australium=${isAust}` +
+                                  `&killstreak_tier=${isKS * tier}&paint=${colour}`;
                         HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
                                 hasListings,
@@ -468,23 +479,23 @@
                                 var list = ele.querySelectorAll("[data-listing-price]"),
                                     lowest = list[0].getAttribute("data-listing-price"),
                                     highest = list[list.length - 1].getAttribute("data-listing-price");
-                                str += " (" + lowest + " ~ " + highest + " / " + list.length + " Listings)";
+                                str += ` (${lowest} ~ ${highest} from ${list.length} Listings)`;
                             } else
                                 str += " (No other listings)";
                             if (isKS)
-                                str += " [" + data.killstreak_tiers[tier].name + " Killstreak]";
+                                str += ` [${data.killstreak_tiers[tier].name} Killstreak]`;
                             else if (paint)
-                                str += " [Painted " + paint + "]";
+                                str += ` [Painted ${paint}]`;
                             document.getElementsByClassName("panel-heading")[1].textContent += str;
                             displayText("Loaded", false);
                         });
                     });
             }
         }
-        console.info("Backpack.tf Script Loaded. Version " + GM_info.script.version);
+        console.info(`Backpack.tf Script Loaded. Version ${GM_info.script.version}`);
     } catch(e) {
         if (stat)
             displayText("Fatal Error");
-        alert("[A fatal error has occured]\n" + e.message + "\n[Stack Trace]\n" + e.stack);
+        alert(`[A fatal error has occured]\n${e.message}\n[Stack Trace]\n${e.stack}`);
     }
 })();
