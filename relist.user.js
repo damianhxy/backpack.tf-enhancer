@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.3.0
+// @version             1.6.3.1
 // ==/UserScript==
 
 (function () {
@@ -86,7 +86,7 @@
                 var arr = (attr["data-listing-date"] || "").split(" "),
                     canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour"),
                     link = document.createElement("a");
-                link.href = "http://backpack.tf/classifieds/add/" + attr["data-id"];
+                link.href = `http://backpack.tf/classifieds/add/${attr["data-id"]}`;
                 link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
                                             (canRelist || !arr[0] ? "" : " background-color: red;")));
                 if (!canRelist && arr[0])
@@ -108,7 +108,7 @@
                                 link.classList.add("fa-plus");
                                 displayText("Removed");
                             } else {
-                                alert("Error: " + data.error);
+                                alert(`Error: ${data.error}`);
                                 displayText("Error Removing");
                             }
                         });
@@ -155,7 +155,7 @@
                     colour = "darkgray";
                 else if (title.contains("Professional"))
                     colour = "gold";
-                frag.appendChild(createIcon("bomb", `color: ${colour}` + "; background-color: white;"));
+                frag.appendChild(createIcon("bomb", `color: ${colour}; background-color: white;`));
             }
         }
         ele.firstElementChild.appendChild(frag);
@@ -223,7 +223,7 @@
 
     function update() {
         if (document.getElementById("login"))
-            return console.info("Backpack.tf Script Paused (Signed Out). Version " + GM_info.script.version);
+            return console.info(`Backpack.tf Script Paused (Signed Out). Version ${GM_info.script.version}`);
         if (!localStorage.getItem("apikey"))
             localStorage.setItem("apikey", prompt("API key not set, register yours from http://backpack.tf/api/"));
         if (localStorage.getItem("apikey").length !== 24) {
@@ -246,9 +246,9 @@
                 r = Math.floor(data.response.raw_usd_value * 100),
                 k = (key.value + (key.value_high || key.value)) / 2,
                 b = (bud.value + (bud.value_high || bud.value)) / 2,
-                rDiff = "(" + (r === refP ? "=" : (r < refP ? "↓" : "↑")) + ")",
-                kDiff = "(" + (k === keyP ? "=" : (k < keyP ? "↓" : "↑")) + ")",
-                bDiff = "(" + (b === budP ? "=" : (b < budP ? "↓" : "↑")) + ")";
+                rDiff = `(${r === refP ? "=" : r < refP ? "↓" : "↑"})`;
+                kDiff = `(${k === keyP ? "=" : k < keyP ? "↓" : "↑"})`;
+                bDiff = `(${b === budP ? "=" : b < budP ? "↓" : "↑"})`;
                 localStorage.setItem("refP", r);
                 localStorage.setItem("keyP", k);
                 localStorage.setItem("budP", b);
@@ -341,7 +341,7 @@
                 return document.getElementsByClassName("pagenum").length;
             }, () => {
                 document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                         document.getElementById("newlist").childElementCount - 1 + " ");
+                         `${document.getElementById("newlist").childElementCount - 1} `);
             });
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
@@ -353,7 +353,7 @@
             sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
             if (JSON.parse(sessionStorage.getItem("paused"))) {
                 displayText("Paused");
-                return console.info("Backpack.tf Script Paused. Version " + GM_info.script.version);
+                return console.info(`Backpack.tf Script Paused. Version ${GM_info.script.version}`);
             }
         }
 
@@ -384,7 +384,7 @@
                 displayText("Saved IDs", true);
                 location.assign(`http://backpack.tf/classifieds/add/${last}`);
             } else if (first) {
-                displayText("Jumping to " + sessionStorage.getItem("nextPage"), true);
+                displayText(`Jumping to ${sessionStorage.getItem("nextPage")}`, true);
                 location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
             } else {
                 if (end) {
@@ -452,7 +452,7 @@
                         var data = JSON.parse(e);
                         if (paint)
                             colour = data.paint.find(e => e.name === paint).id;
-                        var url = "http://backpack.tf/stats/" + qualityN + "/";
+                        var url = `http://backpack.tf/stats/${qualityN}/`;
                         if (!isKS && !paint) {
                             url += `${name}/${trade ? "" : "Non-"}Tradable/${craft ? "" : "Non-"}Craftable`;
                             if (qualityN === "Unusual")
