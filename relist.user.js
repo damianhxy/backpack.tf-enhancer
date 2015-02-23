@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.3.1
+// @version             1.6.3.2
 // ==/UserScript==
 
 (function () {
@@ -141,7 +141,7 @@
         }
         if (annotate) {
             var title = attr["data-default-name"] || attr["title"];
-            if (craft.style.display === "none" && +craft.textContent.split("#")[1] <= 100)
+            if (craft && !attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
                 frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
             if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
                 frag.appendChild(createIcon("paint-brush"));
