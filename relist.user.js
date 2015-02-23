@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.3.3
+// @version             1.6.3.4
 // ==/UserScript==
 
 (function () {
@@ -81,7 +81,7 @@
                 var arr = (attr["data-listing-date"] || "").split(" "),
                     canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour"),
                     link = document.createElement("a");
-                link.href = `http://backpack.tf/classifieds/add/${attr["data-id"]}`;
+                link.href = `backpack.tf/classifieds/add/${attr["data-id"]}`;
                 link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
                                             (canRelist || !arr[0] ? "" : " background-color: red;")));
                 if (!canRelist && arr[0])
@@ -226,7 +226,7 @@
             localStorage.removeItem("apikey");
             update();
         }
-        HTTPRequest("GET", `http://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
+        HTTPRequest("GET", `backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
             var data = JSON.parse(e);
             if (!data.response.success) {
                 if (data.response.message === "API key does not exist.") {
@@ -297,12 +297,12 @@
 
         if (profile) {
             if (sessionStorage.getItem("mainThread")) {
-                var silent = JSON.parse(sessionStorage.getItem("silent")),
-                    cur = sessionStorage.getItem("curItem");
+                var cur = sessionStorage.getItem("curItem"),
+                    silent = JSON.parse(sessionStorage.getItem("silent"));
                 displayText("Interrupted");
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     displayText(null, true);
-                    HTTPRequest("GET", `http://backpack.tf/classifieds/add/${cur}`, e => {
+                    HTTPRequest("GET", `backpack.tf/classifieds/add/${cur}`, e => {
                             var ele = document.createElement("html");
                             ele.innerHTML += e;
                             if (ele.querySelector(".avatar")) {
@@ -362,13 +362,13 @@
                 displayText(`Relisting Page ${sessionStorage.getItem("nextPage") - 1}`, true);
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
-                location.assign(`http://backpack.tf/classifieds/add/${last}`);
+                location.assign(`backpack.tf/classifieds/add/${last}`);
             } else if (buttons.length) {
                 Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(35)));
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 displayText("Saved IDs", true);
-                location.assign(`http://backpack.tf/classifieds/add/${last}`);
+                location.assign(`backpack.tf/classifieds/add/${last}`);
             } else if (first) {
                 displayText(`Jumping to ${sessionStorage.getItem("nextPage")}`, true);
                 location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
@@ -398,19 +398,16 @@
                 default:
                     displayText("Loading");
                     var attr = getAttr(document.querySelector(".item")),
-                        price = attr["data-price"],
-                        name = attr["data-name"],
-                        title = attr["data-default-name"] || attr["title"],
-                        quality = attr["data-quality"],
-                        qualityN = attr["data-q-name"],
-                        trade = attr["data-tradable"],
-                        craft = attr["data-craftable"],
+                        colour = 0,
                         isAust = attr["data-australium"],
+                        isKS = title.contains("Killstreak"),
+                        name = attr["data-name"],
                         paint = attr["data-paint-name"],
                         pIndex = attr["data-priceindex"],
-                        isKS = title.contains("Killstreak"),
-                        tier = 1,
-                        colour = 0;
+                        price = attr["data-price"],
+                        quality = attr["data-quality"],
+                        tier = 0,
+                        title = attr["data-default-name"] || attr["title"];
                     if (!price || isKS) {
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
                         if (~ attr["data-market-p"])
@@ -428,46 +425,54 @@
                     price = Math.floor(round(price) * 100) / 100;
                     document.getElementById("metal").value = price || "";
                     document.getElementById("details").value = notes;
-                    if (isKS) {
-                        if (title.contains("Specialized"))
-                            tier = 2;
-                        else if (title.contains("Professional"))
-                            tier = 3;
-                    }
+                    if (isKS)
+                        tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.contains(e));
+                    tier = ~ tier ? 3 - tier : 0;
                     HTTPRequest("GET", "/pages/filter_meta", e => {
-                        var data = JSON.parse(e);
+                        var data = JSON.parse(e),
+                            extended = true;
                         if (paint)
                             colour = data.paint.find(e => e.name === paint).id;
-                        var url = `http://backpack.tf/stats/${qualityN}/`;
-                        if (!isKS && !paint) {
-                            url += `${name}/${trade ? "" : "Non-"}Tradable/${craft ? "" : "Non-"}Craftable`;
-                            if (qualityN === "Unusual")
-                                url += `/${pIndex}`;
+                        var url = `/classifieds/?item=${name.slice(isAust * 11)}&quality=${quality}` +
+                                  `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
+                                  `&australium=${isAust}&paint=${colour}&killstreak_tier=${isKS * tier}`;
+                        if (attr["data-craft"])
+                            url += `&numeric=crate&comparison=eq&value=${attr["data-craft"]}`;
+                        if (pIndex) {
+                            if (quality === 5)
+                                url += `&particle=${pIndex}`;
+                            else {
+                                extended = false;
+                                url = "backpack.tf/stats/Unique/";
+                                if (title.contains("Chemistry Set"))
+                                    url += "Chemistry Set/Tradable/Craftable/";
+                                else if (title.contains("Fabricator"))
+                                    url += "Fabricator/Tradable/Craftable/";
+                                else if (title.contains("Kit"))
+                                    url += "Kit/Tradable/Non-Craftable/";
+                                else if (title.conaints("Strangifier"))
+                                    url += "Strangifier/Tradable/Craftable/";
+                                else return alert(`[Unhandled Item]\n${title}`);
+                                url += pIndex;
+                            }
                         }
-                        else if (title.contains("Fabricator"))
-                            url += `Fabricator/Tradable/Craftable/${pIndex}`;
-                        else if (title.contains("Kit"))
-                            url += `Kit/Tradable/Non-Craftable/${pIndex}`;
-                        else
-                            url = `http://backpack.tf/classifieds/?item=${name.slice(isAust * 11)}&quality=` +
-                                  `${quality}&tradable=${trade}&craftable=${craft}&australium=${isAust}` +
-                                  `&killstreak_tier=${isKS * tier}&paint=${colour}`;
                         HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
                                 hasListings,
-                                str = "";
+                                str;
                             ele.innerHTML += e;
-                            if (!paint && (!isKS || title.contains("Kit")))
+                            if (!extended)
                                 hasListings = !ele.querySelector(".col-6 .alert-info");
                             else
                                 hasListings = !ele.querySelector(".media-list .alert-info");
                             if (hasListings) {
                                 var list = ele.querySelectorAll("[data-listing-price]"),
                                     lowest = list[0].getAttribute("data-listing-price"),
-                                    highest = list[list.length - 1].getAttribute("data-listing-price");
-                                str += ` (${lowest} ~ ${highest} from ${list.length} Listings)`;
+                                    normal = extended && !isKS && !paint,
+                                    highest = list[normal ? 10 : list.length - 1].getAttribute("data-listing-price");
+                                str = ` (${lowest} ~ ${highest} from ${normal ? 10 : list.length - 1} Listings)`;
                             } else
-                                str += " (No other listings)";
+                                str = " (No listings found)";
                             if (isKS)
                                 str += ` [${data.killstreak_tiers[tier].name} Killstreak]`;
                             else if (paint)
