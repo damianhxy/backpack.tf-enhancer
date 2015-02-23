@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.3.2
+// @version             1.6.3.3
 // ==/UserScript==
 
 (function () {
@@ -38,12 +38,7 @@
     }
 
     function check(predicate, callback) {
-        if (predicate())
-            callback();
-        else
-            setTimeout(() => {
-                check(predicate, callback);
-            }, 500);
+        predicate() ? callback() : setTimeout(() => check(predicate, callback), 500);
     }
 
     function createIcon(cls, style, content) {
@@ -283,21 +278,12 @@
         }
 
         if (profile || listings || listPage) {
-            var info = document.createElement("div"),
-                wrap = document.createElement("span");
+            var info = document.createElement("div");
+            info.title = "Click to reset";
             info.style = "margin: 2px; width: 150px;";
             info.classList.add("btn", "btn-info", "btn-sm", "pull-left");
-            wrap.appendChild(stat);
             info.appendChild(icon);
-            info.appendChild(wrap);
-            info.addEventListener("mouseenter", () => {
-                info.appendChild(document.createTextNode("Reset Data"));
-                wrap.style.display = "none";
-            });
-            info.addEventListener("mouseleave", () => {
-                info.lastChild.remove();
-                wrap.style.display = "";
-            });
+            info.appendChild(stat);
             info.addEventListener("click", () => {
                 if (!confirm("Are you sure?")) return;
                 removeData();
