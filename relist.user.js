@@ -436,8 +436,8 @@
                         var url = `/classifieds/?item=${name.slice(isAust * 11)}&quality=${quality}` +
                                   `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
                                   `&australium=${isAust}&paint=${colour}&killstreak_tier=${isKS * tier}`;
-                        if (attr["data-craft"])
-                            url += `&numeric=crate&comparison=eq&value=${attr["data-craft"]}`;
+                        if (attr["data-crate"])
+                            url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
                         if (pIndex) {
                             if (quality === 5)
                                 url += `&particle=${pIndex}`;
@@ -467,10 +467,10 @@
                                 hasListings = !ele.querySelector(".media-list .alert-info");
                             if (hasListings) {
                                 var list = ele.querySelectorAll("[data-listing-price]"),
+                                    length = extended && !isKS && !paint ? 10 : list.length - 1,
                                     lowest = list[0].getAttribute("data-listing-price"),
-                                    normal = extended && !isKS && !paint,
-                                    highest = list[normal ? 10 : list.length - 1].getAttribute("data-listing-price");
-                                str = ` (${lowest} ~ ${highest} from ${normal ? 10 : list.length - 1} Listings)`;
+                                    highest = list[length].getAttribute("data-listing-price");
+                                str = ` (${lowest} ~ ${highest} from ${length} Listings)`;
                             } else
                                 str = " (No listings found)";
                             if (isKS)
