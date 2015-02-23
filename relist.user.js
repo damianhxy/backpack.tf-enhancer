@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.3.4
+// @version             1.6.3.5
 // ==/UserScript==
 
 (function () {
@@ -81,7 +81,7 @@
                 var arr = (attr["data-listing-date"] || "").split(" "),
                     canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour"),
                     link = document.createElement("a");
-                link.href = `backpack.tf/classifieds/add/${attr["data-id"]}`;
+                link.href = `http://backpack.tf/classifieds/add/${attr["data-id"]}`;
                 link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
                                             (canRelist || !arr[0] ? "" : " background-color: red;")));
                 if (!canRelist && arr[0])
@@ -226,7 +226,7 @@
             localStorage.removeItem("apikey");
             update();
         }
-        HTTPRequest("GET", `backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
+        HTTPRequest("GET", `http://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
             var data = JSON.parse(e);
             if (!data.response.success) {
                 if (data.response.message === "API key does not exist.") {
@@ -302,7 +302,7 @@
                 displayText("Interrupted");
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     displayText(null, true);
-                    HTTPRequest("GET", `backpack.tf/classifieds/add/${cur}`, e => {
+                    HTTPRequest("GET", `http://backpack.tf/classifieds/add/${cur}`, e => {
                             var ele = document.createElement("html");
                             ele.innerHTML += e;
                             if (ele.querySelector(".avatar")) {
@@ -362,13 +362,13 @@
                 displayText(`Relisting Page ${sessionStorage.getItem("nextPage") - 1}`, true);
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
-                location.assign(`backpack.tf/classifieds/add/${last}`);
+                location.assign(`http://backpack.tf/classifieds/add/${last}`);
             } else if (buttons.length) {
-                Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(35)));
+                Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(17)));
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 displayText("Saved IDs", true);
-                location.assign(`backpack.tf/classifieds/add/${last}`);
+                location.assign(`http://backpack.tf/classifieds/add/${last}`);
             } else if (first) {
                 displayText(`Jumping to ${sessionStorage.getItem("nextPage")}`, true);
                 location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
@@ -443,7 +443,7 @@
                                 url += `&particle=${pIndex}`;
                             else {
                                 extended = false;
-                                url = "backpack.tf/stats/Unique/";
+                                url = "http://backpack.tf/stats/Unique/";
                                 if (title.contains("Chemistry Set"))
                                     url += "Chemistry Set/Tradable/Craftable/";
                                 else if (title.contains("Fabricator"))
