@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.3.6
+// @version             1.6.3.7
 // ==/UserScript==
 
 (function () {
@@ -69,7 +69,8 @@
     function label(ele, annotate, fastlist, change) {
         var frag = document.createDocumentFragment(),
             attr = getAttr(ele),
-            craft = ele.querySelector(".value");
+            craft = ele.querySelector(".value"),
+            title = attr["data-default-name"] || attr["title"];
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").style.display = "none";
@@ -122,7 +123,7 @@
             var curP = attr["data-price"],
                 listP = parsePrice(attr["data-listing-price"]),
                 diff = Math.abs(curP - listP);
-            if (!curP || attr["title"].contains("Killstreak"))
+            if (!curP || title.contains("Killstreak"))
                 frag.appendChild(createIcon("question", "color: blueviolet; background-color: white;"));
             else if (diff >= threshold) {
                 var colour = "lime";
@@ -135,7 +136,6 @@
             }
         }
         if (annotate) {
-            var title = attr["data-default-name"] || attr["title"];
             if (craft && !attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
                 frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
             if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
