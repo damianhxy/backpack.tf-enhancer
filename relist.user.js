@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.3.7
+// @version             1.6.3.8
 // ==/UserScript==
 
 (function () {
@@ -399,15 +399,15 @@
                     displayText("Loading");
                     var attr = getAttr(document.querySelector(".item")),
                         colour = 0,
-                        isAust = attr["data-australium"],
+                        isAust = attr["data-australium"] || 0,
+                        title = attr["data-default-name"] || attr["title"],
                         isKS = title.contains("Killstreak"),
                         name = attr["data-name"],
                         paint = attr["data-paint-name"],
                         pIndex = attr["data-priceindex"],
                         price = attr["data-price"],
                         quality = attr["data-quality"],
-                        tier = 0,
-                        title = attr["data-default-name"] || attr["title"];
+                        tier = 0;
                     if (!price || isKS) {
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
                         if (~ attr["data-market-p"])
@@ -467,9 +467,9 @@
                                 hasListings = !ele.querySelector(".media-list .alert-info");
                             if (hasListings) {
                                 var list = ele.querySelectorAll("[data-listing-price]"),
-                                    length = extended && !isKS && !paint ? 10 : list.length - 1,
+                                    length = extended && !isKS && !paint ? Math.min(10, list.length) : list.length,
                                     lowest = list[0].getAttribute("data-listing-price"),
-                                    highest = list[length].getAttribute("data-listing-price");
+                                    highest = list[length - 1].getAttribute("data-listing-price"),
                                 str = ` (${lowest} ~ ${highest} from ${length} Listings)`;
                             } else
                                 str = " (No listings found)";
