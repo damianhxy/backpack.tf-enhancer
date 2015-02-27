@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.4.0
+// @version             1.6.4.1
 // ==/UserScript==
 
 (function () {
@@ -73,9 +73,16 @@
             title = attr["data-default-name"] || attr["title"];
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
-                ele.querySelector(".killstreaker").style.display = "none";
-            if (craft && !attr["data-crate"])
-                craft.style.display = "none";
+                ele.querySelector(".killstreaker").remove();
+            if (craft && !attr["data-crate"]) {
+                if (+craft.textContent.split("#")[1] <= 100)
+                    frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
+                craft.remove();
+            }
+            if (attr["data-gifted-name"]) {
+                frag.appendChild(createIcon("gift"));
+                ele.querySelector(".fa-gift").remove();
+            }
         }
         if (fastlist && document.querySelector(".dropdown-btn").href === document.URL.replace("#", "")) {
             if (!attr["data-name"].contains("Metal")) {
@@ -115,10 +122,6 @@
                     frag.appendChild(btn);
                 }
             }
-            if (attr["data-gifted-name"]) {
-                ele.querySelector(".fa-gift").style.display = "none";
-                frag.appendChild(createIcon("gift"));
-            }
         }
         if (change && attr["data-listing-price"]) {
             if (ele.querySelector(".value") && !attr["data-crate"])
@@ -139,8 +142,6 @@
             }
         }
         if (annotate) {
-            if (craft && !attr["data-crate"] && +craft.textContent.split("#")[1] <= 100)
-                frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
             if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
                 frag.appendChild(createIcon("paint-brush"));
             if (attr["data-part-1-name"])
