@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.3.9
+// @version             1.6.4.0
 // ==/UserScript==
 
 (function () {
@@ -98,10 +98,13 @@
                             var data = JSON.parse(e);
                             if (data.success) {
                                 var link = btn.previousElementSibling.firstElementChild;
-                                btn.style.display = btn.parentNode.nextElementSibling.style.display = "none";
                                 link.parentNode.style.display = link.style.backgroundColor = "";
                                 link.classList.remove("fa-refresh");
                                 link.classList.add("fa-plus");
+                                if (/fa-(?:question|level-(?:up|down))/.test(btn.nextElementSibling.className))
+                                    btn.nextElementSibling.remove();
+                                btn.parentNode.nextElementSibling.remove();
+                                btn.remove();
                                 displayText("Removed");
                             } else {
                                 alert(`Error: ${data.error}`);
@@ -241,17 +244,17 @@
                 r = Math.floor(data.response.raw_usd_value * 100),
                 k = (key.value + (key.value_high || key.value)) / 2,
                 b = (bud.value + (bud.value_high || bud.value)) / 2,
-                rDiff = `(${r === refP ? "=" : r < refP ? "↓" : "↑"})`;
-                kDiff = `(${k === keyP ? "=" : k < keyP ? "↓" : "↑"})`;
+                rDiff = `(${r === refP ? "=" : r < refP ? "↓" : "↑"})`,
+                kDiff = `(${k === keyP ? "=" : k < keyP ? "↓" : "↑"})`,
                 bDiff = `(${b === budP ? "=" : b < budP ? "↓" : "↑"})`;
-                localStorage.setItem("refP", r);
-                localStorage.setItem("keyP", k);
-                localStorage.setItem("budP", b);
-                if (!sessionStorage.getItem("mainThread"))
-                    alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}, Earbuds: ${b}` +
-                          ` Keys ${bDiff}`);
-                localStorage.setItem("lastupdt", Date.now());
-                return location.reload();
+            localStorage.setItem("refP", r);
+            localStorage.setItem("keyP", k);
+            localStorage.setItem("budP", b);
+            if (!sessionStorage.getItem("mainThread"))
+                alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}, Earbuds: ${b}` +
+                      ` Keys ${bDiff}`);
+            localStorage.setItem("lastupdt", Date.now());
+            return location.reload();
         });
     }
 
@@ -467,7 +470,7 @@
                                 var list = ele.querySelectorAll("[data-listing-price]"),
                                     length = extended && !isKS && !paint ? Math.min(10, list.length) : list.length,
                                     lowest = list[0].getAttribute("data-listing-price"),
-                                    highest = list[length - 1].getAttribute("data-listing-price"),
+                                    highest = list[length - 1].getAttribute("data-listing-price");
                                 str = ` (${lowest} ~ ${highest} from ${length} Listings)`;
                             } else
                                 str = " (No listings found)";
