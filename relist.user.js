@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.4.1
+// @version             1.6.4.2
 // ==/UserScript==
 
 (function () {
@@ -465,8 +465,10 @@
                                 hasListings,
                                 str;
                             ele.innerHTML += e;
-                            console.info("Extended: " + extended);
-                            hasListings = ele.querySelector(".media-list");
+                            if (extended)
+                                hasListings = !ele.querySelector(".media-list > .alert-info");
+                            else
+                                hasListings = ele.querySelector(".media-list");
                             if (hasListings) {
                                 var list = ele.querySelectorAll("[data-listing-price]"),
                                     length = extended && !isKS && !paint ? Math.min(10, list.length) : list.length,
@@ -474,7 +476,7 @@
                                     highest = list[length - 1].getAttribute("data-listing-price");
                                 str = ` (${lowest} ~ ${highest} from ${length} Listings)`;
                             } else
-                                str = " (No listings found)";
+                                str = " (No other listings found)";
                             if (isKS)
                                 str += ` [${data.killstreak_tiers[tier].name} Killstreak]`;
                             else if (paint)
