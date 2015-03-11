@@ -3,12 +3,12 @@
 // @description         Helper script for Backpack.tf
 // @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/master/relist.user.js
 // @include             /^http:\/\/backpack\.tf.*$/
-// @exclude             /^http:\/\/backpack\.tf\/api\/.*$/
+// @exclude             /^http:\/\/backpack\.tf\/api.*$/
 // @name                Backpack.tf Enhancer
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.4.2
+// @version             1.6.4.3
 // ==/UserScript==
 
 (function () {
@@ -51,6 +51,8 @@
     }
 
     function displayText(msg, spinner) {
+        if (!stat)
+            return;
         if (msg)
             stat.textContent = msg;
         if (spinner !== undefined) {
