@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.4.3
+// @version             1.6.4.4
 // ==/UserScript==
 
 (function () {
@@ -41,12 +41,10 @@
         predicate() ? callback() : setTimeout(() => check(predicate, callback), 500);
     }
 
-    function createIcon(cls, style, content) {
+    function createIcon(cls, style) {
         var icon = document.createElement("i");
         icon.classList.add("fa", `fa-${cls}`, "fa-inverse", "fa-border", "pull-left");
         icon.style = `border-radius: 50%;${style ? " " + style : ""}`;
-        if (content)
-            icon.appendChild(document.createTextNode(content));
         return icon;
     }
 
@@ -78,7 +76,7 @@
                 ele.querySelector(".killstreaker").remove();
             if (craft && !attr["data-crate"]) {
                 if (+craft.textContent.split("#")[1] <= 100)
-                    frag.appendChild(createIcon("exclamation-triangle", null, craft.textContent));
+                    frag.appendChild(createIcon("exclamation-triangle"));
                 craft.remove();
             }
             if (attr["data-gifted-name"]) {
