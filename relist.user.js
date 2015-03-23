@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.4.4
+// @version             1.6.4.5
 // ==/UserScript==
 
 (function () {
@@ -37,8 +37,40 @@
         document.getElementById("#navbar").appendChild(button);
     }
 
+    function addToggleButtons(titles) {
+        Array.prototype.forEach.call(titles, title => {
+            var btn = document.createElement("span"),
+                link = document.createElement("a");
+            link.href = "javascript:void(0);";
+            link.appendChild(document.createTextNode("Toggle Select"));
+            btn.appendChild(link);
+            btn.classList.add("label", "label-success");
+            title.appendChild(document.createTextNode("\n"));
+            title.appendChild(btn);
+            link.addEventListener("click", () => {
+                displayText("Selecting", true);
+                var curItem = link.parentNode.parentNode.nextElementSibling;
+                while (curItem.classList.contains("spacer"))
+                    curItem = curItem.nextElementSibling;
+                $(curItem).popover("show");
+                curItem.click();
+                $(curItem).popover("hide");
+                check(() => {
+                    return !curItem.nextElementSibling.classList.contains("popover");
+                }, () => {
+                    curItem = curItem.nextElementSibling;
+                    while (curItem.classList.contains("item")) {
+                        curItem.click();
+                        curItem = curItem.nextElementSibling;
+                    }
+                    displayText("Selected", false);
+                });
+            });
+        });
+    }
+
     function check(predicate, callback) {
-        predicate() ? callback() : setTimeout(() => check(predicate, callback), 500);
+        predicate() ? callback() : setTimeout(() => check(predicate, callback), 100);
     }
 
     function createIcon(cls, style) {
@@ -100,7 +132,6 @@
                     btn.appendChild(createIcon("close", "background-color: red;"));
                     btn.href = "javascript:void(0)";
                     btn.addEventListener("click", () => {
-                        if (!JSON.parse(sessionStorage.getItem("silent")) && !confirm("Are you sure?")) return;
                         HTTPRequest("POST", `/classified/remove/440_${attr["data-id"]}`, e => {
                             var data = JSON.parse(e);
                             if (data.success) {
@@ -108,8 +139,9 @@
                                 link.parentNode.style.display = link.style.backgroundColor = "";
                                 link.classList.remove("fa-refresh");
                                 link.classList.add("fa-plus");
-                                if (/fa-(?:question|level-(?:up|down))/.test(btn.nextElementSibling.className))
-                                    btn.nextElementSibling.remove();
+                                if (btn.nextElementSibling)
+                                    if (/fa-(?:question|level-(?:up|down))/.test(btn.nextElementSibling.className))
+                                        btn.nextElementSibling.remove();
                                 btn.parentNode.nextElementSibling.remove();
                                 btn.remove();
                                 displayText("Removed");
@@ -330,8 +362,11 @@
             check(() => {
                 return document.getElementsByClassName("pagenum").length;
             }, () => {
-                document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                         `${document.getElementById("newlist").childElementCount - 1} `);
+                if (document.querySelector("[href='#page0']"))
+                    document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
+                        `${document.getElementById("newlist").childElementCount - 1} `);
+                if (JSON.parse(sessionStorage.getItem("annotate")))
+                    addToggleButtons(document.getElementsByClassName("pagenum"));
             });
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
