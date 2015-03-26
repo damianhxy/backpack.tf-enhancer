@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.4.5
+// @version             1.6.4.6
 // ==/UserScript==
 
 (function () {
@@ -294,7 +294,7 @@
     try {
         /******** SCRIPT GLOBALS ********/
         var listPage = document.URL.contains("/add"),
-            profile = document.URL.contains("profiles"),
+            profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})$/.test(document.URL),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
             refP = +localStorage.getItem("refP"),
             keyP = +localStorage.getItem("keyP"),
@@ -337,7 +337,7 @@
                     silent = JSON.parse(sessionStorage.getItem("silent"));
                 displayText("Interrupted");
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
-                    displayText(null, true);
+                    displayText("Checking", true);
                     HTTPRequest("GET", `http://backpack.tf/classifieds/add/${cur}`, e => {
                             var ele = document.createElement("html");
                             ele.innerHTML += e;
