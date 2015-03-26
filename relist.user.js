@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.4.6
+// @version             1.6.4.7
 // ==/UserScript==
 
 (function () {
@@ -274,7 +274,7 @@
             }
             var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
                 bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
-                r = Math.floor(data.response.raw_usd_value * 100),
+                r = Math.floor(data.response.raw_usd_value * 1000) / 10,
                 k = (key.value + (key.value_high || key.value)) / 2,
                 b = (bud.value + (bud.value_high || bud.value)) / 2,
                 rDiff = `(${r === refP ? "=" : r < refP ? "↓" : "↑"})`,
