@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.4.7
+// @version             1.6.4.8
 // ==/UserScript==
 
 (function () {
@@ -255,6 +255,8 @@
     function update() {
         if (document.getElementById("login"))
             return console.info(`Backpack.tf Script Paused (Signed Out). Version ${GM_info.script.version}`);
+        if (sessionStorage.getItem("mainThread"))
+            return console.info(`Price updating suppressed`);
         if (!localStorage.getItem("apikey"))
             localStorage.setItem("apikey", prompt("API key not set, register yours from http://backpack.tf/api/"));
         if (localStorage.getItem("apikey").length !== 24) {
@@ -283,9 +285,8 @@
             localStorage.setItem("refP", r);
             localStorage.setItem("keyP", k);
             localStorage.setItem("budP", b);
-            if (!sessionStorage.getItem("mainThread"))
-                alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}, Earbuds: ${b}` +
-                      ` Keys ${bDiff}`);
+            alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}, Earbuds: ${b}` +
+                  ` Keys ${bDiff}`);
             localStorage.setItem("lastupdt", Date.now());
             return location.reload();
         });
