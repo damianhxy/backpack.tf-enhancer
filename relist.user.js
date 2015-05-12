@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.1
+// @version             1.6.5.2
 // ==/UserScript==
 
 (function () {
@@ -152,7 +152,6 @@
 
     function parsePrice(str) {
         var arr = str.split(" "),
-            bud = 0,
             key = 0,
             ref = 0;
         arr.forEach((e, i) => {
@@ -160,10 +159,8 @@
                 ref = +arr[i - 1];
             else if (e.contains("key"))
                 key = +arr[i - 1];
-            else if (e.contains("bud"))
-                bud = +arr[i - 1];
         });
-        return ref + key * keyP + bud * budP * keyP;
+        return ref + key * keyP;
     }
 
     function range(lo, hi) {
@@ -217,18 +214,13 @@
                     return alert(`Error:\n${data.response.message}`);
             }
             var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
-                bud = data.response.items.Earbuds.prices[6].Tradable.Craftable[0],
                 r = Math.floor(data.response.raw_usd_value * 1000) / 10,
                 k = (key.value + (key.value_high || key.value)) / 2,
-                b = (bud.value + (bud.value_high || bud.value)) / 2,
                 rDiff = `(${r === refP ? "=" : r < refP ? "↓" : "↑"})`,
-                kDiff = `(${k === keyP ? "=" : k < keyP ? "↓" : "↑"})`,
-                bDiff = `(${b === budP ? "=" : b < budP ? "↓" : "↑"})`;
+                kDiff = `(${k === keyP ? "=" : k < keyP ? "↓" : "↑"})`;
             localStorage.setItem("refP", r);
             localStorage.setItem("keyP", k);
-            localStorage.setItem("budP", b);
-            alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}, Earbuds: ${b}` +
-                  ` Keys ${bDiff}`);
+            alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}`);
             localStorage.setItem("lastupdt", Date.now());
             return location.reload();
         });
@@ -236,19 +228,18 @@
 
     try {
         /******** SCRIPT GLOBALS ********/
-        var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|add)\/.*$/.test(document.URL),
+        var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
             profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})$/.test(document.URL),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
             refP = +localStorage.getItem("refP"),
             keyP = +localStorage.getItem("keyP"),
-            budP = +localStorage.getItem("budP"),
             lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0),
             icon = createIcon("info-circle", "border: none"),
             stat = document.createTextNode("Loading"),
             notes = localStorage.getItem("notes");
         /****** END SCRIPT GLOBALS ******/
 
-        if (refP && keyP && budP && lastUpdt < 864e5 * updateFreq || update()) {
+        if (refP && keyP && lastUpdt < 864e5 * updateFreq || update()) {
             var diff = 864e5 * updateFreq - lastUpdt,
                 days = Math.floor(diff / 864e5),
                 hours = Math.floor((diff % 864e5) / 36e5),
@@ -395,10 +386,6 @@
                     } else if (attr["data-p-bptf"].contains("–"))
                         document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Ranged)");
                     if (price >= keyP && !name.contains("Key")) {
-                        if (price >= keyP * budP && !name.contains("Earbuds")) {
-                            document.getElementById("earbuds").value = Math.floor(price / (keyP * budP));
-                            price %= keyP * budP;
-                        }
                         document.getElementById("keys").value = Math.floor(price / keyP);
                         price %= keyP;
                     }
