@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.0
+// @version             1.6.5.1
 // ==/UserScript==
 
 (function () {
@@ -89,7 +89,7 @@
                 var arr = (attr["data-listing-date"] || "").split(" "),
                     canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour"),
                     link = document.createElement("a");
-                link.href = `http://backpack.tf/classifieds/add/${attr["data-id"]}`;
+                link.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
                 link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
                                             (canRelist || !arr[0] ? "" : " background-color: red;")));
                 if (!canRelist && arr[0])
@@ -236,7 +236,7 @@
 
     try {
         /******** SCRIPT GLOBALS ********/
-        var listPage = document.URL.contains("/add") || document.URL.contains("/relist"),
+        var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|add)\/.*$/.test(document.URL),
             profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})$/.test(document.URL),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
             refP = +localStorage.getItem("refP"),
@@ -281,7 +281,7 @@
                 displayText("Interrupted");
                 if (silent || confirm("Diagnose interrupt?") || removeData()) {
                     displayText("Checking", true);
-                    HTTPRequest("GET", `http://backpack.tf/classifieds/add/${cur}`, e => {
+                    HTTPRequest("GET", `http://backpack.tf/classifieds/relist/${cur}`, e => {
                             var ele = document.createElement("html");
                             ele.innerHTML += e;
                             if (ele.querySelector(".avatar")) {
