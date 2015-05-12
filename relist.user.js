@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.4.9
+// @version             1.6.5.0
 // ==/UserScript==
 
 (function () {
@@ -236,7 +236,7 @@
 
     try {
         /******** SCRIPT GLOBALS ********/
-        var listPage = document.URL.contains("/add"),
+        var listPage = document.URL.contains("/add") || document.URL.contains("/relist"),
             profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})$/.test(document.URL),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
             refP = +localStorage.getItem("refP"),
@@ -342,13 +342,13 @@
                 displayText(`Relisting Page ${sessionStorage.getItem("nextPage") - 1}`, true);
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
-                location.assign(`http://backpack.tf/classifieds/add/${last}`);
+                location.assign(`http://backpack.tf/classifieds/relist/${last}`);
             } else if (buttons.length) {
-                Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(35)));
+                Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(38)));
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 displayText("Saved IDs", true);
-                location.assign(`http://backpack.tf/classifieds/add/${last}`);
+                location.assign(`http://backpack.tf/classifieds/relist/${last}`);
             } else if (first) {
                 displayText(`Jumping to ${sessionStorage.getItem("nextPage")}`, true);
                 location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
