@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.2
+// @version             1.6.5.3
 // ==/UserScript==
 
 (function () {
@@ -379,12 +379,6 @@
                         price = attr["data-price"],
                         quality = attr["data-quality"],
                         tier = 0;
-                    if (!price || isKS) {
-                        document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Unpriced)");
-                        if (~ attr["data-market-p"])
-                            price = attr["data-market-p"] / refP;
-                    } else if (attr["data-p-bptf"].contains("–"))
-                        document.querySelector(".col-2 > label").insertAdjacentHTML("beforeend", " (Ranged)");
                     if (price >= keyP && !name.contains("Key")) {
                         document.getElementById("keys").value = Math.floor(price / keyP);
                         price %= keyP;
