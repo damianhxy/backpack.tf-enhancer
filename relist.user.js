@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.3
+// @version             1.6.5.4
 // ==/UserScript==
 
 (function () {
@@ -21,12 +21,13 @@
         threshold = 0.22;            //[refined] threshold for price changes
     /******** END OF SETTINGS *******/
 
-    function addButton(prop, val, def, clr) {
+    function addButton(prop, val, def) {
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
-            activated = JSON.parse(sessionStorage.getItem(prop));
-        button.style = `margin: 2px; width: 125px;${clr ? "" : " clear: both;"}`;
-        button.classList.add("btn", `btn-${activated ? "success" : "danger"}`, "btn-sm", "pull-right");
+            activated = JSON.parse(sessionStorage.getItem(prop)),
+            curNum = document.querySelectorAll(".btn.btn-danger.btn-sm").length;
+        button.style = `width: 125px; position: absolute; top: ${45 + 32 * curNum}px; right: 2px;`;
+        button.classList.add("btn", `btn-${activated ? "success" : "danger"}`, "btn-sm");
         button.addEventListener("click", () => {
             window.stop();
             sessionStorage.setItem(prop, !JSON.parse(sessionStorage.getItem(prop)));
@@ -34,7 +35,7 @@
         });
         button.appendChild(createIcon(`toggle-${activated ? "on" : "off"}`, "border: none;"));
         button.appendChild(document.createTextNode(val));
-        document.getElementById("#navbar").appendChild(button);
+        document.body.insertBefore(button, document.getElementById("helpers"));
     }
 
     function check(predicate, callback) {
@@ -248,10 +249,10 @@
         }
 
         if (profile || listings || listPage) {
-            var info = document.createElement("div");
+            var info = document.createElement("a");
             info.title = "Click to reset";
-            info.style = "margin: 2px; width: 150px;";
-            info.classList.add("btn", "btn-info", "btn-sm", "pull-left");
+            info.style = "position: absolute; top: 45px; left: 2px; width: 150px;";
+            info.classList.add("btn", "btn-info", "btn-sm");
             info.appendChild(icon);
             info.appendChild(stat);
             info.addEventListener("click", () => {
@@ -260,8 +261,8 @@
                 displayText("Resetted");
                 location.reload();
             });
-            document.getElementById("#navbar").appendChild(info);
-            addButton("paused", "Paused", false, true);
+            document.body.insertBefore(info, document.getElementById("helpers"));
+            addButton("paused", "Paused", false);
             addButton("silent", "Silent", false);
         }
 
@@ -291,7 +292,7 @@
             }
             addButton("annotate", "Annotate", false);
             addButton("pricediff", "Show Change", false);
-            if (document.querySelector(".dropdown-btn").href === document.URL.replace("#", ""))
+            if (document.querySelector("[href^='/profiles']").href === document.URL.replace("#", ""))
                 addButton("fastlist", "Quick Listing", false);
             check(() => {
                 return document.getElementsByClassName("pagenum").length;
