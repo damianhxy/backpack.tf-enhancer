@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.4
+// @version             1.6.5.5
 // ==/UserScript==
 
 (function () {
@@ -26,7 +26,7 @@
         var button = document.createElement("a"),
             activated = JSON.parse(sessionStorage.getItem(prop)),
             curNum = document.querySelectorAll(".btn.btn-danger.btn-sm").length;
-        button.style = `width: 125px; position: absolute; top: ${45 + 32 * curNum}px; right: 2px;`;
+        button.style = `width: 125px; position: fixed; top: ${45 + 32 * curNum}px; right: 2px;`;
         button.classList.add("btn", `btn-${activated ? "success" : "danger"}`, "btn-sm");
         button.addEventListener("click", () => {
             window.stop();
@@ -251,7 +251,7 @@
         if (profile || listings || listPage) {
             var info = document.createElement("a");
             info.title = "Click to reset";
-            info.style = "position: absolute; top: 45px; left: 2px; width: 150px;";
+            info.style = "position: fixed; top: 45px; left: 2px; width: 150px;";
             info.classList.add("btn", "btn-info", "btn-sm");
             info.appendChild(icon);
             info.appendChild(stat);
