@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.5
+// @version             1.6.5.6
 // ==/UserScript==
 
 (function () {
@@ -25,7 +25,7 @@
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
             activated = JSON.parse(sessionStorage.getItem(prop)),
-            curNum = document.querySelectorAll(".btn.btn-danger.btn-sm").length;
+            curNum = document.querySelectorAll(".btn.btn-danger.btn-sm").length + document.querySelectorAll(".btn.btn-success.btn-sm").length;
         button.style = `width: 125px; position: fixed; top: ${45 + 32 * curNum}px; right: 2px;`;
         button.classList.add("btn", `btn-${activated ? "success" : "danger"}`, "btn-sm");
         button.addEventListener("click", () => {
