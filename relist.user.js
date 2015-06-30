@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.6
+// @version             1.6.5.7
 // ==/UserScript==
 
 (function () {
@@ -428,7 +428,7 @@
                             else
                                 hasListings = ele.querySelector(".media-list");
                             if (hasListings) {
-                                var list = ele.querySelectorAll("[data-listing-price]"),
+                                var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing-price]"),
                                     length = extended && !isKS && !paint ? Math.min(10, list.length) : list.length,
                                     lowest = list[0].getAttribute("data-listing-price"),
                                     highest = list[length - 1].getAttribute("data-listing-price");
