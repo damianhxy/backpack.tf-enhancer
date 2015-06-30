@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.7
+// @version             1.6.5.8
 // ==/UserScript==
 
 (function () {
@@ -85,7 +85,7 @@
                 ele.querySelector(".fa-gift").remove();
             }
         }
-        if (fastlist && document.querySelector(".dropdown-btn").href === document.URL.replace("#", "")) {
+        if (fastlist && ownProfile) {
             if (!attr["data-name"].contains("Metal")) {
                 var arr = (attr["data-listing-date"] || "").split(" "),
                     canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour"),
@@ -231,6 +231,7 @@
         /******** SCRIPT GLOBALS ********/
         var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
             profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})$/.test(document.URL),
+            ownProfile = document.querySelector("[href^='/profiles']").href === document.URL.replace("#", ""),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
             refP = +localStorage.getItem("refP"),
             keyP = +localStorage.getItem("keyP"),
@@ -292,7 +293,7 @@
             }
             addButton("annotate", "Annotate", false);
             addButton("pricediff", "Show Change", false);
-            if (document.querySelector("[href^='/profiles']").href === document.URL.replace("#", ""))
+            if (ownProfile)
                 addButton("fastlist", "Quick Listing", false);
             check(() => {
                 return document.getElementsByClassName("pagenum").length;
