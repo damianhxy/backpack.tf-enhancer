@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.8
+// @version             1.6.5.9
 // ==/UserScript==
 
 (function () {
@@ -424,10 +424,7 @@
                                 hasListings,
                                 str;
                             ele.innerHTML += e;
-                            if (extended)
-                                hasListings = !ele.querySelector(".media-list > .alert-info");
-                            else
-                                hasListings = ele.querySelector(".media-list");
+                            hasListings = !ele.querySelector(".col-md-6:nth-child(1) .alert-info");
                             if (hasListings) {
                                 var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing-price]"),
                                     length = extended && !isKS && !paint ? Math.min(10, list.length) : list.length,
