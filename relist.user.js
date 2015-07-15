@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.0
+// @version             1.6.6.1
 // ==/UserScript==
 
 (function () {
@@ -104,7 +104,7 @@
             var curP = attr["data-price"],
                 listP = parsePrice(attr["data-listing-price"]),
                 diff = Math.abs(curP - listP);
-            if (!curP || title.contains("Killstreak"))
+            if (!curP)
                 frag.appendChild(createIcon("question", "color: blueviolet; background-color: white;"));
             else if (diff >= threshold) {
                 var colour = "lime";
