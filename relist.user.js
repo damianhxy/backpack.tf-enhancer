@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.5.9
+// @version             1.6.6.0
 // ==/UserScript==
 
 (function () {
@@ -396,6 +396,8 @@
                             extended = true;
                         if (paint)
                             colour = data.paint.find(e => e.name === paint).id;
+                        if (isAust || isKS)
+                            name = name.slice(11);
                         var url = `/classifieds/?item=${name.slice(isAust * 11)}&quality=${quality}` +
                                   `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
                                   `&australium=${isAust}&paint=${colour}&killstreak_tier=${isKS * tier}`;
@@ -427,7 +429,7 @@
                             hasListings = !ele.querySelector(".col-md-6:nth-child(1) .alert-info");
                             if (hasListings) {
                                 var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing-price]"),
-                                    length = extended && !isKS && !paint ? Math.min(10, list.length) : list.length,
+                                    length = extended && !paint ? Math.min(5, list.length) : list.length,
                                     lowest = list[0].getAttribute("data-listing-price"),
                                     highest = list[length - 1].getAttribute("data-listing-price");
                                 str = ` (${lowest} ~ ${highest} from ${length} Listings)`;
