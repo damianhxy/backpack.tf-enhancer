@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.1
+// @version             1.6.6.2
 // ==/UserScript==
 
 (function () {
@@ -420,7 +420,8 @@
                                 else return alert(`[Unhandled Item]\n${title}`);
                                 url += pIndex;
                             }
-                        }
+                        } else if (attr["data-q-name"] === "Decorated Weapon")
+                            url = attr["data-listing-url"];
                         HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
                                 hasListings,
