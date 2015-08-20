@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.3
+// @version             1.6.6.4
 // ==/UserScript==
 
 (function () {
@@ -436,8 +436,14 @@
                                 str = ` (${lowest} ~ ${highest} from ${length} Listings)`;
                             } else
                                 str = " (No other listings found)";
-                            if (isKS)
-                                str += ` [${data.killstreak_tiers[tier].name} Killstreak]`;
+                            if (isKS) {
+                                str += ` [${data.killstreak_tiers[tier].name} Killstreak`;
+                                if (attr["data-sheen"])
+                                    str += `, ${attr["data-sheen"]}`;
+                                if (attr["data-killstreaker"])
+                                    str += `, ${attr["data-killstreaker"]}`;
+                                str += "]";
+                            }
                             else if (paint)
                                 str += ` [Painted ${paint}]`;
                             document.getElementsByClassName("panel-heading")[1].textContent += str;
