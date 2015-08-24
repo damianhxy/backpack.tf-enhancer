@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.4
+// @version             1.6.6.5
 // ==/UserScript==
 
 (function () {
@@ -170,7 +170,7 @@
 
     function removeData() {
         localStorage.removeItem("threadRunning");
-        ["mainThread", "curItem", "nextPage", "paused", "toList"].forEach(e => sessionStorage.removeItem(e));
+        ["mainThread", "curItem", "nextPage", "paused", "toList", "relisted", "failed"].forEach(e => sessionStorage.removeItem(e));
     }
 
     function round(num) {
@@ -232,13 +232,15 @@
         var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
             profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})$/.test(document.URL),
             ownProfile = document.querySelector("[href^='/profiles']").href === document.URL.replace("#", ""),
+            classifieds = /^http:\/\/backpack\.tf\/classifieds$/.test(document.URL),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
             refP = +localStorage.getItem("refP"),
             keyP = +localStorage.getItem("keyP"),
             lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0),
             icon = createIcon("info-circle", "border: none"),
             stat = document.createTextNode("Loading"),
-            notes = localStorage.getItem("notes");
+            notes = localStorage.getItem("notes"),
+            relisted = JSON.parse(sessionStorage.getItem("relisted")) || [];
         /****** END SCRIPT GLOBALS ******/
 
         if (refP && keyP && lastUpdt < 864e5 * updateFreq || update()) {
@@ -264,33 +266,13 @@
             });
             document.body.insertBefore(info, document.getElementById("helpers"));
             addButton("paused", "Paused", false);
-            addButton("silent", "Silent", false);
         }
 
+        if (sessionStorage.getItem("mainThread"))
+            if (profile || classifieds)
+                return document.getElementsByClassName("fa-tag")[0].click();
+
         if (profile) {
-            if (sessionStorage.getItem("mainThread")) {
-                var cur = sessionStorage.getItem("curItem"),
-                    silent = JSON.parse(sessionStorage.getItem("silent"));
-                displayText("Interrupted");
-                if (silent || confirm("Diagnose interrupt?") || removeData()) {
-                    displayText("Checking", true);
-                    HTTPRequest("GET", `http://backpack.tf/classifieds/relist/${cur}`, e => {
-                            var ele = document.createElement("html");
-                            ele.innerHTML += e;
-                            if (ele.querySelector(".avatar")) {
-                                if (!silent)
-                                    alert(`Listing for [${cur}] is invalid`);
-                            } else if (!silent) {
-                                alert(`Listing for [${cur}] is valid`);
-                                var listings = JSON.parse(sessionStorage.getItem("toList"));
-                                listings.push(cur);
-                                sessionStorage.setItem("toList", JSON.stringify(listings));
-                            }
-                            displayText("Returning", false);
-                            return document.querySelector(".fa-tag").click();
-                    });
-                }
-            }
             addButton("annotate", "Annotate", false);
             addButton("pricediff", "Show Change", false);
             if (ownProfile)
@@ -337,7 +319,14 @@
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 location.assign(`http://backpack.tf/classifieds/relist/${last}`);
             } else if (buttons.length) {
-                Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(38)));
+                Array.prototype.forEach.call(buttons, e => {
+                    if (~ relisted.indexOf(e.href.slice(38))) {
+                        displayText("Removed " + e.href.slice(38));
+                        e.previousElementSibling.click().click();
+                    }
+                    else
+                        items.push(e.href.slice(38));
+                });
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 displayText("Saved IDs", true);
@@ -350,6 +339,7 @@
                     localStorage.removeItem("threadRunning");
                     sessionStorage.removeItem("mainThread");
                     sessionStorage.removeItem("nextPage");
+                    sessionStorage.removeItem("relisted");
                     var data = document.createElement("small"),
                         reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
                     data.style = "color: orange; float: right;";
@@ -365,6 +355,8 @@
         } else if (listPage) {
             switch (document.querySelector(".item-panel > h2").textContent.trim()) {
                 case "Relisting this item":
+                    relisted.push(sessionStorage.getItem("curItem"));
+                    sessionStorage.setItem("relisted", JSON.stringify(relisted));
                     displayText("Relisting Item", true);
                     document.getElementById("button_save").click();
                     break;
