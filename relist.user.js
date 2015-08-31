@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.5
+// @version             1.6.6.6
 // ==/UserScript==
 
 (function () {
@@ -320,7 +320,8 @@
                 location.assign(`http://backpack.tf/classifieds/relist/${last}`);
             } else if (buttons.length) {
                 Array.prototype.forEach.call(buttons, e => {
-                    if (~ relisted.indexOf(e.href.slice(38))) {
+                    var itemID = e.parent.parent.parent.querySelector(".item").getAttribute("data-id");
+                    if (~ relisted.indexOf(itemID)) {
                         displayText("Removed " + e.href.slice(38));
                         e.previousElementSibling.click().click();
                     }
@@ -355,7 +356,7 @@
         } else if (listPage) {
             switch (document.querySelector(".item-panel > h2").textContent.trim()) {
                 case "Relisting this item":
-                    relisted.push(sessionStorage.getItem("curItem"));
+                    relisted.push(document.getElementsByClassName("item")[0].getAttribute("data-id"));
                     sessionStorage.setItem("relisted", JSON.stringify(relisted));
                     displayText("Relisting Item", true);
                     document.getElementById("button_save").click();
