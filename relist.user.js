@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.6
+// @version             1.6.6.7
 // ==/UserScript==
 
 (function () {
@@ -320,7 +320,7 @@
                 location.assign(`http://backpack.tf/classifieds/relist/${last}`);
             } else if (buttons.length) {
                 Array.prototype.forEach.call(buttons, e => {
-                    var itemID = e.parent.parent.parent.querySelector(".item").getAttribute("data-id");
+                    var itemID = e.parentElement.parentElement.parentElement.querySelector(".item").getAttribute("data-id");
                     if (~ relisted.indexOf(itemID)) {
                         displayText("Removed " + e.href.slice(38));
                         e.previousElementSibling.click().click();
