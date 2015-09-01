@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.9
+// @version             1.6.7.0
 // ==/UserScript==
 
 (function () {
@@ -400,7 +400,7 @@
                         if (pIndex) {
                             if (quality === 5)
                                 url += `&particle=${pIndex}`;
-                            else {
+                            else if (!attr["data-crate"]) {
                                 extended = false;
                                 url = "http://backpack.tf/stats/Unique/";
                                 if (title.contains("Chemistry Set"))
@@ -409,12 +409,12 @@
                                     url += "Fabricator/Tradable/Craftable/";
                                 else if (title.contains("Kit"))
                                     url += "Kit/Tradable/Non-Craftable/";
-                                else if (title.conaints("Strangifier"))
+                                else if (title.contains("Strangifier"))
                                     url += "Strangifier/Tradable/Craftable/";
                                 else return alert(`[Unhandled Item]\n${title}`);
                                 url += pIndex;
                             }
-                        } else if (isKS || ~ attr["data-listing-url"].indexOf("skin"))
+                        } else if (isKS || ~ attr["data-listing-url"].indexOf("skin") || attr["data-crate"])
                             url = attr["data-listing-url"];
                         HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
