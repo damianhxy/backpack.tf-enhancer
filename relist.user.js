@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.7
+// @version             1.6.6.8
 // ==/UserScript==
 
 (function () {
@@ -323,7 +323,8 @@
                     var itemID = e.parentElement.parentElement.parentElement.querySelector(".item").getAttribute("data-id");
                     if (~ relisted.indexOf(itemID)) {
                         displayText("Removed " + e.href.slice(38));
-                        e.previousElementSibling.click().click();
+                        e.previousElementSibling.click();
+                        e.previousElementSibling.click();
                     }
                     else
                         items.push(e.href.slice(38));
