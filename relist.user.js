@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.8
+// @version             1.6.6.9
 // ==/UserScript==
 
 (function () {
@@ -390,7 +390,7 @@
                             extended = true;
                         if (paint)
                             colour = data.paint.find(e => e.name === paint).id;
-                        if (isAust || isKS)
+                        if (isAust)
                             name = name.slice(11);
                         var url = `/classifieds/?item=${name.slice(isAust * 11)}&quality=${quality}` +
                                   `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
@@ -414,7 +414,7 @@
                                 else return alert(`[Unhandled Item]\n${title}`);
                                 url += pIndex;
                             }
-                        } else if (~ attr["data-listing-url"].indexOf("skin"))
+                        } else if (isKS || ~ attr["data-listing-url"].indexOf("skin"))
                             url = attr["data-listing-url"];
                         HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
@@ -427,7 +427,7 @@
                                     length = extended && !paint ? Math.min(5, list.length) : list.length,
                                     lowest = list[0].getAttribute("data-listing-price"),
                                     highest = list[length - 1].getAttribute("data-listing-price");
-                                str = ` (${lowest} ~ ${highest} from ${length} Listings)`;
+                                str = ` (${lowest} ~ ${highest} from ${length} Listing(s))`;
                             } else
                                 str = " (No other listings found)";
                             if (isKS) {
@@ -440,7 +440,7 @@
                             }
                             else if (paint)
                                 str += ` [Painted ${paint}]`;
-                            document.getElementsByClassName("panel-heading")[1].textContent += str;
+                            document.getElementsByClassName("panel-heading")[2].textContent += str;
                             displayText("Loaded", false);
                         });
                     });
