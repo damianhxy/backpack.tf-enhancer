@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.6.7
+// @version             1.6.6.8
 // ==/UserScript==
 
 (function () {
@@ -326,7 +326,7 @@
                         e.previousElementSibling.click().click();
                     }
                     else
-                        items.push(e.href.slice(38));
+                        items.push(itemID);
                 });
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
