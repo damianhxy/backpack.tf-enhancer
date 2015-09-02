@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.1
+// @version             1.6.7.2
 // ==/UserScript==
 
 (function () {
@@ -263,7 +263,7 @@
                 if (!confirm("Are you sure?")) return;
                 removeData();
                 displayText("Resetted");
-                location.reload();
+                return document.getElementsByClassName("fa-tag")[0].click();
             });
             document.body.insertBefore(info, document.getElementById("helpers"));
             addButton("paused", "Paused", false);
