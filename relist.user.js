@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.0
+// @version             1.6.7.1
 // ==/UserScript==
 
 (function () {
@@ -221,7 +221,8 @@
                 kDiff = `(${k === keyP ? "=" : k < keyP ? "↓" : "↑"})`;
             localStorage.setItem("refP", r);
             localStorage.setItem("keyP", k);
-            alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}`);
+            if (r !== refP || k !== keyP)
+                alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}`);
             localStorage.setItem("lastupdt", Date.now());
             return location.reload();
         });
