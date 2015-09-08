@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.2
+// @version             1.6.7.3
 // ==/UserScript==
 
 (function () {
@@ -76,7 +76,7 @@
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").remove();
             if (craft && !attr["data-crate"]) {
-                if (+craft.textContent.split("#")[1] <= 100)
+                if (+craft.textContent.slice(1) <= 100)
                     frag.appendChild(createIcon("exclamation-triangle"));
                 craft.remove();
             }
@@ -131,6 +131,8 @@
                     colour = "gold";
                 frag.appendChild(createIcon("bomb", `color: ${colour}; background-color: white;`));
             }
+            if (attr["data-custom-name"] || attr["data-custom-desc"])
+                frag.appendChild(createIcon("file-text"));
         }
         ele.firstElementChild.appendChild(frag);
     }
@@ -419,11 +421,14 @@
                             url = attr["data-listing-url"];
                         HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
-                                hasListings,
                                 str;
                             ele.innerHTML += e;
-                            hasListings = !ele.querySelector(".col-md-6:nth-child(1) .alert-info");
-                            if (hasListings) {
+                            var hasListings = !ele.querySelector(".col-md-6:nth-child(1) .alert-info"),
+                                craft = document.querySelector(".value");
+                            if (craft && craft.textContent.slice(1) <= 100 && !attr["data-crate"]) {
+                                str = ` (Low Craft #${craft.textContent.slice(1)})`
+                                document.getElementById("keys").value = document.getElementById("metal").value = "";
+                            } else if (hasListings) {
                                 var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing-price]"),
                                     length = extended && !paint ? Math.min(5, list.length) : list.length,
                                     lowest = list[0].getAttribute("data-listing-price"),
