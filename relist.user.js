@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.3
+// @version             1.6.7.4
 // ==/UserScript==
 
 (function () {
@@ -75,7 +75,7 @@
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").remove();
-            if (craft && !attr["data-crate"]) {
+            if (craft && !attr["data-crate"] && !attr["data-quantity"]) {
                 if (+craft.textContent.slice(1) <= 100)
                     frag.appendChild(createIcon("exclamation-triangle"));
                 craft.remove();
@@ -281,11 +281,11 @@
             if (ownProfile)
                 addButton("fastlist", "Quick Listing", false);
             check(() => {
-                return document.getElementsByClassName("pagenum").length;
+                return document.getElementsByClassName("page-anchor").length;
             }, () => {
                 if (document.querySelector("[href='#page0']"))
                     document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                        `${document.getElementById("newlist").childElementCount - 1} `);
+                        `${document.querySelector(".item-list").childElementCount} `);
             });
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
@@ -425,7 +425,9 @@
                             ele.innerHTML += e;
                             var hasListings = !ele.querySelector(".col-md-6:nth-child(1) .alert-info"),
                                 craft = document.querySelector(".value");
-                            if (craft && craft.textContent.slice(1) <= 100 && !attr["data-crate"]) {
+                            if (craft)
+                                craft = craft.textContent.slice(1);
+                            if (craft && craft <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
                                 str = ` (Low Craft #${craft.textContent.slice(1)})`
                                 document.getElementById("keys").value = document.getElementById("metal").value = "";
                             } else if (hasListings) {
