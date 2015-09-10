@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.4
+// @version             1.6.7.5
 // ==/UserScript==
 
 (function () {
@@ -86,16 +86,15 @@
             }
         }
         if (fastlist && ownProfile) {
-            if (!attr["data-name"].contains("Metal")) {
+            if (attr["data-defindex"] < 5000 || attr["data-defindex"] > 5002) {
                 var arr = (attr["data-listing-date"] || "").split(" "),
-                    canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour"),
-                    link = document.createElement("a");
-                link.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
-                link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;" +
-                                            (canRelist || !arr[0] ? "" : " background-color: red;")));
-                if (!canRelist && arr[0])
-                    link.style.display = "none";
-                frag.appendChild(link);
+                    canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour");
+                if (canRelist || !arr[0]) {
+                    var link = document.createElement("a");
+                    link.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
+                    link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;"));
+                    frag.appendChild(link);
+                }
             }
         }
         if (change && attr["data-listing-price"]) {
