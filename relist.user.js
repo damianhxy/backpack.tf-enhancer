@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.5
+// @version             1.6.7.6
 // ==/UserScript==
 
 (function () {
@@ -25,7 +25,7 @@
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
         var button = document.createElement("a"),
             activated = JSON.parse(sessionStorage.getItem(prop)),
-            curNum = document.querySelectorAll(".btn.btn-danger.btn-sm").length + document.querySelectorAll(".btn.btn-success.btn-sm").length;
+            curNum = document.querySelectorAll(".btn.btn-sm").length  - 1;
         button.style = `width: 125px; position: fixed; top: ${45 + 32 * curNum}px; right: 2px;`;
         button.classList.add("btn", `btn-${activated ? "success" : "danger"}`, "btn-sm");
         button.addEventListener("click", () => {
@@ -205,6 +205,7 @@
             localStorage.removeItem("apikey");
             update();
         }
+        displayText("Updating prices", true);
         HTTPRequest("GET", `http://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
             var data = JSON.parse(e);
             if (!data.response.success) {
@@ -225,6 +226,7 @@
             if (r !== refP || k !== keyP)
                 alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}`);
             localStorage.setItem("lastupdt", Date.now());
+            displayText("Prices updated", false);
             return location.reload();
         });
     }
@@ -307,6 +309,15 @@
                 buttons = document.getElementsByClassName("listing-relist"),
                 items = JSON.parse(sessionStorage.getItem("toList")) || [],
                 last;
+            Array.prototype.forEach.call(buttons, (e, i) => {
+                var itemID = e.parentElement.parentElement.parentElement.querySelector(".item").getAttribute("data-id");
+                if (~ relisted.indexOf(itemID)) {
+                    displayText("Removed " + itemID);
+                    e.previousElementSibling.click();
+                    e.previousElementSibling.click();
+                    buttons.splice(i, 1);
+                }
+            });
             if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
                 displayText("Terminated");
                 return console.info(`Backpack.tf Script Terminated (Not Main Thread). Version ${GM_info.script.version}`);
@@ -321,16 +332,7 @@
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 location.assign(`http://backpack.tf/classifieds/relist/${last}`);
             } else if (buttons.length) {
-                Array.prototype.forEach.call(buttons, e => {
-                    var itemID = e.parentElement.parentElement.parentElement.querySelector(".item").getAttribute("data-id");
-                    if (~ relisted.indexOf(itemID)) {
-                        displayText("Removed " + e.href.slice(38));
-                        e.previousElementSibling.click();
-                        e.previousElementSibling.click();
-                    }
-                    else
-                        items.push(e.href.slice(38));
-                });
+                Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(38)));
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 displayText("Saved IDs", true);
