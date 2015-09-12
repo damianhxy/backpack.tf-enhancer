@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.6
+// @version             1.6.7.7
 // ==/UserScript==
 
 (function () {
@@ -306,10 +306,10 @@
             var single = !document.querySelector(".pagination-filters"),
                 first = single || document.querySelector(".pagination-filters > li:first-child").className === "disabled",
                 end = single || document.querySelector(".pagination-filters > li:last-child").className === "disabled",
-                buttons = document.getElementsByClassName("listing-relist"),
+                buttons = Array.prototype.slice.call(document.getElementsByClassName("listing-relist")),
                 items = JSON.parse(sessionStorage.getItem("toList")) || [],
                 last;
-            Array.prototype.forEach.call(buttons, (e, i) => {
+            buttons.forEach((e, i) => {
                 var itemID = e.parentElement.parentElement.parentElement.querySelector(".item").getAttribute("data-id");
                 if (~ relisted.indexOf(itemID)) {
                     displayText("Removed " + itemID);
@@ -332,7 +332,7 @@
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 location.assign(`http://backpack.tf/classifieds/relist/${last}`);
             } else if (buttons.length) {
-                Array.prototype.forEach.call(buttons, e => items.push(e.href.slice(38)));
+                buttons.forEach(e => items.push(e.href.slice(38)));
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 displayText("Saved IDs", true);
@@ -361,7 +361,9 @@
         } else if (listPage) {
             switch (document.querySelector(".item-panel > h2").textContent.trim()) {
                 case "Relisting this item":
-                    relisted.push(document.getElementsByClassName("item")[0].getAttribute("data-id"));
+                    var itemID = document.querySelector(".item").getAttribute("data-id");
+                    if (itemID)
+                        relisted.push(itemID);
                     sessionStorage.setItem("relisted", JSON.stringify(relisted));
                     displayText("Relisting Item", true);
                     document.getElementById("button_save").click();
