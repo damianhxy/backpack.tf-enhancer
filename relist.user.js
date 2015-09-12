@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.7
+// @version             1.6.7.8
 // ==/UserScript==
 
 (function () {
@@ -156,6 +156,10 @@
         var arr = str.split(" "),
             key = 0,
             ref = 0;
+        if (arr[0].contains("–")) {
+            var pts = arr[0].split("–");
+            arr[0] = ((+pts[0] + +pts[1]) / 2).toString();
+        }
         arr.forEach((e, i) => {
             if (e.contains("ref"))
                 ref = +arr[i - 1];
@@ -234,7 +238,7 @@
     try {
         /******** SCRIPT GLOBALS ********/
         var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
-            profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})$/.test(document.URL),
+            profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})(?:#page\d+)?$/.test(document.URL),
             ownProfile = document.querySelector("[href^='/profiles']").href === document.URL.replace("#", ""),
             classifieds = /^http:\/\/backpack\.tf\/classifieds$/.test(document.URL),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
@@ -288,11 +292,20 @@
                     document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
                         `${document.querySelector(".item-list").childElementCount} `);
             });
+            var totalPartValue = 0,
+                totalPaintValue = 0;
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
+                if (e.hasAttribute("data-paint-price"))
+                    totalPaintValue += parsePrice(e.getAttribute("data-paint-price"));
+                for (var a = 1; a <= 3; ++a)
+                    if (e.hasAttribute("data-part-" + a + "-price"))
+                        totalPartValue += parsePrice(e.getAttribute("data-part-" + a + "-price"));
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
                       JSON.parse(sessionStorage.getItem("fastlist")),
                       JSON.parse(sessionStorage.getItem("pricediff")));
             });
+            console.info("Total part value: " + totalPartValue + " refined.");
+            console.info("Total paint value: " + totalPaintValue + " refined.");
             displayText("Loaded");
         } else if (listings || listPage) {
             sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
