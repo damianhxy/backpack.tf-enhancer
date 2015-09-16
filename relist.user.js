@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.8
+// @version             1.6.7.9
 // ==/UserScript==
 
 (function () {
@@ -325,9 +325,7 @@
             buttons.forEach((e, i) => {
                 var itemID = e.parentElement.parentElement.parentElement.querySelector(".item").getAttribute("data-id");
                 if (~ relisted.indexOf(itemID)) {
-                    displayText("Removed " + itemID);
-                    e.previousElementSibling.click();
-                    e.previousElementSibling.click();
+                    location.assign(`javascript:Listing.remove(${e.parentNode.parentNode.parentNode.id.slice(8)});`);
                     buttons.splice(i, 1);
                 }
             });
