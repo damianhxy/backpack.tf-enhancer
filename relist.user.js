@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.7.9
+// @version             1.6.8.0
 // ==/UserScript==
 
 (function () {
@@ -304,6 +304,8 @@
                       JSON.parse(sessionStorage.getItem("fastlist")),
                       JSON.parse(sessionStorage.getItem("pricediff")));
             });
+            totalPartValue = Math.floor(round(totalPartValue / 2) * 100) / 100;
+            totalPaintValue = Math.floor(round(totalPaintValue / 2) * 100) / 100;
             console.info("Total part value: " + totalPartValue + " refined.");
             console.info("Total paint value: " + totalPaintValue + " refined.");
             displayText("Loaded");
