@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.0
+// @version             1.6.8.1
 // ==/UserScript==
 
 (function () {
@@ -212,14 +212,8 @@
         displayText("Updating prices", true);
         HTTPRequest("GET", `http://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
             var data = JSON.parse(e);
-            if (!data.response.success) {
-                if (data.response.message === "API key does not exist.") {
-                    alert("Invalid API key");
-                    localStorage.removeItem("apikey");
-                    return update();
-                } else
-                    return alert(`Error:\n${data.response.message}`);
-            }
+            if (!data.response.success)
+                return console.info(alert(`Error:\n${data.response.message}`));
             var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
                 r = Math.floor(data.response.raw_usd_value * 1000) / 10,
                 k = (key.value + (key.value_high || key.value)) / 2,
@@ -227,8 +221,7 @@
                 kDiff = `(${k === keyP ? "=" : k < keyP ? "↓" : "↑"})`;
             localStorage.setItem("refP", r);
             localStorage.setItem("keyP", k);
-            if (r !== refP || k !== keyP)
-                alert(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}`);
+            console.info(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}`);
             localStorage.setItem("lastupdt", Date.now());
             displayText("Prices updated", false);
             return location.reload();
@@ -444,7 +437,7 @@
                             if (craft)
                                 craft = craft.textContent.slice(1);
                             if (craft && craft <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
-                                str = ` (Low Craft #${craft.textContent.slice(1)})`
+                                str = ` (Low Craft #${craft.textContent.slice(1)})`;
                                 document.getElementById("keys").value = document.getElementById("metal").value = "";
                             } else if (hasListings) {
                                 var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing-price]"),
