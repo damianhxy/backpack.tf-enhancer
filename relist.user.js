@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.1
+// @version             1.6.8.2
 // ==/UserScript==
 
 (function () {
@@ -263,7 +263,10 @@
                 if (!confirm("Are you sure?")) return;
                 removeData();
                 displayText("Resetted");
-                return document.getElementsByClassName("fa-tag")[0].click();
+                if (listPage)
+                    document.getElementsByClassName("fa-tag")[0].click();
+                else
+                    location.reload();
             });
             document.body.insertBefore(info, document.getElementById("helpers"));
             addButton("paused", "Paused", false);
@@ -457,7 +460,7 @@
                             }
                             else if (paint)
                                 str += ` [Painted ${paint}]`;
-                            document.getElementsByClassName("panel-heading")[2].textContent += str;
+                            document.getElementsByClassName("panel-heading")[0].textContent += str;
                             displayText("Loaded", false);
                         });
                     });
