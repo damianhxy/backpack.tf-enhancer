@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.2
+// @version             1.6.8.3
 // ==/UserScript==
 
 (function () {
@@ -224,7 +224,6 @@
             console.info(`Prices updated, Refined: ${r} Cents ${rDiff}, Keys: ${k} Refined ${kDiff}`);
             localStorage.setItem("lastupdt", Date.now());
             displayText("Prices updated", false);
-            return location.reload();
         });
     }
 
