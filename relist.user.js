@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.3
+// @version             1.6.8.4
 // ==/UserScript==
 
 (function () {
@@ -439,7 +439,7 @@
                             if (craft)
                                 craft = craft.textContent.slice(1);
                             if (craft && craft <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
-                                str = ` (Low Craft #${craft.textContent.slice(1)})`;
+                                str = ` (Low Craft #${craft})`;
                                 document.getElementById("keys").value = document.getElementById("metal").value = "";
                             } else if (hasListings) {
                                 var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing-price]"),
