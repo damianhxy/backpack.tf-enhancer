@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.4
+// @version             1.6.8.5
 // ==/UserScript==
 
 (function () {
@@ -213,7 +213,7 @@
         HTTPRequest("GET", `http://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
             var data = JSON.parse(e);
             if (!data.response.success)
-                return console.info(alert(`Error:\n${data.response.message}`));
+                return console.info(`Error:\n${data.response.message}`);
             var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
                 r = Math.floor(data.response.raw_usd_value * 1000) / 10,
                 k = (key.value + (key.value_high || key.value)) / 2,
