@@ -8,7 +8,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.5
+// @version             1.6.8.6
 // ==/UserScript==
 
 (function () {
@@ -313,9 +313,9 @@
         }
 
         if (listings) {
-            var single = !document.querySelector(".pagination-filters"),
-                first = single || document.querySelector(".pagination-filters > li:first-child").className === "disabled",
-                end = single || document.querySelector(".pagination-filters > li:last-child").className === "disabled",
+            var single = !document.querySelector(".pagination"),
+                first = single || document.querySelector(".pagination > li:first-child").className === "disabled",
+                end = single || document.querySelector(".pagination > li:last-child").className === "disabled",
                 buttons = Array.prototype.slice.call(document.getElementsByClassName("listing-relist")),
                 items = JSON.parse(sessionStorage.getItem("toList")) || [],
                 last;
