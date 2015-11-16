@@ -3,12 +3,14 @@
 // @description         Helper script for Backpack.tf
 // @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/master/relist.user.js
 // @include             /^http:\/\/backpack\.tf.*$/
+// @exclude             /^http:\/\/backpack\.tf\/developer$/
 // @exclude             /^http:\/\/backpack\.tf\/api.*$/
+// @grant               none
 // @name                Backpack.tf Enhancer
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.6
+// @version             1.6.8.7
 // ==/UserScript==
 
 (function () {
@@ -198,8 +200,6 @@
     }
 
     function update() {
-        if (document.getElementById("login"))
-            return console.info(`Backpack.tf Script Paused (Signed Out). Version ${GM_info.script.version}`);
         if (sessionStorage.getItem("mainThread"))
             return console.info(`Price updating suppressed`);
         if (!localStorage.getItem("apikey"))
@@ -207,7 +207,7 @@
         if (localStorage.getItem("apikey").length !== 24) {
             alert("Incorrect API key length");
             localStorage.removeItem("apikey");
-            update();
+            // update();
         }
         displayText("Updating prices", true);
         HTTPRequest("GET", `http://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
@@ -228,6 +228,9 @@
     }
 
     try {
+        if (document.getElementById("login"))
+            return console.info(`Backpack.tf Script Paused (Signed Out). Version ${GM_info.script.version}`);
+
         /******** SCRIPT GLOBALS ********/
         var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
             profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})(?:#page\d+)?$/.test(document.URL),
