@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.8
+// @version             1.6.8.9
 // ==/UserScript==
 
 (function () {
@@ -296,8 +296,8 @@
                 if (e.hasAttribute("data-paint-price"))
                     totalPaintValue += parsePrice(e.getAttribute("data-paint-price"));
                 for (var a = 1; a <= 3; ++a)
-                    if (e.hasAttribute("data-part-" + a + "-price"))
-                        totalPartValue += parsePrice(e.getAttribute("data-part-" + a + "-price"));
+                    if (e.hasAttribute("data-partprice" + a))
+                        totalPartValue += parsePrice(e.getAttribute("data-partprice" + a));
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
                       JSON.parse(sessionStorage.getItem("fastlist")),
                       JSON.parse(sessionStorage.getItem("pricediff")));
