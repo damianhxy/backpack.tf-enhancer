@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.7
+// @version             1.6.8.8
 // ==/UserScript==
 
 (function () {
@@ -431,8 +431,8 @@
                                 else return alert(`[Unhandled Item]\n${title}`);
                                 url += pIndex;
                             }
-                        } else if (isKS || ~ attr["data-listing-url"].indexOf("skin") || attr["data-crate"])
-                            url = attr["data-listing-url"];
+                        } else if (isKS || ~ attr["data-query-string"].indexOf("skin") || attr["data-crate"])
+                            url = "http://backpack.tf/classifieds?" + attr["data-query-string"];
                         HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
                                 str;
