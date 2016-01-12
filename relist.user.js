@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.8.9
+// @version             1.6.9.0
 // ==/UserScript==
 
 (function () {
@@ -120,7 +120,7 @@
         if (annotate) {
             if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
                 frag.appendChild(createIcon("paint-brush"));
-            if (attr["data-part-1-name"])
+            if (attr["data-partname1"])
                 frag.appendChild(createIcon("cogs"));
             if (attr["data-spell-1"])
                 frag.appendChild(createIcon("magic"));
