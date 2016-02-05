@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.1
+// @version             1.6.9.2
 // ==/UserScript==
 
 (function () {
@@ -72,7 +72,7 @@
     function label(ele, annotate, fastlist, change) {
         var frag = document.createDocumentFragment(),
             attr = getAttr(ele),
-            craft = ele.querySelector(".value"),
+            craft = ele.querySelector(".tag.top-right"),
             title = attr["data-default-name"] || attr["title"];
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
