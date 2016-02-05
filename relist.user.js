@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.0
+// @version             1.6.9.1
 // ==/UserScript==
 
 (function () {
@@ -85,6 +85,10 @@
             if (attr["data-gifted-name"]) {
                 frag.appendChild(createIcon("gift"));
                 ele.querySelector(".fa-gift").remove();
+            }
+            if (ele.querySelector(".tag.top-left")) {
+                ele.querySelector(".tag.top-left").classList.add("top-right");
+                ele.querySelector(".tag.top-left.top-right").classList.remove("top-left");
             }
         }
         if (fastlist && ownProfile) {
@@ -177,7 +181,7 @@
 
     function removeData() {
         localStorage.removeItem("threadRunning");
-        ["mainThread", "curItem", "nextPage", "paused", "toList", "relisted", "failed"].forEach(e => sessionStorage.removeItem(e));
+        ["mainThread", "curItem", "nextPage", "paused", "toList"].forEach(e => sessionStorage.removeItem(e));
     }
 
     function round(num) {
@@ -242,8 +246,7 @@
             lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0),
             icon = createIcon("info-circle", "border: none"),
             stat = document.createTextNode("Loading"),
-            notes = localStorage.getItem("notes"),
-            relisted = JSON.parse(sessionStorage.getItem("relisted")) || [];
+            notes = localStorage.getItem("notes");
         /****** END SCRIPT GLOBALS ******/
 
         if (refP && keyP && lastUpdt < 864e5 * updateFreq || update()) {
@@ -322,13 +325,6 @@
                 buttons = Array.prototype.slice.call(document.getElementsByClassName("listing-relist")),
                 items = JSON.parse(sessionStorage.getItem("toList")) || [],
                 last;
-            buttons.forEach((e, i) => {
-                var itemID = e.parentElement.parentElement.parentElement.querySelector(".item").getAttribute("data-id");
-                if (~ relisted.indexOf(itemID)) {
-                    location.assign(`javascript:Listing.remove(${e.parentNode.parentNode.parentNode.id.slice(8)});`);
-                    buttons.splice(i, 1);
-                }
-            });
             if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
                 displayText("Terminated");
                 return console.info(`Backpack.tf Script Terminated (Not Main Thread). Version ${GM_info.script.version}`);
@@ -356,7 +352,6 @@
                     localStorage.removeItem("threadRunning");
                     sessionStorage.removeItem("mainThread");
                     sessionStorage.removeItem("nextPage");
-                    sessionStorage.removeItem("relisted");
                     var data = document.createElement("small"),
                         reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
                     data.style = "color: orange; float: right;";
@@ -373,9 +368,6 @@
             switch (document.querySelector(".item-panel > h2").textContent.trim()) {
                 case "Relisting this item":
                     var itemID = document.querySelector(".item").getAttribute("data-id");
-                    if (itemID)
-                        relisted.push(itemID);
-                    sessionStorage.setItem("relisted", JSON.stringify(relisted));
                     displayText("Relisting Item", true);
                     document.getElementById("button_save").click();
                     break;
