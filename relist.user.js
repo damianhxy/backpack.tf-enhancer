@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.2
+// @version             1.6.9.3
 // ==/UserScript==
 
 (function () {
@@ -126,7 +126,7 @@
                 frag.appendChild(createIcon("paint-brush"));
             if (attr["data-partname1"])
                 frag.appendChild(createIcon("cogs"));
-            if (attr["data-spell-1"])
+            if (attr["data-spell1"])
                 frag.appendChild(createIcon("magic"));
             if (title.contains("Killstreak")) {
                 var colour = "darkgoldenrod";
