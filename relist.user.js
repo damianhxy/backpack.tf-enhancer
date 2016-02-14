@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.3
+// @version             1.6.9.4
 // ==/UserScript==
 
 (function () {
@@ -20,7 +20,7 @@
         randomMin = 3,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
-        threshold = 0.22;            //[refined] threshold for price changes
+        threshold = 5;               //[percent] threshold for price changes
     /******** END OF SETTINGS *******/
 
     function addButton(prop, val, def) {
@@ -72,8 +72,8 @@
     function label(ele, annotate, fastlist, change) {
         var frag = document.createDocumentFragment(),
             attr = getAttr(ele),
-            craft = ele.querySelector(".tag.top-right"),
-            title = attr["data-default-name"] || attr["title"];
+            craft = ele.querySelector(".tag.top-left"),
+            title = attr["data-default_name"] || attr["title"];
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").remove();
@@ -82,7 +82,7 @@
                     frag.appendChild(createIcon("exclamation-triangle"));
                 craft.remove();
             }
-            if (attr["data-gifted-name"]) {
+            if (attr["data-gifted_name"]) {
                 frag.appendChild(createIcon("gift"));
                 ele.querySelector(".fa-gift").remove();
             }
@@ -93,22 +93,37 @@
         }
         if (fastlist && ownProfile) {
             if (attr["data-defindex"] < 5000 || attr["data-defindex"] > 5002) {
-                var arr = (attr["data-listing-date"] || "").split(" "),
+                var arr = (attr["data-listing_date"] || "").split(" "),
                     canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour");
-                if (canRelist || !arr[0]) {
+                var link = document.createElement("a");
+                link.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
+                link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0; color: " + (canRelist || !arr[0] ? "white;": "red;")));
+                frag.appendChild(link);
+                /* if (arr[0]) {
                     var link = document.createElement("a");
-                    link.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
-                    link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0;"));
+                    link.href = "javascript:void(0);"
+                    link.appendChild(createIcon("times", "position: absolute; bottom: 20px; left: 0;"));
+                    link.addEventListener("click", e => {
+                        HTTPRequest("POST", "/classified/remove/440_" + attr["data-id"], f => {
+                            f = JSON.parse(f);
+                            if (f.error)
+                                alert(f.error);
+                            else {
+                                e.target.parentElement.previousElementSibling.innerHTML = createIcon("plus", "position: absolute; bottom: 0; left: 0;");
+                                e.remove();
+                            }
+                        }, `user-id: ${unsafeWindow.userID}`);
+                    });
                     frag.appendChild(link);
-                }
+                } */
             }
         }
-        if (change && attr["data-listing-price"]) {
+        if (change && attr["data-listing_price"]) {
             if (ele.querySelector(".value") && !attr["data-crate"])
                 ele.querySelector(".value").style.display = "none";
             var curP = attr["data-price"],
-                listP = parsePrice(attr["data-listing-price"]),
-                diff = Math.abs(curP - listP);
+                listP = parsePrice(attr["data-listing_price"]),
+                diff = Math.abs(100 - (curP / listP) * 100);
             if (!curP)
                 frag.appendChild(createIcon("question", "color: blueviolet; background-color: white;"));
             else if (diff >= threshold) {
@@ -122,11 +137,11 @@
             }
         }
         if (annotate) {
-            if (attr["data-paint-name"] && attr["data-paint-name"] !== attr["data-name"])
+            if (attr["data-paint_name"] && attr["data-paint_name"] !== attr["data-name"])
                 frag.appendChild(createIcon("paint-brush"));
-            if (attr["data-partname1"])
+            if (attr["data-part_name_1"])
                 frag.appendChild(createIcon("cogs"));
-            if (attr["data-spell1"])
+            if (attr["data-spell_1"])
                 frag.appendChild(createIcon("magic"));
             if (title.contains("Killstreak")) {
                 var colour = "darkgoldenrod";
@@ -136,13 +151,13 @@
                     colour = "gold";
                 frag.appendChild(createIcon("bomb", `color: ${colour}; background-color: white;`));
             }
-            if (attr["data-custom-name"] || attr["data-custom-desc"])
+            if (attr["data-custom_name"] || attr["data-custom_desc"])
                 frag.appendChild(createIcon("file-text"));
         }
         ele.firstElementChild.appendChild(frag);
     }
 
-    function HTTPRequest(method, URL, callback) {
+    function HTTPRequest(method, URL, callback, data) {
         displayText("Sending", true);
         var xmlhttp = new XMLHttpRequest();
         xmlhttp.open(method, URL, callback);
@@ -153,9 +168,14 @@
         };
         xmlhttp.onload = () => {
             displayText("Received", false);
-            return callback ? callback(xmlhttp.responseText) : xmlhttp.responseText;
+            return callback(xmlhttp.responseText);
         };
-        xmlhttp.send();
+        /* if (method === "POST") {
+            xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xmlhttp.setRequestHeader("Content-length", data.length);
+            xmlhttp.setRequestHeader("Connection", "close");
+        } */
+        xmlhttp.send(data);
     }
 
     function parsePrice(str) {
@@ -211,7 +231,6 @@
         if (localStorage.getItem("apikey").length !== 24) {
             alert("Incorrect API key length");
             localStorage.removeItem("apikey");
-            // update();
         }
         displayText("Updating prices", true);
         HTTPRequest("GET", `http://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
@@ -239,7 +258,7 @@
         var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
             profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})(?:#page\d+)?$/.test(document.URL),
             ownProfile = document.querySelector("[href^='/profiles']").href === document.URL.replace("#", ""),
-            classifieds = /^http:\/\/backpack\.tf\/classifieds$/.test(document.URL),
+            classifieds = /^http:\/\/backpack\.tf\/profiles\/$/.test(document.URL),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
             refP = +localStorage.getItem("refP"),
             keyP = +localStorage.getItem("keyP"),
@@ -277,7 +296,7 @@
             addButton("paused", "Paused", false);
         }
 
-        if (sessionStorage.getItem("mainThread"))
+        if (sessionStorage.getItem("mainThread") && !JSON.parse(sessionStorage.getItem("paused")))
             if (profile || classifieds)
                 return document.getElementsByClassName("fa-tag")[0].click();
 
@@ -296,11 +315,11 @@
             var totalPartValue = 0,
                 totalPaintValue = 0;
             Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
-                if (e.hasAttribute("data-paint-price"))
-                    totalPaintValue += parsePrice(e.getAttribute("data-paint-price"));
+                if (e.hasAttribute("data-paint_price"))
+                    totalPaintValue += parsePrice(e.getAttribute("data-paint_price"));
                 for (var a = 1; a <= 3; ++a)
-                    if (e.hasAttribute("data-partprice" + a))
-                        totalPartValue += parsePrice(e.getAttribute("data-partprice" + a));
+                    if (e.hasAttribute("data-part_price_" + a))
+                        totalPartValue += parsePrice(e.getAttribute("data-part_price_" + a));
                 label(e, JSON.parse(sessionStorage.getItem("annotate")),
                       JSON.parse(sessionStorage.getItem("fastlist")),
                       JSON.parse(sessionStorage.getItem("pricediff")));
@@ -376,10 +395,10 @@
                     var attr = getAttr(document.querySelector(".item")),
                         colour = 0,
                         isAust = attr["data-australium"] || 0,
-                        title = attr["data-default-name"] || attr["title"],
+                        title = attr["data-default_name"] || attr["title"],
                         isKS = title.contains("Killstreak"),
                         name = attr["data-name"],
-                        paint = attr["data-paint-name"],
+                        paint = attr["data-paint_name"],
                         pIndex = attr["data-priceindex"],
                         price = attr["data-price"],
                         quality = attr["data-quality"],
@@ -423,24 +442,24 @@
                                 else return alert(`[Unhandled Item]\n${title}`);
                                 url += pIndex;
                             }
-                        } else if (isKS || ~ attr["data-query-string"].indexOf("skin") || attr["data-crate"])
-                            url = "http://backpack.tf/classifieds?" + attr["data-query-string"];
+                        } else if (isKS || ~ attr["data-query_string"].indexOf("skin") || attr["data-crate"])
+                            url = "http://backpack.tf/classifieds?" + attr["data-query_string"];
                         HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
                                 str;
                             ele.innerHTML += e;
                             var hasListings = !ele.querySelector(".col-md-6:nth-child(1) .alert-info"),
-                                craft = document.querySelector(".value");
+                                craft = document.querySelector(".tag.top-left");
                             if (craft)
                                 craft = craft.textContent.slice(1);
                             if (craft && craft <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
                                 str = ` (Low Craft #${craft})`;
                                 document.getElementById("keys").value = document.getElementById("metal").value = "";
                             } else if (hasListings) {
-                                var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing-price]"),
+                                var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing_price]"),
                                     length = extended && !paint ? Math.min(5, list.length) : list.length,
-                                    lowest = list[0].getAttribute("data-listing-price"),
-                                    highest = list[length - 1].getAttribute("data-listing-price");
+                                    lowest = list[0].getAttribute("data-listing_price"),
+                                    highest = list[length - 1].getAttribute("data-listing_price");
                                 str = ` (${lowest} ~ ${highest} from ${length} Listing(s))`;
                             } else
                                 str = " (No other listings found)";
