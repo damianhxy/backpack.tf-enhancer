@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.5
+// @version             1.6.9.6
 // ==/UserScript==
 
 (function () {
@@ -114,7 +114,7 @@
                                 var slot1 = e.target.parentElement.previousElementSibling;
                                 slot1.firstElementChild.remove();
                                 slot1.appendChild(createIcon("plus", "position: absolute; bottom: 0; left: 0;"));
-                                e.target.parentElement.parentElement.querySelector(".tag.bottom-right").remove();
+                                e.target.parentElement.parentElement.nextElementSibling.remove();
                                 e.target.parentElement.remove();
                             }
                         }, `user-id=${unsafeWindow.userID}`);
@@ -159,7 +159,7 @@
             if (attr["data-custom_name"] || attr["data-custom_desc"])
                 frag.appendChild(createIcon("file-text"));
         }
-        ele.appendChild(frag);
+        ele.firstElementChild.appendChild(frag);
     }
 
     function HTTPRequest(method, URL, callback, data) {
