@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.4
+// @version             1.6.9.5
 // ==/UserScript==
 
 (function () {
@@ -99,23 +99,28 @@
                 link.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
                 link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0; color: " + (canRelist || !arr[0] ? "white;": "red;")));
                 frag.appendChild(link);
-                /* if (arr[0]) {
+                if (arr[0]) {
                     var link = document.createElement("a");
-                    link.href = "javascript:void(0);"
+                    link.href = "#";
                     link.appendChild(createIcon("times", "position: absolute; bottom: 20px; left: 0;"));
                     link.addEventListener("click", e => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         HTTPRequest("POST", "/classified/remove/440_" + attr["data-id"], f => {
                             f = JSON.parse(f);
-                            if (f.error)
-                                alert(f.error);
+                            if (f.result.error)
+                                alert(f.result.error);
                             else {
-                                e.target.parentElement.previousElementSibling.innerHTML = createIcon("plus", "position: absolute; bottom: 0; left: 0;");
-                                e.remove();
+                                var slot1 = e.target.parentElement.previousElementSibling;
+                                slot1.firstElementChild.remove();
+                                slot1.appendChild(createIcon("plus", "position: absolute; bottom: 0; left: 0;"));
+                                e.target.parentElement.parentElement.querySelector(".tag.bottom-right").remove();
+                                e.target.parentElement.remove();
                             }
-                        }, `user-id: ${unsafeWindow.userID}`);
+                        }, `user-id=${unsafeWindow.userID}`);
                     });
                     frag.appendChild(link);
-                } */
+                }
             }
         }
         if (change && attr["data-listing_price"]) {
@@ -154,7 +159,7 @@
             if (attr["data-custom_name"] || attr["data-custom_desc"])
                 frag.appendChild(createIcon("file-text"));
         }
-        ele.firstElementChild.appendChild(frag);
+        ele.appendChild(frag);
     }
 
     function HTTPRequest(method, URL, callback, data) {
@@ -170,11 +175,7 @@
             displayText("Received", false);
             return callback(xmlhttp.responseText);
         };
-        /* if (method === "POST") {
-            xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            xmlhttp.setRequestHeader("Content-length", data.length);
-            xmlhttp.setRequestHeader("Connection", "close");
-        } */
+        xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xmlhttp.send(data);
     }
 
@@ -253,6 +254,12 @@
     try {
         if (document.getElementById("login"))
             return console.info(`Backpack.tf Script Paused (Signed Out). Version ${GM_info.script.version}`);
+        if (document.getElementById("cf-wrapper")) {
+            console.info(`Backpack.tf Script Paused (Offline). Version ${GM_info.script.version}`);
+            if (sessionStorage.getItem("mainThread"))
+                setTimeout(() => location.assign(document.URL), 5000);
+            return;
+        }
 
         /******** SCRIPT GLOBALS ********/
         var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
@@ -481,8 +488,7 @@
         }
         console.info(`Backpack.tf Script Loaded. Version ${GM_info.script.version}`);
     } catch(e) {
-        if (stat)
-            displayText("Fatal Error");
+        displayText("Fatal Error");
         alert(`[A fatal error has occured]\n${e.message}\n[Stack Trace]\n${e.stack}`);
     }
 })();
