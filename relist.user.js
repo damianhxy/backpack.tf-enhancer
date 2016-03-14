@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.6
+// @version             1.6.9.7
 // ==/UserScript==
 
 (function () {
@@ -20,7 +20,8 @@
         randomMin = 3,               //[minutes] minimum random reload time
         randomMax = 10,              //[minutes] maximum random reload time
         updateFreq = 3,              //[days] price refresh frequency
-        threshold = 5;               //[percent] threshold for price changes
+        threshold = 5,               //[percent] threshold for price changes
+        absThreshold = 0.11;         //[refined] absolute threshold
     /******** END OF SETTINGS *******/
 
     function addButton(prop, val, def) {
@@ -128,10 +129,11 @@
                 ele.querySelector(".value").style.display = "none";
             var curP = attr["data-price"],
                 listP = parsePrice(attr["data-listing_price"]),
-                diff = Math.abs(100 - (curP / listP) * 100);
+                diff = Math.abs(100 - (curP / listP) * 100),
+                absDiff = Math.abs(curP - listP);
             if (!curP)
                 frag.appendChild(createIcon("question", "color: blueviolet; background-color: white;"));
-            else if (diff >= threshold) {
+            else if (diff >= threshold && absDiff >= absThreshold) {
                 var colour = "lime";
                 if (diff >= threshold * 2 && diff <= threshold * 4)
                     colour = "goldenrod";
@@ -432,10 +434,12 @@
                                   `&australium=${isAust}&paint=${colour}&killstreak_tier=${isKS * tier}`;
                         if (attr["data-crate"])
                             url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
-                        if (pIndex) {
+                        else if (isKS || ~ attr["data-query_string"].indexOf("skin") || attr["data-crate"])
+                            url = "http://backpack.tf/classifieds?" + attr["data-query_string"];
+                        else if (pIndex) {
                             if (quality === 5)
                                 url += `&particle=${pIndex}`;
-                            else if (!attr["data-crate"]) {
+                            else {
                                 extended = false;
                                 url = "http://backpack.tf/stats/Unique/";
                                 if (title.contains("Chemistry Set"))
@@ -449,8 +453,7 @@
                                 else return alert(`[Unhandled Item]\n${title}`);
                                 url += pIndex;
                             }
-                        } else if (isKS || ~ attr["data-query_string"].indexOf("skin") || attr["data-crate"])
-                            url = "http://backpack.tf/classifieds?" + attr["data-query_string"];
+                        }
                         HTTPRequest("GET", url, e => {
                             var ele = document.createElement("html"),
                                 str;
