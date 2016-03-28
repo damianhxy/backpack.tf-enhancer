@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.7
+// @version             1.6.9.8
 // ==/UserScript==
 
 (function () {
@@ -429,9 +429,12 @@
                             colour = data.paint.find(e => e.name === paint).id;
                         if (isAust)
                             name = name.slice(11);
-                        var url = `/classifieds/?item=${name.slice(isAust * 11)}&quality=${quality}` +
+                        name = name.replace(" ", "+");
+                        var url = `/classifieds?item=${name}&quality=${quality}` +
                                   `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
-                                  `&australium=${isAust}&paint=${colour}&killstreak_tier=${isKS * tier}`;
+                                  `&australium=${isAust}&killstreak_tier=${isKS * tier}`;
+                        if (colour)
+                            url += `&paint=${colour}`;
                         if (attr["data-crate"])
                             url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
                         else if (isKS || ~ attr["data-query_string"].indexOf("skin") || attr["data-crate"])
