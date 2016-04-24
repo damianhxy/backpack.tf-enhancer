@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.8
+// @version             1.6.9.9
 // ==/UserScript==
 
 (function () {
@@ -230,7 +230,7 @@
         if (sessionStorage.getItem("mainThread"))
             return console.info(`Price updating suppressed`);
         if (!localStorage.getItem("apikey"))
-            localStorage.setItem("apikey", prompt("API key not set, register yours from http://backpack.tf/api/"));
+            localStorage.setItem("apikey", prompt("API key not set, register yours from http://backpack.tf/developer/"));
         if (localStorage.getItem("apikey").length !== 24) {
             alert("Incorrect API key length");
             localStorage.removeItem("apikey");
