@@ -2,15 +2,15 @@
 // @copyright           ©2014 - 2015, Damian Ho
 // @description         Helper script for Backpack.tf
 // @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/master/relist.user.js
-// @include             /^http:\/\/backpack\.tf.*$/
-// @exclude             /^http:\/\/backpack\.tf\/developer$/
-// @exclude             /^http:\/\/backpack\.tf\/api.*$/
+// @include             /^https:\/\/backpack\.tf.*$/
+// @exclude             /^https:\/\/backpack\.tf\/developer$/
+// @exclude             /^https:\/\/backpack\.tf\/api.*$/
 // @grant               none
 // @name                Backpack.tf Enhancer
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.6.9.9
+// @version             1.7.0.0
 // ==/UserScript==
 
 (function () {
@@ -230,13 +230,13 @@
         if (sessionStorage.getItem("mainThread"))
             return console.info(`Price updating suppressed`);
         if (!localStorage.getItem("apikey"))
-            localStorage.setItem("apikey", prompt("API key not set, register yours from http://backpack.tf/developer/"));
+            localStorage.setItem("apikey", prompt("API key not set, register yours from https://backpack.tf/developer/"));
         if (localStorage.getItem("apikey").length !== 24) {
             alert("Incorrect API key length");
             localStorage.removeItem("apikey");
         }
         displayText("Updating prices", true);
-        HTTPRequest("GET", `http://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
+        HTTPRequest("GET", `https://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
             var data = JSON.parse(e);
             if (!data.response.success)
                 return console.info(`Error:\n${data.response.message}`);
@@ -264,10 +264,10 @@
         }
 
         /******** SCRIPT GLOBALS ********/
-        var listPage = /^http:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
-            profile = /^http:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})(?:#page\d+)?$/.test(document.URL),
+        var listPage = /^https:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
+            profile = /^https:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})(?:#page\d+)?$/.test(document.URL),
             ownProfile = document.querySelector("[href^='/profiles']").href === document.URL.replace("#", ""),
-            classifieds = /^http:\/\/backpack\.tf\/profiles\/$/.test(document.URL),
+            classifieds = /^https:\/\/backpack\.tf\/profiles\/$/.test(document.URL),
             listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
             refP = +localStorage.getItem("refP"),
             keyP = +localStorage.getItem("keyP"),
@@ -422,7 +422,7 @@
                     if (isKS)
                         tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.contains(e));
                     tier = ~ tier ? 3 - tier : 0;
-                    HTTPRequest("GET", "/pages/filter_meta", e => {
+                    HTTPRequest("GET", "/filters", e => {
                         var data = JSON.parse(e),
                             extended = true;
                         if (paint)
@@ -437,8 +437,6 @@
                             url += `&paint=${colour}`;
                         if (attr["data-crate"])
                             url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
-                        else if (isKS || ~ attr["data-query_string"].indexOf("skin") || attr["data-crate"])
-                            url = "http://backpack.tf/classifieds?" + attr["data-query_string"];
                         else if (pIndex) {
                             if (quality === 5)
                                 url += `&particle=${pIndex}`;
