@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.0
+// @version             1.7.0.1
 // ==/UserScript==
 
 (function () {
@@ -367,7 +367,7 @@
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 location.assign(`http://backpack.tf/classifieds/relist/${last}`);
             } else if (buttons.length) {
-                buttons.forEach(e => items.push(e.href.slice(38)));
+                buttons.forEach(e => items.push(e.href.slice(39)));
                 sessionStorage.setItem("curItem", last = items.pop());
                 sessionStorage.setItem("toList", JSON.stringify(items));
                 displayText("Saved IDs", true);
