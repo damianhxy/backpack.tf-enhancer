@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.1
+// @version             1.7.0.2
 // ==/UserScript==
 
 (function () {
@@ -107,17 +107,17 @@
                     link.addEventListener("click", e => {
                         e.preventDefault();
                         e.stopPropagation();
-                        HTTPRequest("POST", "/classified/remove/440_" + attr["data-id"], f => {
-                            f = JSON.parse(f);
-                            if (f.result.error)
-                                alert(f.result.error);
-                            else {
-                                var slot1 = e.target.parentElement.previousElementSibling;
-                                slot1.firstElementChild.remove();
-                                slot1.appendChild(createIcon("plus", "position: absolute; bottom: 0; left: 0;"));
-                                e.target.parentElement.parentElement.nextElementSibling.remove();
-                                e.target.parentElement.remove();
-                            }
+                        HTTPRequest("POST", "/classifieds/remove/440_" + attr["data-id"], f => {
+                            var parent = e.target.parentElement;
+                            var relistSlot = parent.previousElementSibling;
+                            relistSlot.firstElementChild.remove();
+                            relistSlot.appendChild(createIcon("plus", "position: absolute; bottom: 0; left: 0;"));
+                            var change = parent.nextElementSibling;
+                            if (change !== null)
+                                change.remove();
+                            var price = parent.parentElement.nextElementSibling;
+                            price.remove();
+                            parent.remove();
                         }, `user-id=${unsafeWindow.userID}`);
                     });
                     frag.appendChild(link);
