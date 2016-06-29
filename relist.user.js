@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.3
+// @version             1.7.0.4
 // ==/UserScript==
 
 (function () {
@@ -25,36 +25,39 @@
     /******** END OF SETTINGS *******/
 
     /*********** CONSTANT ***********/
-    var paintLookup =
-    [{ name: "A Color Similar to Slate", id: 3100495 },
-    { name: "A Deep Commitment to Purple", id: 8208497 },
-    { name: "A Distinctive Lack of Hue", id: 1315860 },
-    { name: "A Mann's Mint", id: 12377523 },
-    { name: "After Eight", id: 2960676 },
-    { name: "Aged Moustache Grey", id: 8289918 },
-    { name: "An Air of Debonair", id: 6637376 },
-    { name: "An Extraordinary Abundance of Tinge", id: 15132390 },
-    { name: "Australium Gold", id: 15185211 },
-    { name: "Balaclavas Are Forever", id: 3874595 },
-    { name: "Color No. 216-190-216", id: 14204632 },
-    { name: "Cream Spirit", id: 12807213 },
-    { name: "Dark Salmon Injustice", id: 15308410 },
-    { name: "Drably Olive", id: 8421376 },
-    { name: "Indubitably Green", id: 7511618 },
-    { name: "Mann Co. Orange", id: 13595446 },
-    { name: "Muskelmannbraun", id: 10843461 },
-    { name: "Noble Hatter's Violet", id: 5322826 },
-    { name: "Operator's Overalls", id: 4732984 },
-    { name: "Peculiarly Drab Tincture", id: 12955537 },
-    { name: "Pink as Hell", id: 16738740 },
-    { name: "Radigan Conagher Brown", id: 6901050 },
-    { name: "Team Spirit", id: 12073019 },
-    { name: "The Bitter Taste of Defeat and Lime", id: 3329330 },
-    { name: "The Color of a Gentlemann's Business Pants", id: 15787660 },
-    { name: "The Value of Teamwork", id: 8400928 },
-    { name: "Waterlogged Lab Coat", id: 11049612 },
-    { name: "Ye Olde Rustic Colour", id: 8154199 },
-    { name: "Zepheniah's Greed", id: 4345659 }];
+    var paintLookup = {
+    "A Color Similar to Slate": 3100495,
+    "A Deep Commitment to Purple": 8208497,
+    "A Distinctive Lack of Hue": 1315860,
+    "A Mann's Mint": 12377523,
+    "After Eight": 2960676,
+    "Aged Moustache Grey": 8289918,
+    "An Air of Debonair": 6637376,
+    "An Extraordinary Abundance of Tinge": 15132390,
+    "Australium Gold": 15185211,
+    "Balaclavas Are Forever": 3874595,
+    "Color No. 216-190-216": 14204632,
+    "Cream Spirit": 12807213,
+    "Dark Salmon Injustice": 15308410,
+    "Drably Olive": 8421376,
+    "Indubitably Green": 7511618,
+    "Mann Co. Orange": 13595446,
+    "Muskelmannbraun": 10843461,
+    "Noble Hatter's Violet": 5322826,
+    "Operator's Overalls": 4732984,
+    "Peculiarly Drab Tincture": 12955537,
+    "Pink as Hell": 16738740,
+    "Radigan Conagher Brown": 6901050,
+    "Team Spirit": 12073019,
+    "The Bitter Taste of Defeat and Lime": 3329330,
+    "The Color of a Gentlemann's Business Pants": 15787660,
+    "The Value of Teamwork": 8400928,
+    "Waterlogged Lab Coat": 11049612,
+    "Ye Olde Rustic Colour": 8154199,
+    "Zepheniah's Greed": 4345659
+    };
+
+    var ksLookup = ["", "Killstreak ", "Specialized Killstreak ", "Professional Killstreak "];
     /******** END OF CONSTANT *******/
 
     function addButton(prop, val, def) {
@@ -455,12 +458,14 @@
                         tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.contains(e));
                     tier = ~ tier ? 3 - tier : 0;
                     var listNotes = notes;
+
                     var parts = [];
                     for (var a = 1; a <= 3; ++a) {
                         if (attr[`data-part_name_${a}`]) {
                             parts.push(attr[`data-part_name_${a}`]);
                         }
                     }
+
                     var partsNotes = "";
                     if (parts.length) {
                         partsNotes = parts[0];
@@ -474,6 +479,7 @@
                         partsNotes += ". ";
                     }
                     listNotes = partsNotes + listNotes;
+
                     var ksNotes = "";
                     if (tier === 3) {
                         ksNotes = `${attr["data-sheen"]} / ${attr["data-killstreaker"]}. `;
@@ -481,10 +487,11 @@
                         ksNotes = `${attr["data-sheen"]}. `;
                     }
                     listNotes = ksNotes + listNotes;
+
                     document.getElementById("details").value = listNotes;
                     var extended = true;
                     if (paint)
-                        colour = paintLookup.find(e => e.name === paint).id;
+                        colour = paintLookup[paint];
                     if (isAust)
                         name = name.slice(11);
                     name = name.replace(" ", "+");
@@ -500,7 +507,7 @@
                             url += `&particle=${pIndex}`;
                         else {
                             extended = false;
-                            url = "http://backpack.tf/stats/Unique/";
+                            url = "https://backpack.tf/stats/Unique/" + ksLookup[tier];
                             if (title.contains("Chemistry Set"))
                                 url += "Chemistry Set/Tradable/Craftable/";
                             else if (title.contains("Fabricator"))
@@ -517,7 +524,7 @@
                         var ele = document.createElement("html"),
                             str;
                         ele.innerHTML += e;
-                        var hasListings = !ele.querySelector(".col-md-6:nth-child(1) .alert-info"),
+                        var hasListings = !ele.querySelector(".col-md-6:nth-child(1)").querySelector(".alert-info"),
                             craft = document.querySelector(".tag.top-left");
                         if (craft)
                             craft = craft.textContent.slice(1);
