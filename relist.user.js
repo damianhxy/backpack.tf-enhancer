@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.2
+// @version             1.7.0.3
 // ==/UserScript==
 
 (function () {
@@ -23,6 +23,39 @@
         threshold = 5,               //[percent] threshold for price changes
         absThreshold = 0.11;         //[refined] absolute threshold
     /******** END OF SETTINGS *******/
+
+    /*********** CONSTANT ***********/
+    var paintLookup =
+    [{ name: "A Color Similar to Slate", id: 3100495 },
+    { name: "A Deep Commitment to Purple", id: 8208497 },
+    { name: "A Distinctive Lack of Hue", id: 1315860 },
+    { name: "A Mann's Mint", id: 12377523 },
+    { name: "After Eight", id: 2960676 },
+    { name: "Aged Moustache Grey", id: 8289918 },
+    { name: "An Air of Debonair", id: 6637376 },
+    { name: "An Extraordinary Abundance of Tinge", id: 15132390 },
+    { name: "Australium Gold", id: 15185211 },
+    { name: "Balaclavas Are Forever", id: 3874595 },
+    { name: "Color No. 216-190-216", id: 14204632 },
+    { name: "Cream Spirit", id: 12807213 },
+    { name: "Dark Salmon Injustice", id: 15308410 },
+    { name: "Drably Olive", id: 8421376 },
+    { name: "Indubitably Green", id: 7511618 },
+    { name: "Mann Co. Orange", id: 13595446 },
+    { name: "Muskelmannbraun", id: 10843461 },
+    { name: "Noble Hatter's Violet", id: 5322826 },
+    { name: "Operator's Overalls", id: 4732984 },
+    { name: "Peculiarly Drab Tincture", id: 12955537 },
+    { name: "Pink as Hell", id: 16738740 },
+    { name: "Radigan Conagher Brown", id: 6901050 },
+    { name: "Team Spirit", id: 12073019 },
+    { name: "The Bitter Taste of Defeat and Lime", id: 3329330 },
+    { name: "The Color of a Gentlemann's Business Pants", id: 15787660 },
+    { name: "The Value of Teamwork", id: 8400928 },
+    { name: "Waterlogged Lab Coat", id: 11049612 },
+    { name: "Ye Olde Rustic Colour", id: 8154199 },
+    { name: "Zepheniah's Greed", id: 4345659 }];
+    /******** END OF CONSTANT *******/
 
     function addButton(prop, val, def) {
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
@@ -411,82 +444,106 @@
                         pIndex = attr["data-priceindex"],
                         price = attr["data-price"],
                         quality = attr["data-quality"],
-                        tier = 0;
+                        tier = -1;
                     if (price >= keyP && !name.contains("Key")) {
                         document.getElementById("keys").value = Math.floor(price / keyP);
                         price %= keyP;
                     }
                     price = Math.floor(round(price) * 100) / 100;
                     document.getElementById("metal").value = price || "";
-                    document.getElementById("details").value = notes;
                     if (isKS)
                         tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.contains(e));
                     tier = ~ tier ? 3 - tier : 0;
-                    HTTPRequest("GET", "/filters", e => {
-                        var data = JSON.parse(e),
-                            extended = true;
-                        if (paint)
-                            colour = data.paint.find(e => e.name === paint).id;
-                        if (isAust)
-                            name = name.slice(11);
-                        name = name.replace(" ", "+");
-                        var url = `/classifieds?item=${name}&quality=${quality}` +
-                                  `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
-                                  `&australium=${isAust}&killstreak_tier=${isKS * tier}`;
-                        if (colour)
-                            url += `&paint=${colour}`;
-                        if (attr["data-crate"])
-                            url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
-                        else if (pIndex) {
-                            if (quality === 5)
-                                url += `&particle=${pIndex}`;
-                            else {
-                                extended = false;
-                                url = "http://backpack.tf/stats/Unique/";
-                                if (title.contains("Chemistry Set"))
-                                    url += "Chemistry Set/Tradable/Craftable/";
-                                else if (title.contains("Fabricator"))
-                                    url += "Fabricator/Tradable/Craftable/";
-                                else if (title.contains("Kit"))
-                                    url += "Kit/Tradable/Non-Craftable/";
-                                else if (title.contains("Strangifier"))
-                                    url += "Strangifier/Tradable/Craftable/";
-                                else return alert(`[Unhandled Item]\n${title}`);
-                                url += pIndex;
-                            }
+                    var listNotes = notes;
+                    var parts = [];
+                    for (var a = 1; a <= 3; ++a) {
+                        if (attr[`data-part_name_${a}`]) {
+                            parts.push(attr[`data-part_name_${a}`]);
                         }
-                        HTTPRequest("GET", url, e => {
-                            var ele = document.createElement("html"),
-                                str;
-                            ele.innerHTML += e;
-                            var hasListings = !ele.querySelector(".col-md-6:nth-child(1) .alert-info"),
-                                craft = document.querySelector(".tag.top-left");
-                            if (craft)
-                                craft = craft.textContent.slice(1);
-                            if (craft && craft <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
-                                str = ` (Low Craft #${craft})`;
-                                document.getElementById("keys").value = document.getElementById("metal").value = "";
-                            } else if (hasListings) {
-                                var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing_price]"),
-                                    length = extended && !paint ? Math.min(5, list.length) : list.length,
-                                    lowest = list[0].getAttribute("data-listing_price"),
-                                    highest = list[length - 1].getAttribute("data-listing_price");
-                                str = ` (${lowest} ~ ${highest} from ${length} Listing(s))`;
-                            } else
-                                str = " (No other listings found)";
-                            if (isKS) {
-                                str += ` [${data.killstreak_tiers[tier].name} Killstreak`;
-                                if (attr["data-sheen"])
-                                    str += `, ${attr["data-sheen"]}`;
-                                if (attr["data-killstreaker"])
-                                    str += `, ${attr["data-killstreaker"]}`;
-                                str += "]";
-                            }
-                            else if (paint)
-                                str += ` [Painted ${paint}]`;
-                            document.getElementsByClassName("panel-heading")[0].textContent += str;
-                            displayText("Loaded", false);
-                        });
+                    }
+                    var partsNotes = "";
+                    if (parts.length) {
+                        partsNotes = parts[0];
+                        for (var a = 1; a < parts.length; ++a) {
+                            if (a === parts.length - 1)
+                                partsNotes += " & ";
+                            else
+                                partsNotes += ", ";
+                            partsNotes += parts[a];
+                        }
+                        partsNotes += ". ";
+                    }
+                    listNotes = partsNotes + listNotes;
+                    var ksNotes = "";
+                    if (tier === 3) {
+                        ksNotes = `${attr["data-sheen"]} / ${attr["data-killstreaker"]}. `;
+                    } else if (tier === 2) {
+                        ksNotes = `${attr["data-sheen"]}. `;
+                    }
+                    listNotes = ksNotes + listNotes;
+                    document.getElementById("details").value = listNotes;
+                    var extended = true;
+                    if (paint)
+                        colour = paintLookup.find(e => e.name === paint).id;
+                    if (isAust)
+                        name = name.slice(11);
+                    name = name.replace(" ", "+");
+                    var url = `/classifieds?item=${name}&quality=${quality}` +
+                              `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
+                              `&australium=${isAust}&killstreak_tier=${isKS * tier}`;
+                    if (colour)
+                        url += `&paint=${colour}`;
+                    if (attr["data-crate"])
+                        url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
+                    else if (pIndex) {
+                        if (quality === 5)
+                            url += `&particle=${pIndex}`;
+                        else {
+                            extended = false;
+                            url = "http://backpack.tf/stats/Unique/";
+                            if (title.contains("Chemistry Set"))
+                                url += "Chemistry Set/Tradable/Craftable/";
+                            else if (title.contains("Fabricator"))
+                                url += "Fabricator/Tradable/Craftable/";
+                            else if (title.contains("Kit"))
+                                url += "Kit/Tradable/Non-Craftable/";
+                            else if (title.contains("Strangifier"))
+                                url += "Strangifier/Tradable/Craftable/";
+                            else return alert(`[Unhandled Item]\n${title}`);
+                            url += pIndex;
+                        }
+                    }
+                    HTTPRequest("GET", url, e => {
+                        var ele = document.createElement("html"),
+                            str;
+                        ele.innerHTML += e;
+                        var hasListings = !ele.querySelector(".col-md-6:nth-child(1) .alert-info"),
+                            craft = document.querySelector(".tag.top-left");
+                        if (craft)
+                            craft = craft.textContent.slice(1);
+                        if (craft && craft <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
+                            str = ` (Low Craft #${craft})`;
+                            document.getElementById("keys").value = document.getElementById("metal").value = "";
+                        } else if (hasListings) {
+                            var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing_price]"),
+                                length = extended && !paint ? Math.min(5, list.length) : list.length,
+                                lowest = list[0].getAttribute("data-listing_price"),
+                                highest = list[length - 1].getAttribute("data-listing_price");
+                            str = ` (${lowest} ~ ${highest} from ${length} Listing(s))`;
+                        } else
+                            str = " (No other listings found)";
+                        if (isKS) {
+                            str += " [";
+                            if (attr["data-sheen"])
+                                str += `${attr["data-sheen"]}`;
+                            if (attr["data-killstreaker"])
+                                str += `, ${attr["data-killstreaker"]}`;
+                            str += "]";
+                        }
+                        else if (paint)
+                            str += ` [Painted ${paint}]`;
+                        document.getElementsByClassName("panel-heading")[0].textContent += str;
+                        displayText("Loaded", false);
                     });
             }
         }
