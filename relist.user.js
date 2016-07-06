@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.4
+// @version             1.7.0.5
 // ==/UserScript==
 
 (function () {
@@ -440,7 +440,7 @@
                     var attr = getAttr(document.querySelector(".item")),
                         colour = 0,
                         isAust = attr["data-australium"] || 0,
-                        title = attr["data-default_name"] || attr["title"],
+                        title = attr["data-original-title"] || attr["title"],
                         isKS = title.contains("Killstreak"),
                         name = attr["data-name"],
                         paint = attr["data-paint_name"],
@@ -469,12 +469,12 @@
                     var partsNotes = "";
                     if (parts.length) {
                         partsNotes = parts[0];
-                        for (var a = 1; a < parts.length; ++a) {
-                            if (a === parts.length - 1)
+                        for (var part = 1; part < parts.length; ++part) {
+                            if (part === parts.length - 1)
                                 partsNotes += " & ";
                             else
                                 partsNotes += ", ";
-                            partsNotes += parts[a];
+                            partsNotes += parts[part];
                         }
                         partsNotes += ". ";
                     }
@@ -488,13 +488,15 @@
                     }
                     listNotes = ksNotes + listNotes;
 
+                    if (attr["data-wear_tier"])
+                        listNotes = `${attr["data-wear_tier"]}. ` + listNotes;
+
                     document.getElementById("details").value = listNotes;
                     var extended = true;
                     if (paint)
                         colour = paintLookup[paint];
                     if (isAust)
                         name = name.slice(11);
-                    name = name.replace(" ", "+");
                     var url = `/classifieds?item=${name}&quality=${quality}` +
                               `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
                               `&australium=${isAust}&killstreak_tier=${isKS * tier}`;
@@ -519,6 +521,9 @@
                             else return alert(`[Unhandled Item]\n${title}`);
                             url += pIndex;
                         }
+                    } else if (attr["data-wear_tier"]) {
+                        extended = false;
+                        url = `https://backpack.tf/stats/Decorated Weapon/${name}/Tradable/Craftable`;
                     }
                     HTTPRequest("GET", url, e => {
                         var ele = document.createElement("html"),
@@ -539,7 +544,7 @@
                             str = ` (${lowest} ~ ${highest} from ${length} Listing(s))`;
                         } else
                             str = " (No other listings found)";
-                        if (isKS) {
+                        if (tier > 1) {
                             str += " [";
                             if (attr["data-sheen"])
                                 str += `${attr["data-sheen"]}`;
@@ -547,7 +552,7 @@
                                 str += `, ${attr["data-killstreaker"]}`;
                             str += "]";
                         }
-                        else if (paint)
+                        if (paint)
                             str += ` [Painted ${paint}]`;
                         document.getElementsByClassName("panel-heading")[0].textContent += str;
                         displayText("Loaded", false);
