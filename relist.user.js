@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.5
+// @version             1.7.0.6
 // ==/UserScript==
 
 (function () {
@@ -521,9 +521,6 @@
                             else return alert(`[Unhandled Item]\n${title}`);
                             url += pIndex;
                         }
-                    } else if (attr["data-wear_tier"]) {
-                        extended = false;
-                        url = `https://backpack.tf/stats/Decorated Weapon/${name}/Tradable/Craftable`;
                     }
                     HTTPRequest("GET", url, e => {
                         var ele = document.createElement("html"),
@@ -552,7 +549,7 @@
                                 str += `, ${attr["data-killstreaker"]}`;
                             str += "]";
                         }
-                        if (paint)
+                        if (paint && !paintLookup[name])
                             str += ` [Painted ${paint}]`;
                         document.getElementsByClassName("panel-heading")[0].textContent += str;
                         displayText("Loaded", false);
