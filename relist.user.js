@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.6
+// @version             1.7.0.7
 // ==/UserScript==
 
 (function () {
@@ -130,16 +130,15 @@
         }
         if (fastlist && ownProfile) {
             if (attr["data-defindex"] < 5000 || attr["data-defindex"] > 5002) {
-                var arr = (attr["data-listing_date"] || "").split(" "),
-                    canRelist = +arr[0] >= 30 && arr[1].contains("minute") || arr[0] && arr[1].contains("hour");
+                var arr = (attr["data-listing_date"] || "").split(" ");
                 var link = document.createElement("a");
                 link.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
-                link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0; color: " + (canRelist || !arr[0] ? "white;": "red;")));
+                link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0; color: white;"));
                 frag.appendChild(link);
                 if (arr[0]) {
                     var link = document.createElement("a");
                     link.href = "#";
-                    link.appendChild(createIcon("times", "position: absolute; bottom: 20px; left: 0;"));
+                    link.appendChild(createIcon("times", "position: absolute; bottom: 0; left: 20px;"));
                     link.addEventListener("click", e => {
                         e.preventDefault();
                         e.stopPropagation();
