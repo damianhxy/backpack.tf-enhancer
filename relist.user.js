@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.7
+// @version             1.7.0.8
 // ==/UserScript==
 
 (function () {
@@ -446,7 +446,8 @@
                         pIndex = attr["data-priceindex"],
                         price = attr["data-price"],
                         quality = attr["data-quality"],
-                        tier = -1;
+                        tier = -1,
+                        wearTier = attr["data-wear_tier"];
                     if (price >= keyP && !name.contains("Key")) {
                         document.getElementById("keys").value = Math.floor(price / keyP);
                         price %= keyP;
@@ -487,9 +488,6 @@
                     }
                     listNotes = ksNotes + listNotes;
 
-                    if (attr["data-wear_tier"])
-                        listNotes = `${attr["data-wear_tier"]}. ` + listNotes;
-
                     document.getElementById("details").value = listNotes;
                     var extended = true;
                     if (paint)
@@ -520,6 +518,10 @@
                             else return alert(`[Unhandled Item]\n${title}`);
                             url += pIndex;
                         }
+                    } else if (wearTier) {
+                        extended = false;
+                        // Note that data-quality instead of data-q_name works too
+                        url = `https://backpack.tf/stats/${attr["data-q_name"]}/${name}/Tradable/Craftable/`;
                     }
                     HTTPRequest("GET", url, e => {
                         var ele = document.createElement("html"),
