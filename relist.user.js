@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.8
+// @version             1.7.0.9
 // ==/UserScript==
 
 (function () {
@@ -185,11 +185,11 @@
                 frag.appendChild(createIcon("cogs"));
             if (attr["data-spell_1"])
                 frag.appendChild(createIcon("magic"));
-            if (title.contains("Killstreak")) {
+            if (title.includes("Killstreak")) {
                 var colour = "darkgoldenrod";
-                if (title.contains("Specialized"))
+                if (title.includes("Specialized"))
                     colour = "darkgray";
-                else if (title.contains("Professional"))
+                else if (title.includes("Professional"))
                     colour = "gold";
                 frag.appendChild(createIcon("bomb", `color: ${colour}; background-color: white;`));
             }
@@ -220,14 +220,14 @@
         var arr = str.split(" "),
             key = 0,
             ref = 0;
-        if (arr[0].contains("–")) {
+        if (arr[0].includes("–")) {
             var pts = arr[0].split("–");
             arr[0] = ((+pts[0] + +pts[1]) / 2).toString();
         }
         arr.forEach((e, i) => {
-            if (e.contains("ref"))
+            if (e.includes("ref"))
                 ref = +arr[i - 1];
-            else if (e.contains("key"))
+            else if (e.includes("key"))
                 key = +arr[i - 1];
         });
         return ref + key * keyP;
@@ -303,7 +303,7 @@
             profile = /^https:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})(?:#page\d+)?$/.test(document.URL),
             ownProfile = document.querySelector("[href^='/profiles']").href === document.URL.replace("#", ""),
             classifieds = /^https:\/\/backpack\.tf\/profiles\/$/.test(document.URL),
-            listings = document.querySelector(".listing-remove") && document.URL.contains("steamid="),
+            listings = document.querySelector(".listing-remove") && document.URL.includes("steamid="),
             refP = +localStorage.getItem("refP"),
             keyP = +localStorage.getItem("keyP"),
             lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0),
@@ -440,7 +440,7 @@
                         colour = 0,
                         isAust = attr["data-australium"] || 0,
                         title = attr["data-original-title"] || attr["title"],
-                        isKS = title.contains("Killstreak"),
+                        isKS = title.includes("Killstreak"),
                         name = attr["data-name"],
                         paint = attr["data-paint_name"],
                         pIndex = attr["data-priceindex"],
@@ -448,14 +448,14 @@
                         quality = attr["data-quality"],
                         tier = -1,
                         wearTier = attr["data-wear_tier"];
-                    if (price >= keyP && !name.contains("Key")) {
+                    if (price >= keyP && !name.includes("Key")) {
                         document.getElementById("keys").value = Math.floor(price / keyP);
                         price %= keyP;
                     }
                     price = Math.floor(round(price) * 100) / 100;
                     document.getElementById("metal").value = price || "";
                     if (isKS)
-                        tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.contains(e));
+                        tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.includes(e));
                     tier = ~ tier ? 3 - tier : 0;
                     var listNotes = notes;
 
@@ -507,13 +507,13 @@
                         else {
                             extended = false;
                             url = "https://backpack.tf/stats/Unique/" + ksLookup[tier];
-                            if (title.contains("Chemistry Set"))
+                            if (title.includes("Chemistry Set"))
                                 url += "Chemistry Set/Tradable/Craftable/";
-                            else if (title.contains("Fabricator"))
+                            else if (title.includes("Fabricator"))
                                 url += "Fabricator/Tradable/Craftable/";
-                            else if (title.contains("Kit"))
+                            else if (title.includes("Kit"))
                                 url += "Kit/Tradable/Non-Craftable/";
-                            else if (title.contains("Strangifier"))
+                            else if (title.includes("Strangifier"))
                                 url += "Strangifier/Tradable/Craftable/";
                             else return alert(`[Unhandled Item]\n${title}`);
                             url += pIndex;
