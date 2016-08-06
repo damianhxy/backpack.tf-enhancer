@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.0.9
+// @version             1.7.1.0
 // ==/UserScript==
 
 (function () {
@@ -132,6 +132,10 @@
             if (attr["data-defindex"] < 5000 || attr["data-defindex"] > 5002) {
                 var arr = (attr["data-listing_date"] || "").split(" ");
                 var link = document.createElement("a");
+                var priceTag = ele.querySelector(".fa.fa-tag");
+                if (priceTag) {
+                    priceTag.remove();
+                }
                 link.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
                 link.appendChild(createIcon(arr[0] ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0; color: white;"));
                 frag.appendChild(link);
