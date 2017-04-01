@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.1.1
+// @version             1.7.1.2
 // ==/UserScript==
 
 (function () {
@@ -495,6 +495,9 @@
                         ksNotes = `${attr["data-sheen"]}. `;
                     }
                     listNotes = ksNotes + listNotes;
+
+                    if (attr["data-festivized"])
+                        listNotes = "Festivized. " + listNotes;
 
                     document.getElementById("details").value = listNotes;
                     var extended = true;
