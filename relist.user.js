@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.1.0
+// @version             1.7.1.1
 // ==/UserScript==
 
 (function () {
@@ -114,6 +114,8 @@
         if (annotate || fastlist) {
             if (ele.querySelector(".killstreaker"))
                 ele.querySelector(".killstreaker").remove();
+            if (ele.querySelector(".festivized-item"))
+                ele.querySelector(".festivized-item").remove();
             if (craft && !attr["data-crate"] && !attr["data-quantity"]) {
                 if (+craft.textContent.slice(1) <= 100)
                     frag.appendChild(createIcon("exclamation-triangle"));
@@ -189,6 +191,8 @@
                 frag.appendChild(createIcon("cogs"));
             if (attr["data-spell_1"])
                 frag.appendChild(createIcon("magic"));
+            if (attr["data-festivized"])
+                frag.appendChild(createIcon("lightbulb-o"))
             if (title.includes("Killstreak")) {
                 var colour = "darkgoldenrod";
                 if (title.includes("Specialized"))
