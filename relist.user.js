@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.1.3
+// @version             1.7.1.4
 // ==/UserScript==
 
 (function () {
@@ -159,7 +159,7 @@
                             var price = parent.parentElement.nextElementSibling;
                             price.remove();
                             parent.remove();
-                        }, `user-id=${unsafeWindow.userID}`);
+                        }, `user-id=${unsafeWindow.Session.csrf}`);
                     });
                     frag.appendChild(link);
                 }
