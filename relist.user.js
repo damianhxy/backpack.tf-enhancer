@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.1.4
+// @version             1.7.1.5
 // ==/UserScript==
 
 (function () {
@@ -296,6 +296,214 @@
         });
     }
 
+    function loadProfile() {
+        addButton("annotate", "Annotate", false);
+      addButton("pricediff", "Show Change", false);
+      if (ownProfile)
+        addButton("fastlist", "Quick Listing", false);
+      if (document.querySelector("[href='#page0']"))
+        document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin', `${document.querySelector(".item-list").childElementCount} `);
+      var totalPartValue = 0,
+          totalPaintValue = 0;
+      Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
+        if (e.hasAttribute("data-paint_price"))
+          totalPaintValue += parsePrice(e.getAttribute("data-paint_price"));
+        for (var a = 1; a <= 3; ++a)
+          if (e.hasAttribute("data-part_price_" + a))
+            totalPartValue += parsePrice(e.getAttribute("data-part_price_" + a));
+        label(e, JSON.parse(sessionStorage.getItem("annotate")),
+              JSON.parse(sessionStorage.getItem("fastlist")),
+              JSON.parse(sessionStorage.getItem("pricediff")));
+      });
+      totalPartValue = Math.floor(round(totalPartValue / 5) * 100) / 100;
+      totalPaintValue = Math.floor(round(totalPaintValue / 5) * 100) / 100;
+      console.info("Total part value: " + totalPartValue + " refined.");
+      console.info("Total paint value: " + totalPaintValue + " refined.");
+      displayText("Loaded");
+    }
+
+    function loadListings() {
+      var single = !document.querySelector(".pagination"),
+          first = single || document.querySelector(".pagination > li:first-child").className === "disabled",
+          end = single || document.querySelector(".pagination > li:last-child").className === "disabled",
+          buttons = Array.prototype.slice.call(document.getElementsByClassName("listing-relist")),
+          items = JSON.parse(sessionStorage.getItem("toList")) || [],
+          last;
+      if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
+        displayText("Terminated");
+        return console.info(`Backpack.tf Script Terminated (Not Main Thread). Version ${GM_info.script.version}`);
+      } else if (!localStorage.getItem("threadRunning")) {
+        localStorage.setItem("threadRunning", null);
+        sessionStorage.setItem("mainThread", null);
+      } else if (document.querySelector("[class^='alert-']"))
+        displayText("Terminated");
+      if (items.length) {
+        displayText(`Relisting Page ${sessionStorage.getItem("nextPage") - 1}`, true);
+        sessionStorage.setItem("curItem", last = items.pop());
+        sessionStorage.setItem("toList", JSON.stringify(items));
+        location.assign(`http://backpack.tf/classifieds/relist/${last}`);
+      } else if (buttons.length) {
+        buttons.forEach(e => items.push(e.href.slice(39)));
+        sessionStorage.setItem("curItem", last = items.pop());
+        sessionStorage.setItem("toList", JSON.stringify(items));
+        displayText("Saved IDs", true);
+        location.assign(`http://backpack.tf/classifieds/relist/${last}`);
+      } else if (first) {
+        displayText(`Jumping to ${sessionStorage.getItem("nextPage")}`, true);
+        location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
+      } else {
+        if (end) {
+          localStorage.removeItem("threadRunning");
+          sessionStorage.removeItem("mainThread");
+          sessionStorage.removeItem("nextPage");
+          var data = document.createElement("small"),
+              reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
+          data.style = "color: orange; float: right;";
+          document.querySelector(".panel-heading").appendChild(data);
+          setInterval(showStatus, 1000);
+          displayText("Finished");
+        } else {
+          sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
+          displayText("Moving");
+          document.querySelector(".fa-angle-right").click();
+        }
+      }
+    }
+
+    function loadListPage() {
+        switch (document.querySelector(".item-panel > h2").textContent.trim()) {
+        case "Relisting this item":
+          var itemID = document.querySelector(".item").getAttribute("data-id");
+          displayText("Relisting Item", true);
+          document.getElementById("button_save").click();
+          break;
+        default:
+          displayText("Loading");
+          var attr = getAttr(document.querySelector(".item")),
+              colour = 0,
+              isAust = attr["data-australium"] || 0,
+              title = attr["data-original-title"] || attr["title"],
+              isKS = title.includes("Killstreak"),
+              name = attr["data-name"],
+              paint = attr["data-paint_name"],
+              pIndex = attr["data-priceindex"],
+              price = attr["data-price"],
+              quality = attr["data-quality"],
+              tier = -1,
+              wearTier = attr["data-wear_tier"];
+          if (price >= keyP && !name.includes("Key")) {
+            document.getElementById("keys").value = Math.floor(price / keyP);
+            price %= keyP;
+          }
+          price = Math.floor(round(price) * 100) / 100;
+          document.getElementById("metal").value = price || "";
+          if (isKS)
+            tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.includes(e));
+          tier = ~ tier ? 3 - tier : 0;
+          var listNotes = notes;
+
+          var parts = [];
+          for (var a = 1; a <= 3; ++a) {
+            if (attr[`data-part_name_${a}`]) {
+              parts.push(attr[`data-part_name_${a}`]);
+            }
+          }
+
+          var partsNotes = "";
+          if (parts.length) {
+            partsNotes = parts[0];
+            for (var part = 1; part < parts.length; ++part) {
+              if (part === parts.length - 1)
+                partsNotes += " & ";
+              else
+                partsNotes += ", ";
+              partsNotes += parts[part];
+            }
+            partsNotes += ". ";
+          }
+          listNotes = partsNotes + listNotes;
+
+          var ksNotes = "";
+          if (tier === 3) {
+            ksNotes = `${attr["data-sheen"]} / ${attr["data-killstreaker"]}. `;
+          } else if (tier === 2) {
+            ksNotes = `${attr["data-sheen"]}. `;
+          }
+          listNotes = ksNotes + listNotes;
+
+          if (attr["data-festivized"])
+            listNotes = "Festivized. " + listNotes;
+
+          document.getElementById("details").value = listNotes;
+          var extended = true;
+          if (paint)
+            colour = paintLookup[paint];
+          if (isAust)
+            name = name.slice(11);
+          var url = `/classifieds?item=${name}&quality=${quality}` +
+              `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
+              `&australium=${isAust}&killstreak_tier=${isKS * tier}`;
+          if (colour)
+            url += `&paint=${colour}`;
+          if (attr["data-crate"])
+            url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
+          else if (pIndex) {
+            if (quality === 5)
+              url += `&particle=${pIndex}`;
+            else {
+              extended = false;
+              url = "https://backpack.tf/stats/Unique/" + ksLookup[tier];
+              if (title.includes("Chemistry Set"))
+                url += "Chemistry Set/Tradable/Craftable/";
+              else if (title.includes("Fabricator"))
+                url += "Fabricator/Tradable/Craftable/";
+              else if (title.includes("Kit"))
+                url += "Kit/Tradable/Non-Craftable/";
+              else if (title.includes("Strangifier"))
+                url += "Strangifier/Tradable/Craftable/";
+              else return alert(`[Unhandled Item]\n${title}`);
+              url += pIndex;
+            }
+          } else if (wearTier) {
+            extended = false;
+            // Note that data-quality instead of data-q_name works too
+            url = `https://backpack.tf/stats/${attr["data-q_name"]}/${name}/Tradable/Craftable/`;
+          }
+          HTTPRequest("GET", url, e => {
+            var ele = document.createElement("html"),
+                str;
+            ele.innerHTML += e;
+            var hasListings = !ele.querySelector(".col-md-6:nth-child(1)").querySelector(".alert-info"),
+                craft = document.querySelector(".tag.top-left");
+            if (craft)
+              craft = craft.textContent.slice(1);
+            if (craft && craft <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
+              str = ` (Low Craft #${craft})`;
+              document.getElementById("keys").value = document.getElementById("metal").value = "";
+            } else if (hasListings) {
+              var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing_price]"),
+                  length = extended && !paint ? Math.min(5, list.length) : list.length,
+                  lowest = list[0].getAttribute("data-listing_price"),
+                  highest = list[length - 1].getAttribute("data-listing_price");
+              str = ` (${lowest} ~ ${highest} from ${length} Listing(s))`;
+            } else
+              str = " (No other listings found)";
+            if (tier > 1) {
+              str += " [";
+              if (attr["data-sheen"])
+                str += `${attr["data-sheen"]}`;
+              if (attr["data-killstreaker"])
+                str += `, ${attr["data-killstreaker"]}`;
+              str += "]";
+            }
+            if (paint && !paintLookup[name])
+              str += ` [Painted ${paint}]`;
+            document.getElementsByClassName("panel-heading")[0].textContent += str;
+            displayText("Loaded", false);
+          });
+      }
+    }
+
     try {
         if (document.getElementById("login"))
             return console.info(`Backpack.tf Script Paused (Signed Out). Version ${GM_info.script.version}`);
@@ -353,34 +561,7 @@
                 return document.getElementsByClassName("fa-tag")[0].click();
 
         if (profile) {
-            addButton("annotate", "Annotate", false);
-            addButton("pricediff", "Show Change", false);
-            if (ownProfile)
-                addButton("fastlist", "Quick Listing", false);
-            check(() => {
-                return document.getElementsByClassName("page-anchor").length;
-            }, () => {
-                if (document.querySelector("[href='#page0']"))
-                    document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin',
-                        `${document.querySelector(".item-list").childElementCount} `);
-            });
-            var totalPartValue = 0,
-                totalPaintValue = 0;
-            Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
-                if (e.hasAttribute("data-paint_price"))
-                    totalPaintValue += parsePrice(e.getAttribute("data-paint_price"));
-                for (var a = 1; a <= 3; ++a)
-                    if (e.hasAttribute("data-part_price_" + a))
-                        totalPartValue += parsePrice(e.getAttribute("data-part_price_" + a));
-                label(e, JSON.parse(sessionStorage.getItem("annotate")),
-                      JSON.parse(sessionStorage.getItem("fastlist")),
-                      JSON.parse(sessionStorage.getItem("pricediff")));
-            });
-            totalPartValue = Math.floor(round(totalPartValue / 2) * 100) / 100;
-            totalPaintValue = Math.floor(round(totalPaintValue / 2) * 100) / 100;
-            console.info("Total part value: " + totalPartValue + " refined.");
-            console.info("Total paint value: " + totalPaintValue + " refined.");
-            displayText("Loaded");
+            check(() => { return document.getElementsByClassName("page-anchor").length; }, () => loadProfile());
         } else if (listings || listPage) {
             sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
             if (JSON.parse(sessionStorage.getItem("paused"))) {
@@ -390,183 +571,9 @@
         }
 
         if (listings) {
-            var single = !document.querySelector(".pagination"),
-                first = single || document.querySelector(".pagination > li:first-child").className === "disabled",
-                end = single || document.querySelector(".pagination > li:last-child").className === "disabled",
-                buttons = Array.prototype.slice.call(document.getElementsByClassName("listing-relist")),
-                items = JSON.parse(sessionStorage.getItem("toList")) || [],
-                last;
-            if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
-                displayText("Terminated");
-                return console.info(`Backpack.tf Script Terminated (Not Main Thread). Version ${GM_info.script.version}`);
-            } else if (!localStorage.getItem("threadRunning")) {
-                localStorage.setItem("threadRunning", null);
-                sessionStorage.setItem("mainThread", null);
-            } else if (document.querySelector("[class^='alert-']"))
-                displayText("Terminated");
-            if (items.length) {
-                displayText(`Relisting Page ${sessionStorage.getItem("nextPage") - 1}`, true);
-                sessionStorage.setItem("curItem", last = items.pop());
-                sessionStorage.setItem("toList", JSON.stringify(items));
-                location.assign(`http://backpack.tf/classifieds/relist/${last}`);
-            } else if (buttons.length) {
-                buttons.forEach(e => items.push(e.href.slice(39)));
-                sessionStorage.setItem("curItem", last = items.pop());
-                sessionStorage.setItem("toList", JSON.stringify(items));
-                displayText("Saved IDs", true);
-                location.assign(`http://backpack.tf/classifieds/relist/${last}`);
-            } else if (first) {
-                displayText(`Jumping to ${sessionStorage.getItem("nextPage")}`, true);
-                location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
-            } else {
-                if (end) {
-                    localStorage.removeItem("threadRunning");
-                    sessionStorage.removeItem("mainThread");
-                    sessionStorage.removeItem("nextPage");
-                    var data = document.createElement("small"),
-                        reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
-                    data.style = "color: orange; float: right;";
-                    document.querySelector(".panel-heading").appendChild(data);
-                    setInterval(showStatus, 1000);
-                    displayText("Finished");
-                } else {
-                    sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
-                    displayText("Moving");
-                    document.querySelector(".fa-angle-right").click();
-                }
-            }
+            loadListings();
         } else if (listPage) {
-            switch (document.querySelector(".item-panel > h2").textContent.trim()) {
-                case "Relisting this item":
-                    var itemID = document.querySelector(".item").getAttribute("data-id");
-                    displayText("Relisting Item", true);
-                    document.getElementById("button_save").click();
-                    break;
-                default:
-                    displayText("Loading");
-                    var attr = getAttr(document.querySelector(".item")),
-                        colour = 0,
-                        isAust = attr["data-australium"] || 0,
-                        title = attr["data-original-title"] || attr["title"],
-                        isKS = title.includes("Killstreak"),
-                        name = attr["data-name"],
-                        paint = attr["data-paint_name"],
-                        pIndex = attr["data-priceindex"],
-                        price = attr["data-price"],
-                        quality = attr["data-quality"],
-                        tier = -1,
-                        wearTier = attr["data-wear_tier"];
-                    if (price >= keyP && !name.includes("Key")) {
-                        document.getElementById("keys").value = Math.floor(price / keyP);
-                        price %= keyP;
-                    }
-                    price = Math.floor(round(price) * 100) / 100;
-                    document.getElementById("metal").value = price || "";
-                    if (isKS)
-                        tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.includes(e));
-                    tier = ~ tier ? 3 - tier : 0;
-                    var listNotes = notes;
-
-                    var parts = [];
-                    for (var a = 1; a <= 3; ++a) {
-                        if (attr[`data-part_name_${a}`]) {
-                            parts.push(attr[`data-part_name_${a}`]);
-                        }
-                    }
-
-                    var partsNotes = "";
-                    if (parts.length) {
-                        partsNotes = parts[0];
-                        for (var part = 1; part < parts.length; ++part) {
-                            if (part === parts.length - 1)
-                                partsNotes += " & ";
-                            else
-                                partsNotes += ", ";
-                            partsNotes += parts[part];
-                        }
-                        partsNotes += ". ";
-                    }
-                    listNotes = partsNotes + listNotes;
-
-                    var ksNotes = "";
-                    if (tier === 3) {
-                        ksNotes = `${attr["data-sheen"]} / ${attr["data-killstreaker"]}. `;
-                    } else if (tier === 2) {
-                        ksNotes = `${attr["data-sheen"]}. `;
-                    }
-                    listNotes = ksNotes + listNotes;
-
-                    if (attr["data-festivized"])
-                        listNotes = "Festivized. " + listNotes;
-
-                    document.getElementById("details").value = listNotes;
-                    var extended = true;
-                    if (paint)
-                        colour = paintLookup[paint];
-                    if (isAust)
-                        name = name.slice(11);
-                    var url = `/classifieds?item=${name}&quality=${quality}` +
-                              `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
-                              `&australium=${isAust}&killstreak_tier=${isKS * tier}`;
-                    if (colour)
-                        url += `&paint=${colour}`;
-                    if (attr["data-crate"])
-                        url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
-                    else if (pIndex) {
-                        if (quality === 5)
-                            url += `&particle=${pIndex}`;
-                        else {
-                            extended = false;
-                            url = "https://backpack.tf/stats/Unique/" + ksLookup[tier];
-                            if (title.includes("Chemistry Set"))
-                                url += "Chemistry Set/Tradable/Craftable/";
-                            else if (title.includes("Fabricator"))
-                                url += "Fabricator/Tradable/Craftable/";
-                            else if (title.includes("Kit"))
-                                url += "Kit/Tradable/Non-Craftable/";
-                            else if (title.includes("Strangifier"))
-                                url += "Strangifier/Tradable/Craftable/";
-                            else return alert(`[Unhandled Item]\n${title}`);
-                            url += pIndex;
-                        }
-                    } else if (wearTier) {
-                        extended = false;
-                        // Note that data-quality instead of data-q_name works too
-                        url = `https://backpack.tf/stats/${attr["data-q_name"]}/${name}/Tradable/Craftable/`;
-                    }
-                    HTTPRequest("GET", url, e => {
-                        var ele = document.createElement("html"),
-                            str;
-                        ele.innerHTML += e;
-                        var hasListings = !ele.querySelector(".col-md-6:nth-child(1)").querySelector(".alert-info"),
-                            craft = document.querySelector(".tag.top-left");
-                        if (craft)
-                            craft = craft.textContent.slice(1);
-                        if (craft && craft <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
-                            str = ` (Low Craft #${craft})`;
-                            document.getElementById("keys").value = document.getElementById("metal").value = "";
-                        } else if (hasListings) {
-                            var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing_price]"),
-                                length = extended && !paint ? Math.min(5, list.length) : list.length,
-                                lowest = list[0].getAttribute("data-listing_price"),
-                                highest = list[length - 1].getAttribute("data-listing_price");
-                            str = ` (${lowest} ~ ${highest} from ${length} Listing(s))`;
-                        } else
-                            str = " (No other listings found)";
-                        if (tier > 1) {
-                            str += " [";
-                            if (attr["data-sheen"])
-                                str += `${attr["data-sheen"]}`;
-                            if (attr["data-killstreaker"])
-                                str += `, ${attr["data-killstreaker"]}`;
-                            str += "]";
-                        }
-                        if (paint && !paintLookup[name])
-                            str += ` [Painted ${paint}]`;
-                        document.getElementsByClassName("panel-heading")[0].textContent += str;
-                        displayText("Loaded", false);
-                    });
-            }
+            loadListPage();
         }
         console.info(`Backpack.tf Script Loaded. Version ${GM_info.script.version}`);
     } catch(e) {
