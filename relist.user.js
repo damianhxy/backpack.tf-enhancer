@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.7.1.5
+// @version             1.8
 // ==/UserScript==
 
 (function () {
@@ -371,12 +371,13 @@
     }
 
     function loadListPage() {
+        var status = /^https:\/\/backpack\.tf\/classifieds\/relist\/.*$/.test(document.URL) ? "relist" : "sell";
         var header = document.querySelector(".panel-heading > span");
-        switch (header.textContent.trim()) {
-        case "Relisting this item":
+        switch (status) {
+        case "relist":
           var itemID = document.querySelector(".item").getAttribute("data-id");
           displayText("Relisting Item", true);
-          document.getElementById("button_save").click();
+          setTimeout(() => { document.querySelector(".place-listing").click(); }, 1000);
           break;
         default:
           displayText("Loading");
