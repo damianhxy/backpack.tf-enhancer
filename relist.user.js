@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.8
+// @version             1.8.1
 // ==/UserScript==
 
 (function () {
@@ -257,11 +257,11 @@
         return Math.floor(num) + Math.round((num % 1 * 9).toFixed(2)) / 9;
     }
 
-    function showStatus() {
+    function showStatus(e, reloadTime) {
         if (reloadTime) {
             var min = Math.floor(reloadTime / 60),
-                sec = reloadTime-- % 60;
-            data.textContent = `Reloading classifieds in ${min}:${("0" + sec).slice(-2)}`;
+                sec = reloadTime % 60;
+            e.textContent = `Reloading classifieds in ${min}:${("0" + sec).slice(-2)}`;
             document.title = `Classifieds: ${min}:${("0" + sec).slice(-2)}`;
         } else {
             document.querySelector(".fa-angle-double-left").click();
@@ -360,7 +360,7 @@
               reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
           data.style = "color: orange; float: right;";
           document.querySelector(".panel-heading").appendChild(data);
-          setInterval(showStatus, 1000);
+          setInterval(() => { showStatus(data, reloadTime); reloadTime--; }, 1000);
           displayText("Finished");
         } else {
           sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
