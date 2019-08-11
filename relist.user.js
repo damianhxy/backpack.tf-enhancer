@@ -1,5 +1,5 @@
 // ==UserScript==
-// @copyright           ©2014 - 2015, Damian Ho
+// @copyright           ©2014 - 2019, Damian Ho
 // @description         Helper script for Backpack.tf
 // @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/master/relist.user.js
 // @include             /^https:\/\/backpack\.tf.*$/
@@ -371,7 +371,8 @@
     }
 
     function loadListPage() {
-        switch (document.querySelector(".item-panel > h2").textContent.trim()) {
+        var header = document.querySelector(".panel-heading > span");
+        switch (header.textContent.trim()) {
         case "Relisting this item":
           var itemID = document.querySelector(".item").getAttribute("data-id");
           displayText("Relisting Item", true);
@@ -434,7 +435,7 @@
           if (attr["data-festivized"])
             listNotes = "Festivized. " + listNotes;
 
-          document.getElementById("details").value = listNotes;
+          document.getElementById("listing-comments").value = listNotes;
           var extended = true;
           if (paint)
             colour = paintLookup[paint];
@@ -469,6 +470,7 @@
             // Note that data-quality instead of data-q_name works too
             url = `https://backpack.tf/stats/${attr["data-q_name"]}/${name}/Tradable/Craftable/`;
           }
+          console.info("Loading data from", url);
           HTTPRequest("GET", url, e => {
             var ele = document.createElement("html"),
                 str;
@@ -498,7 +500,7 @@
             }
             if (paint && !paintLookup[name])
               str += ` [Painted ${paint}]`;
-            document.getElementsByClassName("panel-heading")[0].textContent += str;
+            header.textContent += str;
             displayText("Loaded", false);
           });
       }
