@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.8.1
+// @version             1.8.2
 // ==/UserScript==
 
 (function () {
@@ -297,7 +297,7 @@
     }
 
     function loadProfile() {
-        addButton("annotate", "Annotate", false);
+      addButton("annotate", "Annotate", false);
       addButton("pricediff", "Show Change", false);
       if (ownProfile)
         addButton("fastlist", "Quick Listing", false);
@@ -377,7 +377,8 @@
         case "relist":
           var itemID = document.querySelector(".item").getAttribute("data-id");
           displayText("Relisting Item", true);
-          setTimeout(() => { document.querySelector(".place-listing").click(); }, 1000);
+          setTimeout(() => { displayText("Relisted", false); document.querySelector(".place-listing").click(); }, range(1000, 1500));
+          setTimeout(() => { displayText("Error... Reloading"); location.reload(); }, range(7500, 10000));
           break;
         default:
           displayText("Loading");
@@ -513,7 +514,13 @@
         if (document.getElementById("cf-wrapper")) {
             console.info(`Backpack.tf Script Paused (Offline). Version ${GM_info.script.version}`);
             if (sessionStorage.getItem("mainThread"))
-                setTimeout(() => location.assign(document.URL), 5000);
+                setTimeout(() => location.reload(), 5000);
+            return;
+        }
+        if (document.getElementsByClassName("cf-error-504").length) {
+                console.info(`Backpack.tf Script Paused (504). Version ${GM_info.script.version}`);
+            if (sessionStorage.getItem("mainThread"))
+                setTimeout(() => location.reload(), 5000);
             return;
         }
 
