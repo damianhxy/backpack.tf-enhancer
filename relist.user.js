@@ -10,7 +10,7 @@
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.8.2
+// @version             1.8.2.1
 // ==/UserScript==
 
 (function () {
@@ -517,8 +517,8 @@
                 setTimeout(() => location.reload(), 5000);
             return;
         }
-        if (document.getElementsByClassName("cf-error-504").length) {
-                console.info(`Backpack.tf Script Paused (504). Version ${GM_info.script.version}`);
+        if (document.getElementsByClassName("cf-error-details").length) {
+            console.info(`Backpack.tf Script Paused (Error). Version ${GM_info.script.version}`);
             if (sessionStorage.getItem("mainThread"))
                 setTimeout(() => location.reload(), 5000);
             return;
