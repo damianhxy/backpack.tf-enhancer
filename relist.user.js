@@ -1,70 +1,73 @@
 // ==UserScript==
-// @copyright           ©2014 - 2019, Damian Ho
+// @copyright           ©2014 - 2026, Damian Ho
 // @description         Helper script for Backpack.tf
 // @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/master/relist.user.js
-// @include             /^https:\/\/backpack\.tf.*$/
-// @exclude             /^https:\/\/backpack\.tf\/developer$/
-// @exclude             /^https:\/\/backpack\.tf\/api.*$/
+// @match               https://backpack.tf/*
+// @exclude             https://backpack.tf/developer
+// @exclude             https://backpack.tf/api/*
 // @grant               none
 // @name                Backpack.tf Enhancer
 // @namespace           https://bitbucket.org/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.8.2.1
+// @version             1.9.0
 // ==/UserScript==
 
 (function () {
+    "use strict";
     /*********** SETTINGS ***********/
-    var randomTime = 1,              //[boolean] random reload time?
-        defaultTime = 5,             //[minutes] default reload time
-        randomMin = 3,               //[minutes] minimum random reload time
-        randomMax = 10,              //[minutes] maximum random reload time
-        updateFreq = 3,              //[days] price refresh frequency
-        threshold = 5,               //[percent] threshold for price changes
-        absThreshold = 0.11;         //[refined] absolute threshold
+    const randomTime = 1,
+        defaultTime = 5,
+        randomMin = 3,
+        randomMax = 10,
+        updateFreq = 3,
+        threshold = 5,
+        absThreshold = 0.11;
     /******** END OF SETTINGS *******/
 
     /*********** CONSTANT ***********/
-    var paintLookup = {
-    "A Color Similar to Slate": 3100495,
-    "A Deep Commitment to Purple": 8208497,
-    "A Distinctive Lack of Hue": 1315860,
-    "A Mann's Mint": 12377523,
-    "After Eight": 2960676,
-    "Aged Moustache Grey": 8289918,
-    "An Air of Debonair": 6637376,
-    "An Extraordinary Abundance of Tinge": 15132390,
-    "Australium Gold": 15185211,
-    "Balaclavas Are Forever": 3874595,
-    "Color No. 216-190-216": 14204632,
-    "Cream Spirit": 12807213,
-    "Dark Salmon Injustice": 15308410,
-    "Drably Olive": 8421376,
-    "Indubitably Green": 7511618,
-    "Mann Co. Orange": 13595446,
-    "Muskelmannbraun": 10843461,
-    "Noble Hatter's Violet": 5322826,
-    "Operator's Overalls": 4732984,
-    "Peculiarly Drab Tincture": 12955537,
-    "Pink as Hell": 16738740,
-    "Radigan Conagher Brown": 6901050,
-    "Team Spirit": 12073019,
-    "The Bitter Taste of Defeat and Lime": 3329330,
-    "The Color of a Gentlemann's Business Pants": 15787660,
-    "The Value of Teamwork": 8400928,
-    "Waterlogged Lab Coat": 11049612,
-    "Ye Olde Rustic Colour": 8154199,
-    "Zepheniah's Greed": 4345659
+    const paintLookup = {
+        "A Color Similar to Slate": 3100495,
+        "A Deep Commitment to Purple": 8208497,
+        "A Distinctive Lack of Hue": 1315860,
+        "A Mann's Mint": 12377523,
+        "After Eight": 2960676,
+        "Aged Moustache Grey": 8289918,
+        "An Air of Debonair": 6637376,
+        "An Extraordinary Abundance of Tinge": 15132390,
+        "Australium Gold": 15185211,
+        "Balaclavas Are Forever": 3874595,
+        "Color No. 216-190-216": 14204632,
+        "Cream Spirit": 12807213,
+        "Dark Salmon Injustice": 15308410,
+        "Drably Olive": 8421376,
+        "Indubitably Green": 7511618,
+        "Mann Co. Orange": 13595446,
+        "Muskelmannbraun": 10843461,
+        "Noble Hatter's Violet": 5322826,
+        "Operator's Overalls": 4732984,
+        "Peculiarly Drab Tincture": 12955537,
+        "Pink as Hell": 16738740,
+        "Radigan Conagher Brown": 6901050,
+        "Team Spirit": 12073019,
+        "The Bitter Taste of Defeat and Lime": 3329330,
+        "The Color of a Gentlemann's Business Pants": 15787660,
+        "The Value of Teamwork": 8400928,
+        "Waterlogged Lab Coat": 11049612,
+        "Ye Olde Rustic Colour": 8154199,
+        "Zepheniah's Greed": 4345659
     };
 
-    var ksLookup = ["", "Killstreak ", "Specialized Killstreak ", "Professional Killstreak "];
+    const ksLookup = ["", "Killstreak ", "Specialized Killstreak ", "Professional Killstreak "];
     /******** END OF CONSTANT *******/
+
+    let relistInterval = null;
 
     function addButton(prop, val, def) {
         sessionStorage.setItem(prop, sessionStorage.getItem(prop) || def);
-        var button = document.createElement("a"),
+        const button = document.createElement("a"),
             activated = JSON.parse(sessionStorage.getItem(prop)),
-            curNum = document.querySelectorAll(".btn.btn-sm").length  - 1;
+            curNum = document.querySelectorAll(".btn.btn-sm").length - 1;
         button.style = `width: 125px; position: fixed; top: ${45 + 32 * curNum}px; right: 2px;`;
         button.classList.add("btn", `btn-${activated ? "success" : "danger"}`, "btn-sm");
         button.addEventListener("click", () => {
@@ -82,17 +85,15 @@
     }
 
     function createIcon(cls, style) {
-        var icon = document.createElement("i");
+        const icon = document.createElement("i");
         icon.classList.add("fa", `fa-${cls}`, "fa-inverse", "fa-border", "pull-left");
         icon.style = `border-radius: 50%;${style ? " " + style : ""}`;
         return icon;
     }
 
     function displayText(msg, spinner) {
-        if (!stat)
-            return;
-        if (msg)
-            stat.textContent = msg;
+        if (!stat) return;
+        if (msg) stat.textContent = msg;
         if (spinner !== undefined) {
             icon.classList.toggle("fa-info-circle", !spinner);
             icon.classList.toggle("fa-refresh", spinner);
@@ -101,21 +102,23 @@
     }
 
     function getAttr(ele) {
-        var attr = {};
-        Array.prototype.forEach.call(ele.attributes, e => attr[e.name] = isNaN(+e.value) ? e.value : +e.value);
+        const attr = {};
+        for (const e of ele.attributes) {
+            attr[e.name] = isNaN(+e.value) ? e.value : +e.value;
+        }
         return attr;
     }
 
     function label(ele, annotate, fastlist, change) {
-        var frag = document.createDocumentFragment(),
+        const frag = document.createDocumentFragment(),
             attr = getAttr(ele),
-            craft = ele.querySelector(".tag.top-left"),
             title = attr["data-default_name"] || attr["title"];
+        let craft = ele.querySelector(".tag.top-left");
         if (annotate || fastlist) {
-            if (ele.querySelector(".killstreaker"))
-                ele.querySelector(".killstreaker").remove();
-            if (ele.querySelector(".festivized-item"))
-                ele.querySelector(".festivized-item").remove();
+            const killstreaker = ele.querySelector(".killstreaker");
+            if (killstreaker) killstreaker.remove();
+            const festivized = ele.querySelector(".festivized-item");
+            if (festivized) festivized.remove();
             if (craft && !attr["data-crate"] && !attr["data-quantity"]) {
                 if (+craft.textContent.slice(1) <= 100)
                     frag.appendChild(createIcon("exclamation-triangle"));
@@ -123,65 +126,65 @@
             }
             if (attr["data-gifted_name"]) {
                 frag.appendChild(createIcon("gift"));
-                ele.querySelector(".fa-gift").remove();
+                const giftIcon = ele.querySelector(".fa-gift");
+                if (giftIcon) giftIcon.remove();
             }
-            if (ele.querySelector(".tag.top-left")) {
-                ele.querySelector(".tag.top-left").classList.add("top-right");
-                ele.querySelector(".tag.top-left.top-right").classList.remove("top-left");
+            const topLeft = ele.querySelector(".tag.top-left");
+            if (topLeft) {
+                topLeft.classList.add("top-right");
+                topLeft.classList.remove("top-left");
             }
         }
         if (fastlist && ownProfile) {
             if (attr["data-defindex"] < 5000 || attr["data-defindex"] > 5002) {
-                var isListed = attr["data-listing_price"];
-                var link = document.createElement("a");
-                var priceTag = ele.querySelector(".fa.fa-tag");
-                if (priceTag) {
-                    priceTag.remove();
-                }
-                link.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
-                link.appendChild(createIcon(isListed ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0; color: white;"));
-                frag.appendChild(link);
+                const isListed = attr["data-listing_price"];
+                const priceTag = ele.querySelector(".fa.fa-tag");
+                if (priceTag) priceTag.remove();
+                const addLink = document.createElement("a");
+                addLink.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
+                addLink.appendChild(createIcon(isListed ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0; color: white;"));
+                frag.appendChild(addLink);
                 if (isListed) {
-                    var link = document.createElement("a");
-                    link.href = "#";
-                    link.appendChild(createIcon("times", "position: absolute; bottom: 0; left: 20px;"));
-                    link.addEventListener("click", e => {
+                    const removeLink = document.createElement("a");
+                    removeLink.href = "#";
+                    removeLink.appendChild(createIcon("times", "position: absolute; bottom: 0; left: 20px;"));
+                    removeLink.addEventListener("click", e => {
                         e.preventDefault();
                         e.stopPropagation();
-                        HTTPRequest("POST", "/classifieds/remove/440_" + attr["data-id"], f => {
-                            var parent = e.target.parentElement;
-                            var relistSlot = parent.previousElementSibling;
-                            relistSlot.firstElementChild.remove();
+                        HTTPRequest("POST", "/classifieds/remove/440_" + attr["data-id"], () => {
+                            const parent = e.target.parentElement;
+                            const relistSlot = parent.previousElementSibling;
+                            const relistIcon = relistSlot.firstElementChild;
+                            if (relistIcon) relistIcon.remove();
                             relistSlot.appendChild(createIcon("plus", "position: absolute; bottom: 0; left: 0;"));
-                            var change = parent.nextElementSibling;
-                            if (change !== null)
-                                change.remove();
-                            var price = parent.parentElement.nextElementSibling;
-                            price.remove();
+                            const changeEl = parent.nextElementSibling;
+                            if (changeEl) changeEl.remove();
+                            const price = parent.parentElement.nextElementSibling;
+                            if (price) price.remove();
                             parent.remove();
-                        }, `user-id=${unsafeWindow.Session.csrf}`);
+                        }, `user-id=${window.Session.csrf}`);
                     });
-                    frag.appendChild(link);
+                    frag.appendChild(removeLink);
                 }
             }
         }
         if (change && attr["data-listing_price"]) {
-            if (ele.querySelector(".value") && !attr["data-crate"])
-                ele.querySelector(".value").style.display = "none";
-            var curP = attr["data-price"],
+            const valueEl = ele.querySelector(".value");
+            if (valueEl && !attr["data-crate"])
+                valueEl.style.display = "none";
+            const curP = attr["data-price"],
                 listP = parsePrice(attr["data-listing_price"]),
                 diff = Math.abs(100 - (curP / listP) * 100),
                 absDiff = Math.abs(curP - listP);
             if (!curP)
                 frag.appendChild(createIcon("question", "color: blueviolet; background-color: white;"));
             else if (diff >= threshold && absDiff >= absThreshold) {
-                var colour = "lime";
+                let colour = "lime";
                 if (diff >= threshold * 2 && diff <= threshold * 4)
                     colour = "goldenrod";
                 else if (diff > threshold * 4)
                     colour = "crimson";
-                frag.appendChild(createIcon(`level-${curP > listP ? "up" : "down"}`, `color: ${colour}` +
-                                            "; background-color: white;"));
+                frag.appendChild(createIcon(`level-${curP > listP ? "up" : "down"}`, `color: ${colour}; background-color: white;`));
             }
         }
         if (annotate) {
@@ -192,9 +195,9 @@
             if (attr["data-spell_1"])
                 frag.appendChild(createIcon("magic"));
             if (attr["data-festivized"])
-                frag.appendChild(createIcon("lightbulb-o"))
+                frag.appendChild(createIcon("lightbulb-o"));
             if (title.includes("Killstreak")) {
-                var colour = "darkgoldenrod";
+                let colour = "darkgoldenrod";
                 if (title.includes("Specialized"))
                     colour = "darkgray";
                 else if (title.includes("Professional"))
@@ -204,32 +207,37 @@
             if (attr["data-custom_name"] || attr["data-custom_desc"])
                 frag.appendChild(createIcon("file-text"));
         }
-        ele.firstElementChild.appendChild(frag);
+        const firstChild = ele.firstElementChild;
+        if (firstChild) firstChild.appendChild(frag);
     }
 
-    function HTTPRequest(method, URL, callback, data) {
+    async function HTTPRequest(method, url, callback, data) {
         displayText("Sending", true);
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.open(method, URL, callback);
-        xmlhttp.onreadystatechange = () => {
-            displayText(`[${xmlhttp.readyState}, ${xmlhttp.status}]`);
-            if (xmlhttp.readyState === 4 && xmlhttp.status !== 200)
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-type": "application/x-www-form-urlencoded" },
+                body: data
+            });
+            displayText(`[4, ${response.status}]`);
+            if (!response.ok) {
                 displayText("Request Error", false);
-        };
-        xmlhttp.onload = () => {
+                return;
+            }
+            const text = await response.text();
             displayText("Received", false);
-            return callback(xmlhttp.responseText);
-        };
-        xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xmlhttp.send(data);
+            callback(text);
+        } catch (_e) {
+            displayText("Request Error", false);
+        }
     }
 
     function parsePrice(str) {
-        var arr = str.split(" "),
-            key = 0,
+        const arr = str.split(" ");
+        let key = 0,
             ref = 0;
         if (arr[0].includes("–")) {
-            var pts = arr[0].split("–");
+            const pts = arr[0].split("–");
             arr[0] = ((+pts[0] + +pts[1]) / 2).toString();
         }
         arr.forEach((e, i) => {
@@ -251,21 +259,24 @@
     }
 
     function round(num) {
-        if (num <= 5 / 90)
-            return num;
+        if (num <= 5 / 90) return num;
         num += num * 10 % 1 / 90;
         return Math.floor(num) + Math.round((num % 1 * 9).toFixed(2)) / 9;
     }
 
     function showStatus(e, reloadTime) {
         if (reloadTime) {
-            var min = Math.floor(reloadTime / 60),
+            const min = Math.floor(reloadTime / 60),
                 sec = reloadTime % 60;
             e.textContent = `Reloading classifieds in ${min}:${("0" + sec).slice(-2)}`;
             document.title = `Classifieds: ${min}:${("0" + sec).slice(-2)}`;
         } else {
-            document.querySelector(".fa-angle-double-left").click();
-            clearInterval(showStatus);
+            const doubleLeft = document.querySelector(".fa-angle-double-left");
+            if (doubleLeft) doubleLeft.click();
+            if (relistInterval) {
+                clearInterval(relistInterval);
+                relistInterval = null;
+            }
         }
     }
 
@@ -274,16 +285,18 @@
             return console.info(`Price updating suppressed`);
         if (!localStorage.getItem("apikey"))
             localStorage.setItem("apikey", prompt("API key not set, register yours from https://backpack.tf/developer/"));
-        if (localStorage.getItem("apikey").length !== 24) {
-            alert("Incorrect API key length");
+        const apiKey = localStorage.getItem("apikey");
+        if (!apiKey || apiKey.length !== 24) {
+            if (apiKey) alert("Incorrect API key length");
             localStorage.removeItem("apikey");
+            return;
         }
         displayText("Updating prices", true);
-        HTTPRequest("GET", `https://backpack.tf/api/IGetPrices/v4/?key=${localStorage.getItem("apikey")}`, e => {
-            var data = JSON.parse(e);
+        HTTPRequest("GET", `https://backpack.tf/api/IGetPrices/v4/?key=${apiKey}`, e => {
+            const data = JSON.parse(e);
             if (!data.response.success)
                 return console.info(`Error:\n${data.response.message}`);
-            var key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
+            const key = data.response.items["Mann Co. Supply Crate Key"].prices[6].Tradable.Craftable[0],
                 r = Math.floor(data.response.raw_usd_value * 1000) / 10,
                 k = (key.value + (key.value_high || key.value)) / 2,
                 rDiff = `(${r === refP ? "=" : r < refP ? "↓" : "↑"})`,
@@ -297,217 +310,234 @@
     }
 
     function loadProfile() {
-      addButton("annotate", "Annotate", false);
-      addButton("pricediff", "Show Change", false);
-      if (ownProfile)
-        addButton("fastlist", "Quick Listing", false);
-      if (document.querySelector("[href='#page0']"))
-        document.querySelector("[href='#page0']").insertAdjacentHTML('afterbegin', `${document.querySelector(".item-list").childElementCount} `);
-      var totalPartValue = 0,
-          totalPaintValue = 0;
-      Array.prototype.forEach.call(document.querySelectorAll("[data-tradable='1']"), e => {
-        if (e.hasAttribute("data-paint_price"))
-          totalPaintValue += parsePrice(e.getAttribute("data-paint_price"));
-        for (var a = 1; a <= 3; ++a)
-          if (e.hasAttribute("data-part_price_" + a))
-            totalPartValue += parsePrice(e.getAttribute("data-part_price_" + a));
-        label(e, JSON.parse(sessionStorage.getItem("annotate")),
-              JSON.parse(sessionStorage.getItem("fastlist")),
-              JSON.parse(sessionStorage.getItem("pricediff")));
-      });
-      totalPartValue = Math.floor(round(totalPartValue / 5) * 100) / 100;
-      totalPaintValue = Math.floor(round(totalPaintValue / 5) * 100) / 100;
-      console.info("Total part value: " + totalPartValue + " refined.");
-      console.info("Total paint value: " + totalPaintValue + " refined.");
-      displayText("Loaded");
+        addButton("annotate", "Annotate", false);
+        addButton("pricediff", "Show Change", false);
+        if (ownProfile) addButton("fastlist", "Quick Listing", false);
+        const pageAnchor = document.querySelector("[href='#page0']");
+        if (pageAnchor) {
+            const itemList = document.querySelector(".item-list");
+            pageAnchor.insertAdjacentHTML("afterbegin", `${itemList ? itemList.childElementCount : 0} `);
+        }
+        let totalPartValue = 0,
+            totalPaintValue = 0;
+        for (const e of document.querySelectorAll("[data-tradable='1']")) {
+            if (e.hasAttribute("data-paint_price"))
+                totalPaintValue += parsePrice(e.getAttribute("data-paint_price"));
+            for (let a = 1; a <= 3; ++a)
+                if (e.hasAttribute("data-part_price_" + a))
+                    totalPartValue += parsePrice(e.getAttribute("data-part_price_" + a));
+            label(e, JSON.parse(sessionStorage.getItem("annotate")),
+                JSON.parse(sessionStorage.getItem("fastlist")),
+                JSON.parse(sessionStorage.getItem("pricediff")));
+        }
+        totalPartValue = Math.floor(round(totalPartValue / 5) * 100) / 100;
+        totalPaintValue = Math.floor(round(totalPaintValue / 5) * 100) / 100;
+        console.info("Total part value: " + totalPartValue + " refined.");
+        console.info("Total paint value: " + totalPaintValue + " refined.");
+        displayText("Loaded");
     }
 
     function loadListings() {
-      var single = !document.querySelector(".pagination"),
-          first = single || document.querySelector(".pagination > li:first-child").className === "disabled",
-          end = single || document.querySelector(".pagination > li:last-child").className === "disabled",
-          buttons = Array.prototype.slice.call(document.getElementsByClassName("listing-relist")),
-          items = JSON.parse(sessionStorage.getItem("toList")) || [],
-          last;
-      if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
-        displayText("Terminated");
-        return console.info(`Backpack.tf Script Terminated (Not Main Thread). Version ${GM_info.script.version}`);
-      } else if (!localStorage.getItem("threadRunning")) {
-        localStorage.setItem("threadRunning", null);
-        sessionStorage.setItem("mainThread", null);
-      } else if (document.querySelector("[class^='alert-']"))
-        displayText("Terminated");
-      if (items.length) {
-        displayText(`Relisting Page ${sessionStorage.getItem("nextPage") - 1}`, true);
-        sessionStorage.setItem("curItem", last = items.pop());
-        sessionStorage.setItem("toList", JSON.stringify(items));
-        location.assign(`http://backpack.tf/classifieds/relist/${last}`);
-      } else if (buttons.length) {
-        buttons.forEach(e => items.push(e.href.slice(39)));
-        sessionStorage.setItem("curItem", last = items.pop());
-        sessionStorage.setItem("toList", JSON.stringify(items));
-        displayText("Saved IDs", true);
-        location.assign(`http://backpack.tf/classifieds/relist/${last}`);
-      } else if (first) {
-        displayText(`Jumping to ${sessionStorage.getItem("nextPage")}`, true);
-        location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
-      } else {
-        if (end) {
-          localStorage.removeItem("threadRunning");
-          sessionStorage.removeItem("mainThread");
-          sessionStorage.removeItem("nextPage");
-          var data = document.createElement("small"),
-              reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
-          data.style = "color: orange; float: right;";
-          document.querySelector(".panel-heading").appendChild(data);
-          setInterval(() => { showStatus(data, reloadTime); reloadTime--; }, 1000);
-          displayText("Finished");
+        const single = !document.querySelector(".pagination"),
+            first = single || document.querySelector(".pagination > li:first-child").className === "disabled",
+            end = single || document.querySelector(".pagination > li:last-child").className === "disabled",
+            buttons = document.getElementsByClassName("listing-relist"),
+            items = JSON.parse(sessionStorage.getItem("toList")) || [];
+        let last;
+        if (localStorage.getItem("threadRunning") && !sessionStorage.getItem("mainThread")) {
+            displayText("Terminated");
+            return console.info(`Backpack.tf Script Terminated (Not Main Thread). Version ${GM_info.script.version}`);
+        } else if (!localStorage.getItem("threadRunning")) {
+            localStorage.setItem("threadRunning", null);
+            sessionStorage.setItem("mainThread", null);
+        } else if (document.querySelector("[class^='alert-']"))
+            displayText("Terminated");
+        if (items.length) {
+            displayText(`Relisting Page ${sessionStorage.getItem("nextPage") - 1}`, true);
+            sessionStorage.setItem("curItem", last = items.pop());
+            sessionStorage.setItem("toList", JSON.stringify(items));
+            location.assign(`http://backpack.tf/classifieds/relist/${last}`);
+        } else if (buttons.length) {
+            for (const e of buttons) items.push(e.href.slice(39));
+            sessionStorage.setItem("curItem", last = items.pop());
+            sessionStorage.setItem("toList", JSON.stringify(items));
+            displayText("Saved IDs", true);
+            location.assign(`http://backpack.tf/classifieds/relist/${last}`);
+        } else if (first) {
+            displayText(`Jumping to ${sessionStorage.getItem("nextPage")}`, true);
+            location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
+        } else if (end) {
+            localStorage.removeItem("threadRunning");
+            sessionStorage.removeItem("mainThread");
+            sessionStorage.removeItem("nextPage");
+            const data = document.createElement("small"),
+                reloadTime = randomTime ? range(randomMin * 60, randomMax * 60) : defaultTime * 60;
+            data.style = "color: orange; float: right;";
+            const heading = document.querySelector(".panel-heading");
+            if (heading) heading.appendChild(data);
+            if (relistInterval) {
+                clearInterval(relistInterval);
+                relistInterval = null;
+            }
+            let count = reloadTime;
+            relistInterval = setInterval(() => { showStatus(data, count); count--; }, 1000);
+            displayText("Finished");
         } else {
-          sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
-          displayText("Moving");
-          document.querySelector(".fa-angle-right").click();
+            sessionStorage.setItem("nextPage", +sessionStorage.getItem("nextPage") + !first);
+            displayText("Moving");
+            const angleRight = document.querySelector(".fa-angle-right");
+            if (angleRight) angleRight.click();
         }
-      }
     }
 
     function loadListPage() {
-        var status = /^https:\/\/backpack\.tf\/classifieds\/relist\/.*$/.test(document.URL) ? "relist" : "sell";
-        var header = document.querySelector(".panel-heading > span");
+        const status = /^https:\/\/backpack\.tf\/classifieds\/relist\/.*$/.test(document.URL) ? "relist" : "sell";
+        const header = document.querySelector(".panel-heading > span");
         switch (status) {
         case "relist":
-          var itemID = document.querySelector(".item").getAttribute("data-id");
-          displayText("Relisting Item", true);
-          setTimeout(() => { displayText("Relisted", false); document.querySelector(".place-listing").click(); }, range(1000, 1500));
-          setTimeout(() => { displayText("Error... Reloading"); location.reload(); }, range(7500, 10000));
-          break;
+            displayText("Relisting Item", true);
+            setTimeout(() => {
+                displayText("Relisted", false);
+                const placeListing = document.querySelector(".place-listing");
+                if (placeListing) placeListing.click();
+            }, range(1000, 1500));
+            setTimeout(() => {
+                displayText("Error... Reloading");
+                location.reload();
+            }, range(7500, 10000));
+            break;
         default:
-          displayText("Loading");
-          var attr = getAttr(document.querySelector(".item")),
-              colour = 0,
-              isAust = attr["data-australium"] || 0,
-              title = attr["data-original-title"] || attr["title"],
-              isKS = title.includes("Killstreak"),
-              name = attr["data-name"],
-              paint = attr["data-paint_name"],
-              pIndex = attr["data-priceindex"],
-              price = attr["data-price"],
-              quality = attr["data-quality"],
-              tier = -1,
-              wearTier = attr["data-wear_tier"];
-          if (price >= keyP && !name.includes("Key")) {
-            document.getElementById("keys").value = Math.floor(price / keyP);
-            price %= keyP;
-          }
-          price = Math.floor(round(price) * 100) / 100;
-          document.getElementById("metal").value = price || "";
-          if (isKS)
-            tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.includes(e));
-          tier = ~ tier ? 3 - tier : 0;
-          var listNotes = notes;
-
-          var parts = [];
-          for (var a = 1; a <= 3; ++a) {
-            if (attr[`data-part_name_${a}`]) {
-              parts.push(attr[`data-part_name_${a}`]);
+            displayText("Loading");
+            const item = document.querySelector(".item");
+            if (!item) return;
+            const attr = getAttr(item),
+                title = attr["data-original-title"] || attr["title"],
+                isKS = title.includes("Killstreak"),
+                paint = attr["data-paint_name"],
+                pIndex = attr["data-priceindex"],
+                quality = attr["data-quality"],
+                wearTier = attr["data-wear_tier"];
+            let colour = 0,
+                isAust = attr["data-australium"] || 0,
+                name = attr["data-name"],
+                price = attr["data-price"],
+                tier = -1;
+            if (price >= keyP && !name.includes("Key")) {
+                const keysInput = document.getElementById("keys");
+                if (keysInput) keysInput.value = Math.floor(price / keyP);
+                price %= keyP;
             }
-          }
+            price = Math.floor(round(price) * 100) / 100;
+            const metalInput = document.getElementById("metal");
+            if (metalInput) metalInput.value = price || "";
+            if (isKS)
+                tier = ["Professional", "Specialized", "Killstreak"].findIndex(e => title.includes(e));
+            tier = ~tier ? 3 - tier : 0;
+            let listNotes = notes || "";
 
-          var partsNotes = "";
-          if (parts.length) {
-            partsNotes = parts[0];
-            for (var part = 1; part < parts.length; ++part) {
-              if (part === parts.length - 1)
-                partsNotes += " & ";
-              else
-                partsNotes += ", ";
-              partsNotes += parts[part];
+            const parts = [];
+            for (let a = 1; a <= 3; ++a) {
+                if (attr[`data-part_name_${a}`]) {
+                    parts.push(attr[`data-part_name_${a}`]);
+                }
             }
-            partsNotes += ". ";
-          }
-          listNotes = partsNotes + listNotes;
 
-          var ksNotes = "";
-          if (tier === 3) {
-            ksNotes = `${attr["data-sheen"]} / ${attr["data-killstreaker"]}. `;
-          } else if (tier === 2) {
-            ksNotes = `${attr["data-sheen"]}. `;
-          }
-          listNotes = ksNotes + listNotes;
-
-          if (attr["data-festivized"])
-            listNotes = "Festivized. " + listNotes;
-
-          document.getElementById("listing-comments").value = listNotes;
-          var extended = true;
-          if (paint)
-            colour = paintLookup[paint];
-          if (isAust)
-            name = name.slice(11);
-          var url = `/classifieds?item=${name}&quality=${quality}` +
-              `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
-              `&australium=${isAust}&killstreak_tier=${isKS * tier}`;
-          if (colour)
-            url += `&paint=${colour}`;
-          if (attr["data-crate"])
-            url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
-          else if (pIndex) {
-            if (quality === 5)
-              url += `&particle=${pIndex}`;
-            else {
-              extended = false;
-              url = "https://backpack.tf/stats/Unique/" + ksLookup[tier];
-              if (title.includes("Chemistry Set"))
-                url += "Chemistry Set/Tradable/Craftable/";
-              else if (title.includes("Fabricator"))
-                url += "Fabricator/Tradable/Craftable/";
-              else if (title.includes("Kit"))
-                url += "Kit/Tradable/Non-Craftable/";
-              else if (title.includes("Strangifier"))
-                url += "Strangifier/Tradable/Craftable/";
-              else return alert(`[Unhandled Item]\n${title}`);
-              url += pIndex;
+            let partsNotes = "";
+            if (parts.length) {
+                partsNotes = parts[0];
+                for (let part = 1; part < parts.length; ++part) {
+                    if (part === parts.length - 1)
+                        partsNotes += " & ";
+                    else
+                        partsNotes += ", ";
+                    partsNotes += parts[part];
+                }
+                partsNotes += ". ";
             }
-          } else if (wearTier) {
-            extended = false;
-            // Note that data-quality instead of data-q_name works too
-            url = `https://backpack.tf/stats/${attr["data-q_name"]}/${name}/Tradable/Craftable/`;
-          }
-          console.info("Loading data from", url);
-          HTTPRequest("GET", url, e => {
-            var ele = document.createElement("html"),
-                str;
-            ele.innerHTML += e;
-            var hasListings = !ele.querySelector(".col-md-6:nth-child(1)").querySelector(".alert-info"),
-                craft = document.querySelector(".tag.top-left");
-            if (craft)
-              craft = craft.textContent.slice(1);
-            if (craft && craft <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
-              str = ` (Low Craft #${craft})`;
-              document.getElementById("keys").value = document.getElementById("metal").value = "";
-            } else if (hasListings) {
-              var list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing_price]"),
-                  length = extended && !paint ? Math.min(5, list.length) : list.length,
-                  lowest = list[0].getAttribute("data-listing_price"),
-                  highest = list[length - 1].getAttribute("data-listing_price");
-              str = ` (${lowest} ~ ${highest} from ${length} Listing(s))`;
-            } else
-              str = " (No other listings found)";
-            if (tier > 1) {
-              str += " [";
-              if (attr["data-sheen"])
-                str += `${attr["data-sheen"]}`;
-              if (attr["data-killstreaker"])
-                str += `, ${attr["data-killstreaker"]}`;
-              str += "]";
+            listNotes = partsNotes + listNotes;
+
+            let ksNotes = "";
+            if (tier === 3) {
+                ksNotes = `${attr["data-sheen"]} / ${attr["data-killstreaker"]}. `;
+            } else if (tier === 2) {
+                ksNotes = `${attr["data-sheen"]}. `;
             }
-            if (paint && !paintLookup[name])
-              str += ` [Painted ${paint}]`;
-            header.textContent += str;
-            displayText("Loaded", false);
-          });
-      }
+            listNotes = ksNotes + listNotes;
+
+            if (attr["data-festivized"])
+                listNotes = "Festivized. " + listNotes;
+
+            const commentsInput = document.getElementById("listing-comments");
+            if (commentsInput) commentsInput.value = listNotes;
+            let extended = true;
+            if (paint) colour = paintLookup[paint];
+            if (isAust) name = name.slice(11);
+            let url = `/classifieds?item=${name}&quality=${quality}` +
+                `&tradable=${attr["data-tradable"]}&craftable=${attr["data-craftable"]}` +
+                `&australium=${isAust}&killstreak_tier=${isKS * tier}`;
+            if (colour) url += `&paint=${colour}`;
+            if (attr["data-crate"])
+                url += `&numeric=crate&comparison=eq&value=${attr["data-crate"]}`;
+            else if (pIndex) {
+                if (quality === 5) {
+                    url += `&particle=${pIndex}`;
+                } else {
+                    extended = false;
+                    url = "https://backpack.tf/stats/Unique/" + ksLookup[tier];
+                    if (title.includes("Chemistry Set"))
+                        url += "Chemistry Set/Tradable/Craftable/";
+                    else if (title.includes("Fabricator"))
+                        url += "Fabricator/Tradable/Craftable/";
+                    else if (title.includes("Kit"))
+                        url += "Kit/Tradable/Non-Craftable/";
+                    else if (title.includes("Strangifier"))
+                        url += "Strangifier/Tradable/Craftable/";
+                    else return alert(`[Unhandled Item]\n${title}`);
+                    url += pIndex;
+                }
+            } else if (wearTier) {
+                extended = false;
+                url = `https://backpack.tf/stats/${attr["data-q_name"]}/${name}/Tradable/Craftable/`;
+            }
+            console.info("Loading data from", url);
+            HTTPRequest("GET", url, e => {
+                const ele = new DOMParser().parseFromString(e, "text/html");
+                let str;
+                const firstCol = ele.querySelector(".col-md-6:nth-child(1)");
+                const hasListings = firstCol && !firstCol.querySelector(".alert-info"),
+                    craft = document.querySelector(".tag.top-left");
+                let craftNum;
+                if (craft) craftNum = craft.textContent.slice(1);
+                if (craftNum && craftNum <= 100 && !attr["data-crate"] && !attr["data-quantity"]) {
+                    str = ` (Low Craft #${craftNum})`;
+                    const keysInput = document.getElementById("keys");
+                    const metalInput = document.getElementById("metal");
+                    if (keysInput) keysInput.value = "";
+                    if (metalInput) metalInput.value = "";
+                } else if (hasListings) {
+                    const list = ele.querySelectorAll(".col-md-6:nth-child(1) [data-listing_price]"),
+                        length = extended && !paint ? Math.min(5, list.length) : list.length,
+                        lowest = list[0].getAttribute("data-listing_price"),
+                        highest = list[length - 1].getAttribute("data-listing_price");
+                    str = ` (${lowest} ~ ${highest} from ${length} Listing(s))`;
+                } else {
+                    str = " (No other listings found)";
+                }
+                if (tier > 1) {
+                    str += " [";
+                    if (attr["data-sheen"]) str += `${attr["data-sheen"]}`;
+                    if (attr["data-killstreaker"]) str += `, ${attr["data-killstreaker"]}`;
+                    str += "]";
+                }
+                if (paint && !paintLookup[name])
+                    str += ` [Painted ${paint}]`;
+                if (header) header.textContent += str;
+                displayText("Loaded", false);
+            });
+        }
     }
 
+    let icon, stat, notes, ownProfile, refP, keyP;
     try {
         if (document.getElementById("login"))
             return console.info(`Backpack.tf Script Paused (Signed Out). Version ${GM_info.script.version}`);
@@ -525,29 +555,31 @@
         }
 
         /******** SCRIPT GLOBALS ********/
-        var listPage = /^https:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
+        const listPage = /^https:\/\/backpack\.tf\/classifieds\/(?:relist|sell)\/.*$/.test(document.URL),
             profile = /^https:\/\/backpack\.tf\/(?:id\/.+|profiles\/\d{17})(?:#page\d+)?$/.test(document.URL),
-            ownProfile = document.querySelector("[href^='/profiles']").href === document.URL.replace("#", ""),
             classifieds = /^https:\/\/backpack\.tf\/profiles\/$/.test(document.URL),
             listings = document.querySelector(".listing-remove") && document.URL.includes("steamid="),
-            refP = +localStorage.getItem("refP"),
-            keyP = +localStorage.getItem("keyP"),
-            lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0),
-            icon = createIcon("info-circle", "border: none"),
-            stat = document.createTextNode("Loading"),
-            notes = localStorage.getItem("notes");
+            lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0);
+        const profileLink = document.querySelector("[href^='/profiles']");
+        ownProfile = profileLink ? profileLink.href === document.URL.replace("#", "") : false;
+        refP = +localStorage.getItem("refP") || 0;
+        keyP = +localStorage.getItem("keyP") || 0;
+        icon = createIcon("info-circle", "border: none");
+        stat = document.createTextNode("Loading");
+        notes = localStorage.getItem("notes");
         /****** END SCRIPT GLOBALS ******/
 
-        if (refP && keyP && lastUpdt < 864e5 * updateFreq || update()) {
-            var diff = 864e5 * updateFreq - lastUpdt,
-                days = Math.floor(diff / 864e5),
-                hours = Math.floor((diff % 864e5) / 36e5),
-                minutes = Math.floor((diff % 36e5) / 6e4);
-            console.info(`Prices will update in ${days} day(s), ${hours} hour(s) and ${minutes} min(s)`);
-        }
+        if (!refP || !keyP || lastUpdt >= 864e5 * updateFreq)
+            update();
+
+        const diff = 864e5 * updateFreq - lastUpdt,
+            days = Math.floor(diff / 864e5),
+            hours = Math.floor((diff % 864e5) / 36e5),
+            minutes = Math.floor((diff % 36e5) / 6e4);
+        console.info(`Prices will update in ${days} day(s), ${hours} hour(s) and ${minutes} min(s)`);
 
         if (profile || listings || listPage) {
-            var info = document.createElement("a");
+            const info = document.createElement("a");
             info.title = "Click to reset";
             info.style = "position: fixed; top: 45px; left: 2px; width: 150px;";
             info.classList.add("btn", "btn-info", "btn-sm");
@@ -557,21 +589,26 @@
                 if (!confirm("Are you sure?")) return;
                 removeData();
                 displayText("Resetted");
-                if (listPage)
-                    document.getElementsByClassName("fa-tag")[0].click();
-                else
+                if (listPage) {
+                    const tag = document.getElementsByClassName("fa-tag")[0];
+                    if (tag) tag.click();
+                } else {
                     location.reload();
+                }
             });
             document.body.insertBefore(info, document.getElementById("helpers"));
             addButton("paused", "Paused", false);
         }
 
-        if (sessionStorage.getItem("mainThread") && !JSON.parse(sessionStorage.getItem("paused")))
-            if (profile || classifieds)
-                return document.getElementsByClassName("fa-tag")[0].click();
+        if (sessionStorage.getItem("mainThread") && !JSON.parse(sessionStorage.getItem("paused"))) {
+            if (profile || classifieds) {
+                const tag = document.getElementsByClassName("fa-tag")[0];
+                if (tag) return tag.click();
+            }
+        }
 
         if (profile) {
-            check(() => { return document.getElementsByClassName("page-anchor").length; }, () => loadProfile());
+            check(() => document.getElementsByClassName("page-anchor").length > 0, () => loadProfile());
         } else if (listings || listPage) {
             sessionStorage.setItem("nextPage", sessionStorage.getItem("nextPage") || 2);
             if (JSON.parse(sessionStorage.getItem("paused"))) {
@@ -586,7 +623,7 @@
             loadListPage();
         }
         console.info(`Backpack.tf Script Loaded. Version ${GM_info.script.version}`);
-    } catch(e) {
+    } catch (e) {
         displayText("Fatal Error");
         alert(`[A fatal error has occured]\n${e.message}\n[Stack Trace]\n${e.stack}`);
     }
