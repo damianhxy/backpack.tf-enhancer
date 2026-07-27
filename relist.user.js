@@ -219,15 +219,14 @@
                 headers: { "Content-type": "application/x-www-form-urlencoded" },
                 body: data
             });
-            displayText(`[4, ${response.status}]`);
             if (!response.ok) {
-                displayText("Request Error", false);
+                displayText(`Request Error: ${response.status}`, false);
                 return;
             }
             const text = await response.text();
             displayText("Received", false);
             callback(text);
-        } catch (_e) {
+        } catch {
             displayText("Request Error", false);
         }
     }
@@ -406,7 +405,7 @@
                 location.reload();
             }, range(7500, 10000));
             break;
-        default:
+        default: {
             displayText("Loading");
             const item = document.querySelector(".item");
             if (!item) return;
@@ -534,9 +533,10 @@
                 if (header) header.textContent += str;
                 displayText("Loaded", false);
             });
+            break;
+        }
         }
     }
-
     let icon, stat, notes, ownProfile, refP, keyP;
     try {
         if (document.getElementById("login"))
@@ -588,7 +588,7 @@
             info.addEventListener("click", () => {
                 if (!confirm("Are you sure?")) return;
                 removeData();
-                displayText("Resetted");
+                displayText("Reset");
                 if (listPage) {
                     const tag = document.getElementsByClassName("fa-tag")[0];
                     if (tag) tag.click();
@@ -625,6 +625,6 @@
         console.info(`Backpack.tf Script Loaded. Version ${GM_info.script.version}`);
     } catch (e) {
         displayText("Fatal Error");
-        alert(`[A fatal error has occured]\n${e.message}\n[Stack Trace]\n${e.stack}`);
+        alert(`[A fatal error has occurred]\n${e.message}\n[Stack Trace]\n${e.stack}`);
     }
 })();
