@@ -1,16 +1,19 @@
 // ==UserScript==
-// @copyright           ©2014 - 2026, Damian Ho
+// @copyright           ©2014-2026, Damian Ho
 // @description         Helper script for Backpack.tf
-// @downloadURL         https://bitbucket.org/damianhxy/backpack.tf-enhancer/raw/master/relist.user.js
-// @match               https://backpack.tf/*
+// @downloadURL         https://raw.githubusercontent.com/damianhxy/backpack.tf-enhancer/master/relist.user.js
 // @exclude             https://backpack.tf/developer
 // @exclude             https://backpack.tf/api/*
-// @grant               none
+// @grant               GM_info
+// @homepageURL         https://github.com/damianhxy/backpack.tf-enhancer
+// @match               https://backpack.tf/*
 // @name                Backpack.tf Enhancer
-// @namespace           https://bitbucket.org/damianhxy
+// @namespace           https://github.com/damianhxy
 // @noframes
 // @run-at              document-end
-// @version             1.9.0
+// @supportURL          https://github.com/damianhxy/backpack.tf-enhancer/issues
+// @updateURL           https://raw.githubusercontent.com/damianhxy/backpack.tf-enhancer/master/relist.user.js
+// @version             1.10.0
 // ==/UserScript==
 
 (function () {
@@ -141,7 +144,7 @@
                 const priceTag = ele.querySelector(".fa.fa-tag");
                 if (priceTag) priceTag.remove();
                 const addLink = document.createElement("a");
-                addLink.href = `http://backpack.tf/classifieds/sell/${attr["data-id"]}`;
+                addLink.href = `https://backpack.tf/classifieds/sell/${attr["data-id"]}`;
                 addLink.appendChild(createIcon(isListed ? "refresh" : "plus", "position: absolute; bottom: 0; left: 0; color: white;"));
                 frag.appendChild(addLink);
                 if (isListed) {
@@ -355,13 +358,13 @@
             displayText(`Relisting Page ${sessionStorage.getItem("nextPage") - 1}`, true);
             sessionStorage.setItem("curItem", last = items.pop());
             sessionStorage.setItem("toList", JSON.stringify(items));
-            location.assign(`http://backpack.tf/classifieds/relist/${last}`);
+            location.assign(`https://backpack.tf/classifieds/relist/${last}`);
         } else if (buttons.length) {
             for (const e of buttons) items.push(e.href.slice(39));
             sessionStorage.setItem("curItem", last = items.pop());
             sessionStorage.setItem("toList", JSON.stringify(items));
             displayText("Saved IDs", true);
-            location.assign(`http://backpack.tf/classifieds/relist/${last}`);
+            location.assign(`https://backpack.tf/classifieds/relist/${last}`);
         } else if (first) {
             displayText(`Jumping to ${sessionStorage.getItem("nextPage")}`, true);
             location.assign(`${document.URL}&page=${sessionStorage.getItem("nextPage")}`);
