@@ -5,6 +5,7 @@
 // @exclude             https://backpack.tf/developer
 // @exclude             https://backpack.tf/api/*
 // @grant               GM_info
+// @grant               unsafeWindow
 // @homepageURL         https://github.com/damianhxy/backpack.tf-enhancer
 // @match               https://backpack.tf/*
 // @name                Backpack.tf Enhancer
@@ -165,7 +166,7 @@
                             const price = parent.parentElement.nextElementSibling;
                             if (price) price.remove();
                             parent.remove();
-                        }, `user-id=${window.Session.csrf}`);
+                        }, `user-id=${unsafeWindow.Session.csrf}`);
                     });
                     frag.appendChild(removeLink);
                 }
