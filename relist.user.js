@@ -564,7 +564,7 @@
             listings = document.querySelector(".listing-remove") && document.URL.includes("steamid="),
             lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0);
         const profileLink = document.querySelector("[href^='/profiles']");
-        ownProfile = profileLink ? profileLink.href === document.URL.replace("#", "") : false;
+        ownProfile = profileLink ? profileLink.href === document.URL.split("#")[0] : false;
         refP = +localStorage.getItem("refP") || 0;
         keyP = +localStorage.getItem("keyP") || 0;
         icon = createIcon("info-circle", "border: none");
