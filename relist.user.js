@@ -286,7 +286,7 @@
         if (sessionStorage.getItem("mainThread"))
             return console.info(`Price updating suppressed`);
         if (!localStorage.getItem("apikey"))
-            localStorage.setItem("apikey", prompt("API key not set, register yours from https://backpack.tf/developer/"));
+            localStorage.setItem("apikey", prompt("API key not set, register yours from https://backpack.tf/developer/") || "");
         const apiKey = localStorage.getItem("apikey");
         if (!apiKey || apiKey.length !== 24) {
             if (apiKey) alert("Incorrect API key length");
