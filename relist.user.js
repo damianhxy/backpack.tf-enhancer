@@ -248,6 +248,7 @@
             else if (e.includes("key"))
                 key = +arr[i - 1];
         });
+        if (key && !keyP) return NaN;
         return ref + key * keyP;
     }
 
@@ -424,7 +425,7 @@
                 name = attr["data-name"],
                 price = attr["data-price"],
                 tier = -1;
-            if (price >= keyP && !name.includes("Key")) {
+            if (keyP && price >= keyP && !name.includes("Key")) {
                 const keysInput = document.getElementById("keys");
                 if (keysInput) keysInput.value = Math.floor(price / keyP);
                 price %= keyP;
