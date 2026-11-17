@@ -5,6 +5,7 @@
 // @exclude             https://backpack.tf/developer
 // @exclude             https://backpack.tf/api/*
 // @grant               GM_info
+// @grant               unsafeWindow
 // @homepageURL         https://github.com/damianhxy/backpack.tf-enhancer
 // @match               https://backpack.tf/*
 // @name                Backpack.tf Enhancer
@@ -165,7 +166,7 @@
                             const price = parent.parentElement.nextElementSibling;
                             if (price) price.remove();
                             parent.remove();
-                        }, `user-id=${window.Session.csrf}`);
+                        }, `user-id=${unsafeWindow.Session.csrf}`);
                     });
                     frag.appendChild(removeLink);
                 }
@@ -248,6 +249,7 @@
             else if (e.includes("key"))
                 key = +arr[i - 1];
         });
+        if (key && !keyP) return NaN;
         return ref + key * keyP;
     }
 
@@ -286,7 +288,7 @@
         if (sessionStorage.getItem("mainThread"))
             return console.info(`Price updating suppressed`);
         if (!localStorage.getItem("apikey"))
-            localStorage.setItem("apikey", prompt("API key not set, register yours from https://backpack.tf/developer/"));
+            localStorage.setItem("apikey", prompt("API key not set, register yours from https://backpack.tf/developer/") || "");
         const apiKey = localStorage.getItem("apikey");
         if (!apiKey || apiKey.length !== 24) {
             if (apiKey) alert("Incorrect API key length");
@@ -424,7 +426,7 @@
                 name = attr["data-name"],
                 price = attr["data-price"],
                 tier = -1;
-            if (price >= keyP && !name.includes("Key")) {
+            if (keyP && price >= keyP && !name.includes("Key")) {
                 const keysInput = document.getElementById("keys");
                 if (keysInput) keysInput.value = Math.floor(price / keyP);
                 price %= keyP;
@@ -564,7 +566,7 @@
             listings = document.querySelector(".listing-remove") && document.URL.includes("steamid="),
             lastUpdt = Date.now() - (+localStorage.getItem("lastupdt") || 0);
         const profileLink = document.querySelector("[href^='/profiles']");
-        ownProfile = profileLink ? profileLink.href === document.URL.replace("#", "") : false;
+        ownProfile = profileLink ? profileLink.href === document.URL.split("#")[0] : false;
         refP = +localStorage.getItem("refP") || 0;
         keyP = +localStorage.getItem("keyP") || 0;
         icon = createIcon("info-circle", "border: none");
